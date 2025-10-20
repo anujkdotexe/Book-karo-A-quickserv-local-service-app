@@ -574,8 +574,30 @@ Shadows:
 - **Vendors** and **Services** are SEPARATE entities with distinct tables
 - One vendor can provide multiple services (Vendor 1:N Service relationship)
 - Service.vendor_id references Vendor.id (NOT User.id)
-- CSV data loading is DISABLED via commented @Component in CSVDataLoader.java
-- Test data only: 1 vendor (TEST001) with 3 services
+- **CSV data loading is ENABLED** and loads 150 Mumbai services on first deployment
+- CSV file: `mumbai_vendors_150.csv` (151 vendors, 165 services total including test data)
+- Data loads ONCE when `serviceRepository.count() <= 20`, then persists permanently
+
+### CSV Data Loader Behavior (DEPLOYMENT CRITICAL)
+**IMPORTANT for GitHub deployments and new instances:**
+1. **File Location**: `D:\Springboard\mumbai_vendors_150.csv` (root directory)
+2. **Auto-Loading**: CSVDataLoader runs on every application startup
+3. **Smart Skip**: If database has >20 services, CSV loading is skipped
+4. **First Deployment**: Fresh database will auto-load all 150 services
+5. **Persistence**: All data stored in PostgreSQL - survives restarts
+6. **Git Tracked**: CSV file IS committed to Git and pushed to GitHub
+
+**When deploying to production (Railway, Render, Heroku, etc.):**
+- CSV file will be included in the repository ✅
+- On first startup, CSVDataLoader will detect empty database
+- All 151 vendors and 165 services will be automatically loaded
+- Subsequent restarts will skip loading (count > 20 check)
+- **All users see the SAME services** - they're in the shared database, not per-user
+
+**File**: `backend/src/main/java/com/bookaro/util/CSVDataLoader.java`
+- Active: `@Component` annotation is present
+- Order: `@Order(2)` (runs after DataInitializer)
+- Check: `if (serviceRepository.count() > 20) return;`
 
 ### Database Schema Management (PRODUCTION CRITICAL)
 ```properties
@@ -709,10 +731,11 @@ public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody Re
 - 1 vendor: TEST001 - "Test Services Co."
 - 3 services: Plumbing (Rs.1500), Cleaning (Rs.2500), Electrical (Rs.2000)
 
-### CSVDataLoader (DISABLED)
-- Commented @Component annotation to prevent auto-loading
-- Previously loaded 150 Mumbai vendors - now disabled for production
-- Only enable if explicitly requested to reload CSV data
+### CSVDataLoader (ENABLED)
+- Active with @Component annotation
+- Loads 150 Mumbai vendors + services on first deployment
+- Skips loading if database already has >20 services
+- CSV file tracked in Git for deployment
 
 ## Key Files & Their Purpose
 
@@ -720,7 +743,8 @@ public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody Re
 |------|---------|----------------|
 | SecurityConfig.java | JWT + CORS setup | Frontend origin: http://localhost:3000 |
 | DataInitializer.java | Creates 3 test users + 1 vendor + 3 services | @Order(1) - runs first |
-| CSVDataLoader.java | (DISABLED) Loads vendors from CSV | @Component commented out |
+| CSVDataLoader.java | Loads 150 vendors from CSV | @Order(2) - runs after DataInitializer |
+| mumbai_vendors_150.csv | 150 Mumbai service vendors | Tracked in Git, loaded on first startup |
 | application.properties | Database + server config | ddl-auto=validate (never change) |
 | api.js (frontend) | Axios instance with JWT interceptor | Auto-redirects to /login on 401 |
 | AuthContext.js (frontend) | Global auth state management | Stores token + user in localStorage |

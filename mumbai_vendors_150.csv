@@ -1,0 +1,151 @@
+VendorCode,BusinessName,PrimaryCategory,SubService,Location,Phone,Ratings,PriceRange,Availability
+M001,Car Services 1,Car Repair & Service,Engine Repair,Bandra East,9794583165,3.9,821-4525,24/7
+M002,Home Services 2,Home Cleaning,Bathroom Cleaning,Andheri East,9970631944,4.5,599-5069,Daily 10AM-9PM
+M003,Appliance Services 3,Appliance Repair,Washing Machine Repair,Mulund West,9484122592,4.6,569-4515,Mon-Sat 9AM-6PM
+M004,Electrical Services 4,Electrical Services,Lighting Repair,Malad West,9147619615,4.3,737-4583,Mon-Sat 9AM-6PM
+M005,Home Services 5,Home Tuition,English,Malad West,9888940102,5.0,493-2106,Mon-Sat 8AM-7PM
+M006,Home Services 6,Home Tuition,Science,Andheri East,9158837022,4.9,442-2846,Mon-Sat 8AM-7PM
+M007,Car Services 7,Car Repair & Service,Car Wash,Bandra East,9511565645,5.0,829-2019,Mon-Sat 8AM-7PM
+M008,Baby Services 8,Baby Care,Nanny Service,Andheri West,9879213870,4.9,949-3178,Mon-Sun 10AM-9PM
+M009,Plumbing Services 9,Plumbing,Pipe Replacement,Andheri East,9889333119,4.0,603-4815,24/7
+M010,Beauty Services 10,Beauty & Wellness,Bridal Makeup,Vikhroli West,9887845149,3.8,556-4207,Mon-Fri 10AM-5PM
+M011,Elderly Services 11,Elderly Care,Physiotherapy,Bandra East,9384284231,4.2,533-4646,24/7
+M012,Laundry Services 12,Laundry & Dry Cleaning,Ironing,Borivali West,9839153202,4.5,768-3943,24/7
+M013,Salon Services 13,Salon Services,Beard Trim,Andheri West,9474083640,4.3,376-3963,24/7
+M014,IT Services 14,IT & Tech Support,Network Setup,Kurla East,9502339663,4.4,645-3486,Tue-Sun 10AM-8PM
+M015,Beauty Services 15,Beauty & Wellness,Facial,Kurla East,9283449265,3.9,416-4340,Daily 10AM-9PM
+M016,Baby Services 16,Baby Care,Nanny Service,Andheri West,9605195684,3.9,743-3053,Mon-Sat 9AM-6PM
+M017,Salon Services 17,Salon Services,Beard Trim,Mulund West,9545870808,4.2,987-3125,Mon-Sat 9AM-6PM
+M018,Baby Services 18,Baby Care,Infant Care,Vikhroli West,9522449540,3.8,763-2843,Mon-Sat 8AM-7PM
+M019,Baby Services 19,Baby Care,Infant Care,Dadar West,9255768095,4.0,739-4796,Mon-Sat 8AM-7PM
+M020,Salon Services 20,Salon Services,Hair Color,Kurla East,9101827765,3.5,820-4804,24/7
+M021,Pest Services 21,Pest Control,Mosquito Control,Andheri East,9168713009,4.1,567-2454,Daily 10AM-9PM
+M022,Salon Services 22,Salon Services,Hair Color,Malad West,9930628983,3.8,571-1105,Mon-Sat 8AM-7PM
+M023,Car Services 23,Car Repair & Service,Car Wash,Bandra East,9411211854,5.0,950-3635,Mon-Sat 8AM-7PM
+M024,Gardening Services 24,Gardening & Landscaping,Tree Trimming,Dadar West,9284221954,4.7,688-2901,Mon-Sat 8AM-7PM
+M025,Appliance Services 25,Appliance Repair,Refrigerator Repair,Bandra East,9379679582,4.4,838-4328,Mon-Fri 10AM-5PM
+M026,Gardening Services 26,Gardening & Landscaping,Plant Care,Bandra East,9247375566,3.6,724-3024,Daily 10AM-9PM
+M027,Baby Services 27,Baby Care,Nanny Service,Vikhroli West,9557476301,4.0,364-1838,Tue-Sun 10AM-8PM
+M028,Electrical Services 28,Electrical Services,Wiring,Mulund West,9516115956,5.0,659-2765,24/7
+M029,Gardening Services 29,Gardening & Landscaping,Tree Trimming,Mulund West,9251386750,4.0,915-5068,24/7
+M030,Salon Services 30,Salon Services,Haircut,Vikhroli West,9931223428,3.9,493-4156,Daily 10AM-9PM
+M031,Baby Services 31,Baby Care,Day Care,Bandra East,9513927793,4.9,847-2576,Mon-Fri 10AM-5PM
+M032,Pest Services 32,Pest Control,Rodent Control,Borivali West,9102517952,4.6,793-2311,Mon-Sat 9AM-6PM
+M033,Courier Services 33,Courier Services,Domestic Courier,Malad West,9169545794,4.3,845-2559,24/7
+M034,Home Services 34,Home Tuition,English,Bandra East,9821909591,4.1,860-1810,Mon-Sat 9AM-6PM
+M035,Baby Services 35,Baby Care,Day Care,Goregaon East,9566270318,4.2,889-4877,Mon-Fri 10AM-5PM
+M036,Elderly Services 36,Elderly Care,Physiotherapy,Mulund West,9392584381,4.4,525-4782,Mon-Sat 8AM-7PM
+M037,Courier Services 37,Courier Services,International Courier,Vikhroli West,9570677171,3.6,499-1367,Mon-Sat 8AM-7PM
+M038,Salon Services 38,Salon Services,Hair Color,Mulund West,9547066448,4.2,907-3609,Mon-Sun 10AM-9PM
+M039,Baby Services 39,Baby Care,Nanny Service,Kurla East,9201458221,4.4,967-4208,Mon-Sat 9AM-6PM
+M040,Beauty Services 40,Beauty & Wellness,Hair Spa,Malad West,9665258896,3.8,867-3495,Mon-Sat 9AM-6PM
+M041,Beauty Services 41,Beauty & Wellness,Facial,Andheri West,9700839392,3.7,702-3334,Mon-Sat 8AM-7PM
+M042,Massage Services 42,Massage Therapy,Swedish Massage,Goregaon East,9881085950,3.9,858-3922,24/7
+M043,Laundry Services 43,Laundry & Dry Cleaning,Clothes Washing,Bandra East,9152188427,3.6,912-5236,Tue-Sun 10AM-8PM
+M044,Home Services 44,Home Tuition,Science,Andheri West,9217454657,4.7,687-3656,Mon-Sat 8AM-7PM
+M045,Elderly Services 45,Elderly Care,Companionship,Dadar West,9658140699,3.8,838-1995,Daily 10AM-9PM
+M046,Painting Services 46,Painting & Waterproofing,Roof Waterproofing,Goregaon East,9100700072,4.8,604-2633,Mon-Sat 8AM-7PM
+M047,Laundry Services 47,Laundry & Dry Cleaning,Clothes Washing,Andheri East,9185522470,5.0,316-3867,Daily 10AM-9PM
+M048,Home Services 48,Home Cleaning,Deep Cleaning,Andheri West,9354898573,4.8,769-4471,Mon-Sat 9AM-6PM
+M049,Appliance Services 49,Appliance Repair,Refrigerator Repair,Kurla East,9850752145,4.1,819-5038,Mon-Fri 10AM-5PM
+M050,Home Services 50,Home Cleaning,Carpet Cleaning,Goregaon East,9997750265,4.6,890-4959,Tue-Sun 10AM-8PM
+M051,Fitness Services 51,Fitness Training,Personal Training,Bandra East,9730188695,3.8,763-2363,Mon-Sat 9AM-6PM
+M052,Pest Services 52,Pest Control,Mosquito Control,Malad West,9444925091,4.2,826-2211,Tue-Sun 10AM-8PM
+M053,Plumbing Services 53,Plumbing,Pipe Replacement,Dadar West,9328855092,3.6,891-3420,Mon-Fri 10AM-5PM
+M054,Electrical Services 54,Electrical Services,Lighting Repair,Malad West,9114108910,3.9,413-4264,Mon-Sat 8AM-7PM
+M055,Gardening Services 55,Gardening & Landscaping,Tree Trimming,Andheri West,9793030983,3.8,785-4821,Tue-Sun 10AM-8PM
+M056,Pest Services 56,Pest Control,Mosquito Control,Bandra East,9695117793,4.2,522-3069,Mon-Sun 10AM-9PM
+M057,Pest Services 57,Pest Control,Mosquito Control,Bandra East,9987198284,4.1,432-3486,Mon-Sat 8AM-7PM
+M058,Party Services 58,Party Planning,Decoration,Goregaon East,9811184660,4.3,725-5013,Daily 10AM-9PM
+M059,Massage Services 59,Massage Therapy,Deep Tissue Massage,Andheri East,9841178823,3.6,574-4047,Mon-Fri 10AM-5PM
+M060,Beauty Services 60,Beauty & Wellness,Manicure,Dadar West,9246266777,4.9,712-3177,Mon-Sat 8AM-7PM
+M061,Gardening Services 61,Gardening & Landscaping,Plant Care,Andheri West,9735314974,4.7,625-3910,Mon-Sat 9AM-6PM
+M062,Beauty Services 62,Beauty & Wellness,Facial,Kurla East,9252602170,4.1,994-3077,24/7
+M063,Beauty Services 63,Beauty & Wellness,Facial,Goregaon East,9606023231,4.1,902-1695,Mon-Fri 10AM-5PM
+M064,IT Services 64,IT & Tech Support,Hardware Repair,Goregaon East,9770516412,4.7,733-1584,Tue-Sun 10AM-8PM
+M065,Beauty Services 65,Beauty & Wellness,Hair Spa,Malad West,9955079292,4.9,693-4499,Daily 10AM-9PM
+M066,Painting Services 66,Painting & Waterproofing,Roof Waterproofing,Kurla East,9901270643,4.6,564-4429,Mon-Sat 9AM-6PM
+M067,Baby Services 67,Baby Care,Day Care,Bandra East,9287141022,4.1,950-4861,Daily 10AM-9PM
+M068,Massage Services 68,Massage Therapy,Aromatherapy,Bandra East,9170456760,4.6,975-2034,Mon-Sat 8AM-7PM
+M069,Painting Services 69,Painting & Waterproofing,Fence Painting,Andheri East,9814823555,3.7,626-2772,Mon-Fri 10AM-5PM
+M070,Salon Services 70,Salon Services,Hair Color,Goregaon East,9369141912,4.8,304-1118,Mon-Fri 10AM-5PM
+M071,Gardening Services 71,Gardening & Landscaping,Lawn Mowing,Dadar West,9416503918,5.0,917-4587,Mon-Sat 8AM-7PM
+M072,Beauty Services 72,Beauty & Wellness,Pedicure,Vikhroli West,9436028066,3.7,1000-3710,Tue-Sun 10AM-8PM
+M073,Salon Services 73,Salon Services,Hair Color,Dadar West,9888779567,3.8,929-3675,Mon-Sat 9AM-6PM
+M074,Party Services 74,Party Planning,Decoration,Malad West,9307913339,4.0,458-4809,Daily 10AM-9PM
+M075,Home Services 75,Home Cleaning,Bathroom Cleaning,Bandra East,9365339590,3.6,859-3613,Tue-Sun 10AM-8PM
+M076,Home Services 76,Home Cleaning,Kitchen Cleaning,Mulund West,9684810596,4.1,801-1502,Mon-Sat 9AM-6PM
+M077,Salon Services 77,Salon Services,Haircut,Borivali West,9425218007,3.8,957-4819,Mon-Sun 10AM-9PM
+M078,Gardening Services 78,Gardening & Landscaping,Tree Trimming,Andheri East,9771797844,4.3,849-2293,Daily 10AM-9PM
+M079,Pest Services 79,Pest Control,Rodent Control,Andheri East,9278764015,4.9,384-2989,Mon-Sat 9AM-6PM
+M080,Home Services 80,Home Tuition,Science,Malad West,9153429737,4.5,994-1522,Mon-Sat 9AM-6PM
+M081,Massage Services 81,Massage Therapy,Aromatherapy,Bandra East,9210710376,4.5,927-5061,Tue-Sun 10AM-8PM
+M082,Legal Services 82,Legal Services,Property Law,Dadar West,9639840922,4.8,373-1826,Mon-Fri 10AM-5PM
+M083,Pest Services 83,Pest Control,Termite Treatment,Goregaon East,9595127830,4.7,903-4160,Mon-Sat 9AM-6PM
+M084,Pest Services 84,Pest Control,Rodent Control,Malad West,9560458231,3.6,471-1547,Tue-Sun 10AM-8PM
+M085,Appliance Services 85,Appliance Repair,Refrigerator Repair,Malad West,9712798853,3.9,935-3638,Tue-Sun 10AM-8PM
+M086,Plumbing Services 86,Plumbing,Pipe Replacement,Bandra East,9846690188,4.3,642-1179,24/7
+M087,Car Services 87,Car Repair & Service,Engine Repair,Dadar West,9578459739,3.6,489-1441,Mon-Sat 9AM-6PM
+M088,Home Services 88,Home Tuition,Science,Andheri West,9123102699,4.5,506-3462,Tue-Sun 10AM-8PM
+M089,Elderly Services 89,Elderly Care,Companionship,Andheri East,9714670228,4.0,779-4956,24/7
+M090,Home Services 90,Home Tuition,English,Andheri East,9441990793,3.6,495-4617,Mon-Sat 9AM-6PM
+M091,IT Services 91,IT & Tech Support,Software Installation,Malad West,9185031266,3.5,640-2736,Mon-Sat 9AM-6PM
+M092,Car Services 92,Car Repair & Service,Oil Change,Goregaon East,9894803254,3.5,497-3441,Mon-Sat 9AM-6PM
+M093,Pest Services 93,Pest Control,Rodent Control,Dadar West,9718823553,4.8,819-2725,Mon-Sat 9AM-6PM
+M094,Salon Services 94,Salon Services,Haircut,Mulund West,9176393572,5.0,308-1262,Mon-Sat 8AM-7PM
+M095,Plumbing Services 95,Plumbing,Leak Repairs,Dadar West,9802990744,4.6,672-5042,Tue-Sun 10AM-8PM
+M096,Elderly Services 96,Elderly Care,Physiotherapy,Andheri East,9280958917,4.0,628-4929,Mon-Sat 8AM-7PM
+M097,Electrical Services 97,Electrical Services,Lighting Repair,Andheri West,9385510460,4.3,702-3804,Tue-Sun 10AM-8PM
+M098,Gardening Services 98,Gardening & Landscaping,Tree Trimming,Kurla East,9884680744,3.9,952-4427,Mon-Sun 10AM-9PM
+M099,IT Services 99,IT & Tech Support,Software Installation,Vikhroli West,9172683120,3.7,622-2886,Mon-Sun 10AM-9PM
+M100,Massage Services 100,Massage Therapy,Deep Tissue Massage,Vikhroli West,9857413933,4.6,865-1955,Mon-Sat 8AM-7PM
+M101,Massage Services 101,Massage Therapy,Deep Tissue Massage,Mulund West,9562836052,4.8,625-3035,Mon-Sat 9AM-6PM
+M102,Electrical Services 102,Electrical Services,Fan Repair,Andheri East,9840579414,4.6,775-5120,24/7
+M103,Painting Services 103,Painting & Waterproofing,Fence Painting,Kurla East,9659499913,4.8,680-3119,Mon-Sat 9AM-6PM
+M104,Laundry Services 104,Laundry & Dry Cleaning,Dry Cleaning,Dadar West,9207965354,4.2,883-2256,Mon-Fri 10AM-5PM
+M105,Pest Services 105,Pest Control,Termite Treatment,Dadar West,9106995667,4.3,315-4630,Mon-Fri 10AM-5PM
+M106,Home Services 106,Home Tuition,English,Vikhroli West,9138326062,4.0,347-4147,Tue-Sun 10AM-8PM
+M107,Car Services 107,Car Repair & Service,Engine Repair,Borivali West,9481683566,4.2,916-4238,Tue-Sun 10AM-8PM
+M108,Massage Services 108,Massage Therapy,Aromatherapy,Vikhroli West,9608211953,4.7,310-3654,Mon-Fri 10AM-5PM
+M109,Baby Services 109,Baby Care,Infant Care,Malad West,9494134032,4.8,436-2621,Mon-Sun 10AM-9PM
+M110,IT Services 110,IT & Tech Support,Hardware Repair,Mulund West,9957274063,4.6,887-3369,Mon-Sat 9AM-6PM
+M111,Courier Services 111,Courier Services,Local Courier,Mulund West,9771151676,4.5,552-1381,Tue-Sun 10AM-8PM
+M112,Elderly Services 112,Elderly Care,Physiotherapy,Andheri East,9438875071,4.2,818-3742,Mon-Sat 8AM-7PM
+M113,Salon Services 113,Salon Services,Hair Color,Malad West,9384388900,3.6,657-2012,Mon-Sun 10AM-9PM
+M114,Plumbing Services 114,Plumbing,Drain Cleaning,Kurla East,9580673750,4.2,338-2945,24/7
+M115,Beauty Services 115,Beauty & Wellness,Pedicure,Bandra East,9741286468,5.0,333-1842,Mon-Fri 10AM-5PM
+M116,Plumbing Services 116,Plumbing,Pipe Replacement,Vikhroli West,9327863665,4.0,558-1289,Mon-Sun 10AM-9PM
+M117,Beauty Services 117,Beauty & Wellness,Pedicure,Andheri East,9790491057,3.9,960-3760,Mon-Fri 10AM-5PM
+M118,Appliance Services 118,Appliance Repair,Washing Machine Repair,Kurla East,9135191259,5.0,674-2919,Mon-Sat 8AM-7PM
+M119,Legal Services 119,Legal Services,Property Law,Malad West,9228821383,5.0,836-1595,Mon-Sun 10AM-9PM
+M120,Beauty Services 120,Beauty & Wellness,Hair Spa,Bandra East,9855920125,4.0,447-2289,Mon-Sat 9AM-6PM
+M121,Legal Services 121,Legal Services,Family Law,Dadar West,9742501443,4.0,631-3210,Mon-Sun 10AM-9PM
+M122,Massage Services 122,Massage Therapy,Swedish Massage,Andheri East,9688200504,3.9,383-1826,Mon-Sat 8AM-7PM
+M123,Massage Services 123,Massage Therapy,Swedish Massage,Dadar West,9783440773,4.5,831-2776,Mon-Fri 10AM-5PM
+M124,Car Services 124,Car Repair & Service,Oil Change,Goregaon East,9357010190,3.7,742-2559,Mon-Fri 10AM-5PM
+M125,Home Services 125,Home Cleaning,Upholstery Cleaning,Andheri East,9101121629,3.9,528-3944,Mon-Sun 10AM-9PM
+M126,Massage Services 126,Massage Therapy,Aromatherapy,Mulund West,9135251049,3.9,762-2949,Mon-Sat 9AM-6PM
+M127,Baby Services 127,Baby Care,Nanny Service,Andheri West,9327046946,4.1,765-2303,Mon-Sat 8AM-7PM
+M128,Fitness Services 128,Fitness Training,Personal Training,Kurla East,9332125651,5.0,609-1803,Mon-Sat 8AM-7PM
+M129,Courier Services 129,Courier Services,Domestic Courier,Kurla East,9225042271,4.9,633-4375,Tue-Sun 10AM-8PM
+M130,Plumbing Services 130,Plumbing,Leak Repairs,Malad West,9780770438,4.1,497-3855,24/7
+M131,Salon Services 131,Salon Services,Haircut,Kurla East,9239681848,4.9,814-3358,24/7
+M132,Laundry Services 132,Laundry & Dry Cleaning,Ironing,Vikhroli West,9691233651,4.7,997-3939,Tue-Sun 10AM-8PM
+M133,Beauty Services 133,Beauty & Wellness,Hair Spa,Dadar West,9847720210,3.9,398-4696,Mon-Sat 9AM-6PM
+M134,Electrical Services 134,Electrical Services,Wiring,Vikhroli West,9509636700,3.8,707-3629,Mon-Sat 8AM-7PM
+M135,Fitness Services 135,Fitness Training,Personal Training,Malad West,9821447284,3.8,349-4549,Mon-Sat 8AM-7PM
+M136,Car Services 136,Car Repair & Service,Car Wash,Goregaon East,9123694401,4.3,910-2774,Daily 10AM-9PM
+M137,Gardening Services 137,Gardening & Landscaping,Lawn Mowing,Andheri East,9638612684,3.9,980-2375,Tue-Sun 10AM-8PM
+M138,Fitness Services 138,Fitness Training,Yoga,Vikhroli West,9809416418,4.7,300-3310,Mon-Sat 9AM-6PM
+M139,Home Services 139,Home Tuition,Math,Andheri West,9796296739,4.4,720-4098,Mon-Fri 10AM-5PM
+M140,Beauty Services 140,Beauty & Wellness,Hair Spa,Vikhroli West,9135430690,4.4,633-2571,Mon-Sat 8AM-7PM
+M141,Plumbing Services 141,Plumbing,Leak Repairs,Andheri East,9599669063,4.4,594-3778,Daily 10AM-9PM
+M142,Massage Services 142,Massage Therapy,Swedish Massage,Kurla East,9643926109,4.6,739-3789,Mon-Sat 8AM-7PM
+M143,Baby Services 143,Baby Care,Day Care,Vikhroli West,9283297377,4.8,730-3319,Tue-Sun 10AM-8PM
+M144,Home Services 144,Home Tuition,English,Malad West,9806644232,3.8,717-4151,Mon-Fri 10AM-5PM
+M145,Laundry Services 145,Laundry & Dry Cleaning,Clothes Washing,Borivali West,9305110180,4.6,645-4198,Tue-Sun 10AM-8PM
+M146,Painting Services 146,Painting & Waterproofing,Fence Painting,Mulund West,9240746627,4.6,435-1523,Tue-Sun 10AM-8PM
+M147,Laundry Services 147,Laundry & Dry Cleaning,Dry Cleaning,Mulund West,9684097768,4.6,338-1605,24/7
+M148,Baby Services 148,Baby Care,Infant Care,Borivali West,9602386498,4.1,474-1948,Mon-Sat 8AM-7PM
+M149,Painting Services 149,Painting & Waterproofing,Fence Painting,Andheri West,9807990632,4.4,365-1738,Mon-Sat 8AM-7PM
+M150,Beauty Services 150,Beauty & Wellness,Bridal Makeup,Goregaon East,9839469306,3.6,442-2535,Mon-Sat 9AM-6PM
