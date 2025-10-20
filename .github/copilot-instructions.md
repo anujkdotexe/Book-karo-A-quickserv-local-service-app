@@ -574,18 +574,20 @@ Shadows:
 - **Vendors** and **Services** are SEPARATE entities with distinct tables
 - One vendor can provide multiple services (Vendor 1:N Service relationship)
 - Service.vendor_id references Vendor.id (NOT User.id)
-- **CSV data loading is ENABLED** and loads 150 Mumbai services on first deployment
-- CSV file: `mumbai_vendors_150.csv` (151 vendors, 165 services total including test data)
+- **CSV data loading was USED ONCE** to load 150 Mumbai services initially
+- CSV file: `mumbai_vendors_150.csv` (committed to Git for production deployments)
 - Data loads ONCE when `serviceRepository.count() <= 20`, then persists permanently
+- **Note**: CSV file deleted from local after initial load - data now lives in PostgreSQL permanently
 
 ### CSV Data Loader Behavior (DEPLOYMENT CRITICAL)
 **IMPORTANT for GitHub deployments and new instances:**
-1. **File Location**: `D:\Springboard\mumbai_vendors_150.csv` (root directory)
+1. **File Location**: `D:\Springboard\mumbai_vendors_150.csv` (root directory) - **IN GIT REPO**
 2. **Auto-Loading**: CSVDataLoader runs on every application startup
 3. **Smart Skip**: If database has >20 services, CSV loading is skipped
 4. **First Deployment**: Fresh database will auto-load all 150 services
-5. **Persistence**: All data stored in PostgreSQL - survives restarts
-6. **Git Tracked**: CSV file IS committed to Git and pushed to GitHub
+5. **Persistence**: All data stored in PostgreSQL - survives restarts forever
+6. **Git Tracked**: CSV file IS committed to Git and pushed to GitHub ✅
+7. **Local Deletion**: After initial load, CSV can be deleted locally (data in database)
 
 **When deploying to production (Railway, Render, Heroku, etc.):**
 - CSV file will be included in the repository ✅
@@ -593,6 +595,13 @@ Shadows:
 - All 151 vendors and 165 services will be automatically loaded
 - Subsequent restarts will skip loading (count > 20 check)
 - **All users see the SAME services** - they're in the shared database, not per-user
+- CSV file remains in Git for future deployments but can be deleted locally
+
+**Local Development Note**:
+- CSV file deleted from local D:\Springboard\ directory after successful load
+- Data persists in PostgreSQL bookarodb database (165 services, 151 vendors)
+- No need for CSV file locally since database has all the data
+- CSV remains in GitHub repo for production deployments only
 
 **File**: `backend/src/main/java/com/bookaro/util/CSVDataLoader.java`
 - Active: `@Component` annotation is present
