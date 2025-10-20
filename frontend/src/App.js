@@ -15,9 +15,17 @@ import Bookings from './pages/Bookings/Bookings';
 import BookingDetail from './pages/Bookings/BookingDetail';
 import Addresses from './pages/Addresses/Addresses';
 import Favorites from './pages/Favorites/Favorites';
+import FAQ from './pages/Support/FAQ';
+import HelpCenter from './pages/Support/HelpCenter';
+import Contact from './pages/Support/Contact';
+import TermsOfService from './pages/Support/TermsOfService';
+import PrivacyPolicy from './pages/Support/PrivacyPolicy';
+import Cart from './pages/Cart/Cart';
+import CartCheckout from './pages/Cart/CartCheckout';
 
 // Utils
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/Toast/Toast';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 
@@ -27,20 +35,26 @@ import PrivateRoute from './components/PrivateRoute/PrivateRoute';
  */
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <Router>
-          <div className="app">
-            <Navbar />
-            <main className="main-content">
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+    <ToastProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
+            <div className="app">
+              <Navbar />
+              <main className="main-content">
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
 
-                {/* Protected Routes */}
-              <Route path="/profile" element={
+                  {/* Protected Routes */}
+                <Route path="/profile" element={
                 <PrivateRoute>
                   <Profile />
                 </PrivateRoute>
@@ -75,6 +89,16 @@ function App() {
                   <BookingDetail />
                 </PrivateRoute>
               } />
+              <Route path="/cart" element={
+                <PrivateRoute>
+                  <Cart />
+                </PrivateRoute>
+              } />
+              <Route path="/cart/checkout" element={
+                <PrivateRoute>
+                  <CartCheckout />
+                </PrivateRoute>
+              } />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
@@ -83,8 +107,9 @@ function App() {
           <Footer />
         </div>
       </Router>
-      </ToastProvider>
-    </AuthProvider>
+      </CartProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

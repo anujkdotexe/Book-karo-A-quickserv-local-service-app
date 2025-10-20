@@ -26,9 +26,25 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Session expired - show user-friendly message
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Try to show toast notification if available
+      try {
+        const event = new CustomEvent('session-expired', {
+          detail: { message: 'Your session has expired. Please log in again.' }
+        });
+        window.dispatchEvent(event);
+      } catch (e) {
+        // Fallback if toast isn't available
+        console.log('Session expired - redirecting to login');
+      }
+      
+      // Redirect to login after a brief delay to show message
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1500);
     }
     return Promise.reject(error);
   }
@@ -42,6 +58,7 @@ export const authAPI = {
 export const userAPI = {
   getProfile: () => api.get('/users/profile'),
   updateProfile: (data) => api.put('/users/profile', data),
+  changePassword: (data) => api.put('/users/change-password', data),
 };
 
 export const serviceAPI = {

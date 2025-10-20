@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { favoriteAPI } from '../../services/api';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Favorites.css';
 
 const Favorites = () => {
@@ -34,7 +35,7 @@ const Favorites = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading favorites...</div>;
+    return <LoadingSpinner fullScreen />;
   }
 
   return (
@@ -48,17 +49,28 @@ const Favorites = () => {
         {error && <div className="error-message">{error}</div>}
 
         {favorites.length === 0 ? (
-          <div className="no-favorites">
-            <div className="empty-state">
-              <svg className="heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              <h2>No favorites yet</h2>
-              <p>Start adding services to your favorites for quick access</p>
-              <Link to="/services" className="btn btn-primary">
-                Browse Services
-              </Link>
+          <div className="empty-state-card">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <h2>No Favorites Yet</h2>
+            <p>Save your favorite services for quick access and easy booking next time!</p>
+            <div className="empty-state-benefits">
+              <h3>Benefits of saving favorites:</h3>
+              <ul>
+                <li>Quick access to services you love</li>
+                <li>Get notified about special offers</li>
+                <li>Track your favorite service providers</li>
+                <li>Easily compare and book later</li>
+              </ul>
             </div>
+            <Link to="/services" className="btn btn-primary btn-large btn-cta-prominent">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px'}}>
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              Find Services to Favorite
+            </Link>
           </div>
         ) : (
           <div className="favorites-grid">

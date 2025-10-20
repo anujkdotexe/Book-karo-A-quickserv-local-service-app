@@ -1,9 +1,17 @@
 /* ServiceDetail Page Styles */
 
 .service-detail-page {
-  padding: var(--spacing-2xl) 0;
-  min-height: calc(100vh - 70px);
+  padding: var(--spacing-2xl) 0 var(--spacing-2xl) 0;
+  min-height: 100vh;
   background-color: var(--light-gray);
+  display: flex;
+  flex-direction: column;
+}
+
+.service-detail-page .container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .back-button {
@@ -140,6 +148,15 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: var(--spacing-2xl);
+  align-items: start;
+}
+
+.service-main-content {
+  min-width: 0; /* Prevent grid overflow */
+}
+
+.service-sidebar {
+  min-width: 0; /* Prevent grid overflow */
 }
 
 .service-section {
@@ -156,11 +173,21 @@
   color: var(--text-secondary);
   line-height: 1.8;
   font-size: 1.1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .location-info p {
   color: var(--text-secondary);
   margin-bottom: var(--spacing-sm);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.location-info strong {
+  color: var(--navy-blue);
+  display: inline-block;
+  min-width: 80px;
 }
 
 .location-info strong {
@@ -209,12 +236,71 @@
 }
 
 .vendor-card, .booking-card {
-  background-color: var(--light-gray);
+  background-color: var(--white);
   padding: var(--spacing-xl);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
   position: sticky;
   top: var(--spacing-2xl);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-normal);
+}
+
+.vendor-card:hover, .booking-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.booking-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 2px solid var(--royal-blue);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.booking-card .btn-primary {
+  font-size: 1.1rem;
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+  transition: all var(--transition-normal);
+}
+
+.booking-card .btn-large {
+  font-size: 1.2rem;
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.booking-card .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+}
+
+.booking-card .btn-outline.in-cart {
+  background-color: #f0fdf4;
+  border-color: #22c55e;
+  color: #22c55e;
+  cursor: not-allowed;
+}
+
+.booking-card .btn-outline svg {
+  flex-shrink: 0;
+}
+
+.booking-card .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
+}
+
+.booking-card .btn-primary:disabled,
+.booking-card .btn-outline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .vendor-card h3, .booking-card h3 {
@@ -226,10 +312,14 @@
 .vendor-info p {
   color: var(--text-secondary);
   margin-bottom: var(--spacing-sm);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .vendor-info strong {
   color: var(--navy-blue);
+  display: inline-block;
+  min-width: 90px;
 }
 
 .vendor-rating {
@@ -249,6 +339,28 @@
   flex-direction: column;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-lg);
+}
+
+.form-group-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-xs);
+  gap: var(--spacing-sm);
+}
+
+.character-counter {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.character-counter.warning {
+  color: #f59e0b;
+}
+
+.character-counter.error {
+  color: #ef4444;
 }
 
 .error-container {
@@ -279,6 +391,11 @@
     margin-top: var(--spacing-lg);
   }
 
+  .service-actions-section {
+    align-items: flex-start;
+    width: 100%;
+  }
+
   .service-content-grid {
     grid-template-columns: 1fr;
   }
@@ -286,6 +403,30 @@
   .vendor-card, .booking-card {
     position: static;
   }
-}
 
+  .service-detail-page {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .service-detail-container {
+    padding: var(--spacing-lg);
+  }
+
+  /* Booking Form Modal Responsiveness */
+  .booking-form-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+  }
+
+  .booking-card {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
 

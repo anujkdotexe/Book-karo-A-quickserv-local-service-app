@@ -159,15 +159,40 @@
 }
 
 .address-type-badge {
-  background: var(--royal-blue);
-  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.address-type-badge svg {
+  flex-shrink: 0;
+}
+
+.type-home {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.type-office {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.type-other {
+  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+  color: #6b21a8;
+  border: 1px solid #a855f7;
+  box-shadow: 0 2px 4px rgba(168, 85, 247, 0.3);
 }
 
 .default-badge {
@@ -282,48 +307,79 @@
   box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
 }
 
-.no-addresses {
+.empty-state-card {
   text-align: center;
   padding: var(--spacing-2xl) var(--spacing-xl);
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background-color: var(--white);
   border-radius: var(--radius-xl);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 2px dashed #d1d5db;
-  max-width: 600px;
+  box-shadow: var(--shadow-md);
+  max-width: 700px;
   margin: 0 auto;
 }
 
-.no-addresses::before {
-  font-size: 4rem;
-  display: block;
-  margin-bottom: var(--spacing-lg);
+.empty-state-card svg {
+  color: var(--royal-blue);
   opacity: 0.6;
+  margin-bottom: var(--spacing-lg);
 }
 
-.no-addresses p {
-  color: var(--text-secondary);
+.empty-state-card h2 {
+  color: var(--navy-blue);
+  font-size: 1.75rem;
   margin-bottom: var(--spacing-md);
-  font-size: 1rem;
+  font-weight: 600;
+}
+
+.empty-state-card > p {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+  font-size: 1.1rem;
   line-height: 1.6;
 }
 
-.no-addresses p:first-of-type {
-  font-size: 1.4rem;
+.empty-state-benefits {
+  background-color: var(--light-gray);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl) 0;
+  text-align: left;
+}
+
+.empty-state-benefits h3 {
   color: var(--navy-blue);
-  font-weight: 700;
-  margin-bottom: var(--spacing-lg);
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+  text-align: center;
 }
 
-.no-addresses .btn {
-  margin-top: var(--spacing-lg);
+.empty-state-benefits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.empty-state-benefits li {
+  color: var(--text-secondary);
+  padding: var(--spacing-sm) 0;
+  padding-left: var(--spacing-xl);
+  position: relative;
+  line-height: 1.6;
+}
+
+.empty-state-benefits li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--royal-blue);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.btn-large {
   padding: var(--spacing-md) var(--spacing-2xl);
-  font-size: 1rem;
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
-}
-
-.no-addresses .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 /* Responsive Design */
@@ -338,12 +394,48 @@
     grid-template-columns: 1fr;
   }
 
+  .address-card {
+    overflow: hidden;
+  }
+
+  .address-header {
+    padding: var(--spacing-md);
+    flex-wrap: wrap;
+  }
+
+  .address-type-badge {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.75rem;
+  }
+
+  .address-type-badge svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .address-details {
+    padding: var(--spacing-md);
+  }
+
   .form-actions {
     flex-direction: column;
   }
 
   .form-actions .btn {
     width: 100%;
+  }
+
+  /* Address Form Modal Responsiveness */
+  .address-form-card {
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
   }
 }
 

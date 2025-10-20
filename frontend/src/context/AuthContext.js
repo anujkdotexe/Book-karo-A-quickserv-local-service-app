@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import { useToast } from '../components/Toast/Toast';
 
 const AuthContext = createContext();
 
@@ -12,6 +13,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
+  const toast = useToast();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,21 @@ export const AuthProvider = ({ children }) => {
     }
     setLoading(false);
   }, []);
+
+  // Listen for session expiration events
+  useEffect(() => {
+    const handleSessionExpired = (event) => {
+      toast.error(event.detail.message);
+      setUser(null);
+      setToken(null);
+    };
+
+    window.addEventListener('session-expired', handleSessionExpired);
+    
+    return () => {
+      window.removeEventListener('session-expired', handleSessionExpired);
+    };
+  }, [toast]);
 
   const login = async (email, password) => {
     try {

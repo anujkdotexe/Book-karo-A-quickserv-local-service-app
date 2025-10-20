@@ -13,6 +13,10 @@ target/
 mvnw
 mvnw.cmd
 
+#Folders
+/AmazonQ
+/copilot
+
 # Node / React
 node_modules/
 build/
@@ -65,7 +69,7 @@ application-*.properties
 *.key
 *.crt
 secrets/
-
+.md
 # Test coverage
 coverage/
 .nyc_output/
@@ -101,3 +105,25 @@ AUTOMATED_TEST_RESULTS.md
 COMPREHENSIVE_TEST_RESULTS.md
 *_RESULTS.md
 *_STATUS*.md
+
+# Build artifacts (keep JAR for production)
+backend/target/bookaro-backend-*.jar.original
+backend/target/classes/
+backend/target/generated-sources/
+backend/target/generated-test-sources/
+backend/target/maven-archiver/
+backend/target/maven-status/
+backend/target/test-classes/
+!backend/target/bookaro-backend-*.jar
+
+# Frontend build artifacts
+frontend/build/
+frontend/.env.local
+frontend/npm-debug.log*
+frontend/yarn-error.log*
+SESSION_COMPLETE_REPORT.md
+TESTING_GUIDE.md
+.github/copilot-instructions.md
+UI_UX_ENHANCEMENT_SUMMARY.md
+.github/copilot-instructions.md
+.github/copilot-instructions.md

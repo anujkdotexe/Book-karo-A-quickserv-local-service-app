@@ -78,7 +78,7 @@ A production-ready three-tier service marketplace platform connecting customers 
 cd backend
 mvn clean install
 mvn package
-java -jar target/bookaro-backend-1.0.2.jar
+java -jar target/bookaro-backend-1.0.3.jar
 ```
 
 Backend runs on: `http://localhost:8081/api/v1`
@@ -115,9 +115,9 @@ spring.datasource.password=your_password
 
 ## Project Status
 
-**Version**: 1.0.2  
+**Version**: 1.0.3  
 **Status**: Production Ready (Phase 1)  
-**Last Updated**: October 16, 2025
+**Last Updated**: October 20, 2025
 
 ### Completed
 - [DONE] Phase 1 - User Module (All 9 features)

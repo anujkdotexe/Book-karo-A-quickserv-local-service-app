@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingAPI, reviewAPI } from '../../services/api';
+import { useToast } from '../../components/Toast/Toast';
 import './BookingDetail.css';
 
 const BookingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -70,9 +72,12 @@ const BookingDetail = () => {
 
     try {
       await bookingAPI.updateBookingStatus(id, 'CANCELLED');
+      toast.success('Booking cancelled successfully');
       fetchBookingDetails();
     } catch (err) {
-      setError('Failed to cancel booking');
+      const errorMsg = err.response?.data?.message || 'Failed to cancel booking';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { serviceAPI, favoriteAPI } from '../../services/api';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Services.css';
 
 const Services = () => {
+  const [urlSearchParams] = useSearchParams();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,10 +21,22 @@ const Services = () => {
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [categories, setCategories] = useState([]);
   const [cities, setCities] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState(new Set());
+
+  // Handle search query from URL
+  useEffect(() => {
+    const searchQuery = urlSearchParams.get('search');
+    if (searchQuery) {
+      setSearchParams(prev => ({
+        ...prev,
+        category: searchQuery  // Use category field for general search
+      }));
+    }
+  }, [urlSearchParams]);
 
   const fetchFavorites = async () => {
     try {
@@ -70,10 +84,12 @@ const Services = () => {
           // Paginated response
           servicesList = response.data.data.content || [];
           setTotalPages(response.data.data.totalPages || 0);
+          setTotalElements(response.data.data.totalElements || servicesList.length);
         } else if (Array.isArray(response.data.data)) {
           // Array response
           servicesList = response.data.data;
           setTotalPages(1);
+          setTotalElements(servicesList.length);
         }
       }
       
@@ -174,6 +190,16 @@ const Services = () => {
       </div>
 
       <div className="container">
+        {/* ARIA Live Region for Search Results Announcement */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {!loading && !error && services.length > 0 && (
+            `Found ${totalElements} services${searchParams.category ? ` in ${searchParams.category}` : ''}${searchParams.city ? ` in ${searchParams.city}` : ''}.`
+          )}
+          {!loading && !error && services.length === 0 && (
+            'No services found matching your criteria.'
+          )}
+        </div>
+        
         <div className="search-filter-section fade-in">
           <form onSubmit={handleSearch} className="search-form">
             <div className="search-inputs">
@@ -285,10 +311,31 @@ const Services = () => {
           </div>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {loading && <LoadingSpinner fullScreen />}
+
+        {!loading && error && (
+          <div className="error-message-card" role="alert">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <h3>Unable to Load Services</h3>
+            <p>{error}</p>
+            {error.includes('not found') || error.includes('No services') ? (
+              <div className="error-help-text">
+                <p><strong>Currently serving:</strong> Mumbai, Delhi, Bangalore</p>
+                <p>Can't find what you're looking for? <Link to="/contact" className="link-primary">Contact us</Link> to request service in your area.</p>
+              </div>
+            ) : null}
+            <button onClick={fetchServices} className="btn btn-primary">
+              Try Again
+            </button>
+          </div>
+        )}
 
         {/* Services Grid */}
-        {services.length > 0 ? (
+        {!loading && !error && services.length > 0 ? (
           <>
             <div className="services-grid">
               {services.map((service) => (
@@ -365,12 +412,34 @@ const Services = () => {
               </div>
             )}
           </>
-        ) : (
-          <div className="no-results">
-            <h2>No services found</h2>
-            <p>Try adjusting your search criteria</p>
+        ) : !error && !loading ? (
+          <div className="no-results-card">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+              <line x1="11" y1="8" x2="11" y2="14" />
+            </svg>
+            <h2>No Services Found</h2>
+            <p>We couldn't find any services matching your search criteria.</p>
+            <div className="no-results-suggestions">
+              <h3>Try these tips:</h3>
+              <ul>
+                <li>Check your spelling and try different keywords</li>
+                <li>Select a different city or remove location filters</li>
+                <li>Adjust your price range or rating filters</li>
+                <li>Try browsing all categories</li>
+              </ul>
+            </div>
+            <div className="no-results-actions">
+              <button onClick={clearFilters} className="btn btn-primary">
+                Clear All Filters
+              </button>
+              <Link to="/contact" className="btn btn-outline">
+                Request a Service
+              </Link>
+            </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

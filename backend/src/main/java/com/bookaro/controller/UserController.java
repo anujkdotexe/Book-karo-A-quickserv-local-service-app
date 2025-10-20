@@ -1,6 +1,7 @@
 package com.bookaro.controller;
 
 import com.bookaro.dto.ApiResponse;
+import com.bookaro.dto.ChangePasswordRequest;
 import com.bookaro.dto.UserDto;
 import com.bookaro.dto.UserUpdateRequest;
 import com.bookaro.model.User;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -79,23 +81,30 @@ public class UserController {
     }
 
     @PutMapping("/change-password")
+    @Transactional
     public ResponseEntity<ApiResponse<String>> changePassword(
-            @RequestBody ChangePasswordRequest request,
+            @Valid @RequestBody ChangePasswordRequest request,
             Authentication authentication) {
         
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Verify old password
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.error("Current password is incorrect"));
+        }
+        
+        // Check if new password is same as current password
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Invalid old password"));
+                    .body(ApiResponse.error("New password must be different from current password"));
         }
 
-        // Update password
+        // Update password with BCrypt encoding
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
+        userRepository.saveAndFlush(user);
 
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
     }
@@ -135,13 +144,8 @@ public class UserController {
         dto.setLongitude(user.getLongitude());
         dto.setRole(user.getRole().toString());
         dto.setIsActive(user.getIsActive());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setUpdatedAt(user.getUpdatedAt());
         return dto;
-    }
-
-    // Inner class for change password request
-    @lombok.Data
-    public static class ChangePasswordRequest {
-        private String oldPassword;
-        private String newPassword;
     }
 }

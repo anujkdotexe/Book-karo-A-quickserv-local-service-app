@@ -25,7 +25,7 @@
   --secondary-color: var(--navy-blue);
   --background-color: var(--white);
   --text-primary: var(--navy-blue);
-  --text-secondary: var(--dark-gray);
+  --text-secondary: #4b5563; /* Darker for WCAG AA compliance (4.5:1 on white) */
   --border-color: var(--light-gray);
 
   /* Spacing */
@@ -65,9 +65,22 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   background-color: var(--background-color);
   color: var(--text-primary);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.price, .price-tag, .service-price {
+  font-feature-settings: 'tnum';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 code {
@@ -155,5 +168,18 @@ code {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--navy-blue);
+}
+
+/* Screen Reader Only - Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 

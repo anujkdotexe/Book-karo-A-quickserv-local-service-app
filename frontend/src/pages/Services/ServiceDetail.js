@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { serviceAPI, bookingAPI, reviewAPI, favoriteAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { useToast } from '../../components/Toast/Toast';
 import './ServiceDetail.css';
 
@@ -9,6 +10,7 @@ const ServiceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToCart, isInCart } = useCart();
   const toast = useToast();
   const [service, setService] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -23,12 +25,38 @@ const ServiceDetail = () => {
   });
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
+  const [notesError, setNotesError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     fetchServiceDetails();
     fetchReviews();
     checkFavoriteStatus();
   }, [id]);
+
+  // Track unsaved changes in booking form
+  useEffect(() => {
+    const hasData = showBookingForm && (
+      bookingData.bookingDate || 
+      bookingData.bookingTime || 
+      bookingData.notes
+    );
+    setHasUnsavedChanges(hasData);
+  }, [showBookingForm, bookingData]);
+
+  // Warn on page leave with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved booking details. Are you sure you want to leave?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const checkFavoriteStatus = async () => {
     if (!user) return;
@@ -84,10 +112,20 @@ const ServiceDetail = () => {
   };
 
   const handleBookingChange = (e) => {
+    const { name, value } = e.target;
     setBookingData({
       ...bookingData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Validate notes field in real-time
+    if (name === 'notes') {
+      if (value.length > 500) {
+        setNotesError('Notes must be 500 characters or less');
+      } else {
+        setNotesError('');
+      }
+    }
   };
 
   const handleBookingSubmit = async (e) => {
@@ -95,13 +133,23 @@ const ServiceDetail = () => {
     setBookingError('');
     setBookingSuccess('');
 
+    // Validate notes length before submission
+    if (bookingData.notes.length > 500) {
+      setNotesError('Notes must be 500 characters or less');
+      return;
+    }
+
     if (!user) {
       navigate('/login');
       return;
     }
 
+    // Prevent double submission
+    if (submitting) return;
+    setSubmitting(true);
+
     try {
-      const response = await bookingAPI.createBooking({
+      await bookingAPI.createBooking({
         serviceId: parseInt(id),
         bookingDate: bookingData.bookingDate,
         bookingTime: bookingData.bookingTime,
@@ -111,12 +159,47 @@ const ServiceDetail = () => {
       setBookingSuccess('Booking created successfully');
       setShowBookingForm(false);
       setBookingData({ bookingDate: '', bookingTime: '', notes: '' });
+      setHasUnsavedChanges(false);
       
       setTimeout(() => {
         navigate('/bookings');
       }, 2000);
     } catch (err) {
       setBookingError(err.response?.data?.message || 'Failed to create booking');
+    } finally {
+      // Re-enable button after 2 seconds to prevent rapid clicking
+      setTimeout(() => setSubmitting(false), 2000);
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (!user) {
+      toast.warning('Please login to add services to cart');
+      navigate('/login');
+      return;
+    }
+
+    if (isInCart(parseInt(id))) {
+      toast.error('This service is already in your cart');
+      navigate('/cart');
+      return;
+    }
+
+    const result = addToCart({
+      id: parseInt(id),
+      name: service.serviceName,
+      description: service.description,
+      price: service.price,
+      category: service.category,
+      city: service.city,
+      state: service.state,
+      vendor: service.vendor
+    });
+
+    if (result.success) {
+      toast.success('Service added to cart');
+    } else {
+      toast.error(result.message);
     }
   };
 
@@ -254,12 +337,37 @@ const ServiceDetail = () => {
               {service.isAvailable && (
                 <div className="booking-card">
                   {!showBookingForm ? (
-                    <button 
-                      className="btn btn-primary btn-block"
-                      onClick={() => setShowBookingForm(true)}
-                    >
-                      Book This Service
-                    </button>
+                    <>
+                      <button 
+                        className="btn btn-primary btn-block btn-large"
+                        onClick={() => setShowBookingForm(true)}
+                      >
+                        Book Now
+                      </button>
+                      <button
+                        className={`btn btn-outline btn-block ${isInCart(parseInt(id)) ? 'in-cart' : ''}`}
+                        onClick={handleAddToCart}
+                        disabled={isInCart(parseInt(id))}
+                      >
+                        {isInCart(parseInt(id)) ? (
+                          <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            In Cart
+                          </>
+                        ) : (
+                          <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="9" cy="21" r="1"></circle>
+                              <circle cx="20" cy="21" r="1"></circle>
+                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            Add to Cart
+                          </>
+                        )}
+                      </button>
+                    </>
                   ) : (
                     <div className="booking-form-container">
                       <h3>Book Service</h3>
@@ -301,17 +409,35 @@ const ServiceDetail = () => {
                             onChange={handleBookingChange}
                             rows="3"
                             placeholder="Any special requirements or instructions"
+                            maxLength="500"
+                            aria-invalid={!!notesError}
+                            aria-describedby={notesError ? 'notes-error' : 'notes-counter'}
                           />
+                          <div className="form-group-footer">
+                            <span className="character-counter" id="notes-counter">
+                              {bookingData.notes.length}/500 characters
+                            </span>
+                            {notesError && (
+                              <span className="field-error" id="notes-error" role="alert">
+                                {notesError}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="form-actions">
-                          <button type="submit" className="btn btn-primary btn-block">
-                            Confirm Booking
+                          <button 
+                            type="submit" 
+                            className="btn btn-primary btn-block"
+                            disabled={submitting || !!notesError}
+                          >
+                            {submitting ? 'Booking...' : 'Confirm Booking'}
                           </button>
                           <button 
                             type="button" 
                             className="btn btn-outline btn-block"
                             onClick={() => setShowBookingForm(false)}
+                            disabled={submitting}
                           >
                             Cancel
                           </button>

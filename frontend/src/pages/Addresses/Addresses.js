@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { addressAPI } from '../../services/api';
 import { useToast } from '../../components/Toast/Toast';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Addresses.css';
 
 const Addresses = () => {
@@ -10,6 +11,7 @@ const Addresses = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     addressType: 'HOME',
     addressLine1: '',
@@ -43,22 +45,70 @@ const Addresses = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
+    // Clear field error when user starts typing
+    setFieldErrors({ ...fieldErrors, [name]: '' });
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // AddressLine1 validation
+    if (!formData.addressLine1 || formData.addressLine1.trim().length === 0) {
+      errors.addressLine1 = 'Address line 1 is required';
+    } else if (formData.addressLine1.trim().length < 10) {
+      errors.addressLine1 = 'Address must be at least 10 characters';
+    }
+    
+    // City validation
+    if (!formData.city || formData.city.trim().length === 0) {
+      errors.city = 'City is required';
+    } else if (formData.city.trim().length < 2) {
+      errors.city = 'City name must be at least 2 characters';
+    }
+    
+    // State validation
+    if (!formData.state || formData.state.trim().length === 0) {
+      errors.state = 'State is required';
+    } else if (formData.state.trim().length < 2) {
+      errors.state = 'State name must be at least 2 characters';
+    }
+    
+    // Postal code validation
+    if (!formData.postalCode || formData.postalCode.trim().length === 0) {
+      errors.postalCode = 'Postal code is required';
+    } else if (!/^\d{5,6}$/.test(formData.postalCode)) {
+      errors.postalCode = 'Postal code must be 5-6 digits';
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       if (editingAddress) {
         await addressAPI.updateAddress(editingAddress.id, formData);
         toast.success('Address updated successfully');
       } else {
-        await addressAPI.createAddress(formData);
+        const response = await addressAPI.createAddress(formData);
         toast.success('Address added successfully');
+        // Optimistically add new address to list
+        if (response.data.data) {
+          setAddresses(prevAddresses => [...prevAddresses, response.data.data]);
+        }
       }
       setShowForm(false);
       setEditingAddress(null);
       resetForm();
-      fetchAddresses();
+      // Fetch to ensure we have the latest data from server
+      await fetchAddresses();
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Failed to save address';
       setError(errorMsg);
@@ -127,7 +177,7 @@ const Addresses = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading addresses...</div>;
+    return <LoadingSpinner fullScreen />;
   }
 
   return (
@@ -174,7 +224,14 @@ const Addresses = () => {
                   onChange={handleInputChange}
                   placeholder="House/Flat No., Building Name"
                   required
+                  aria-invalid={!!fieldErrors.addressLine1}
+                  aria-describedby={fieldErrors.addressLine1 ? 'addressLine1-error' : undefined}
                 />
+                {fieldErrors.addressLine1 && (
+                  <span className="field-error" id="addressLine1-error" role="alert">
+                    {fieldErrors.addressLine1}
+                  </span>
+                )}
               </div>
 
               <div className="form-group">
@@ -197,7 +254,14 @@ const Addresses = () => {
                     value={formData.city}
                     onChange={handleInputChange}
                     required
+                    aria-invalid={!!fieldErrors.city}
+                    aria-describedby={fieldErrors.city ? 'city-error' : undefined}
                   />
+                  {fieldErrors.city && (
+                    <span className="field-error" id="city-error" role="alert">
+                      {fieldErrors.city}
+                    </span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -208,7 +272,14 @@ const Addresses = () => {
                     value={formData.state}
                     onChange={handleInputChange}
                     required
+                    aria-invalid={!!fieldErrors.state}
+                    aria-describedby={fieldErrors.state ? 'state-error' : undefined}
                   />
+                  {fieldErrors.state && (
+                    <span className="field-error" id="state-error" role="alert">
+                      {fieldErrors.state}
+                    </span>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -219,7 +290,14 @@ const Addresses = () => {
                     value={formData.postalCode}
                     onChange={handleInputChange}
                     required
+                    aria-invalid={!!fieldErrors.postalCode}
+                    aria-describedby={fieldErrors.postalCode ? 'postalCode-error' : undefined}
                   />
+                  {fieldErrors.postalCode && (
+                    <span className="field-error" id="postalCode-error" role="alert">
+                      {fieldErrors.postalCode}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -264,14 +342,24 @@ const Addresses = () => {
 
         <div className="addresses-list">
           {addresses.length === 0 ? (
-            <div className="no-addresses">
-              <p>No Delivery Addresses Saved</p>
-              <p>
-                Save your frequently used addresses to make bookings faster and easier.
-                Add your home, office, or other locations now!
-              </p>
+            <div className="empty-state-card">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <h2>No Saved Addresses</h2>
+              <p>Save your frequently used addresses to make service bookings faster and easier!</p>
+              <div className="empty-state-benefits">
+                <h3>Why save addresses?</h3>
+                <ul>
+                  <li>Quick checkout for service bookings</li>
+                  <li>Save multiple locations (home, office, etc.)</li>
+                  <li>Set a default address for convenience</li>
+                  <li>Update or manage addresses anytime</li>
+                </ul>
+              </div>
               <button
-                className="btn btn-primary"
+                className="btn btn-primary btn-large"
                 onClick={() => setShowForm(true)}
               >
                 Add Your First Address
@@ -281,7 +369,25 @@ const Addresses = () => {
             addresses.map((address) => (
               <div key={address.id} className="address-card">
                 <div className="address-header">
-                  <div className="address-type-badge">
+                  <div className={`address-type-badge type-${address.addressType.toLowerCase()}`}>
+                    {address.addressType === 'HOME' && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                      </svg>
+                    )}
+                    {address.addressType === 'OFFICE' && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                      </svg>
+                    )}
+                    {address.addressType === 'OTHER' && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                      </svg>
+                    )}
                     {address.addressType}
                   </div>
                   {address.isDefault && (
