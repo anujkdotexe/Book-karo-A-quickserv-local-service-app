@@ -1,0 +1,1 @@
+web: cd backend && java -Dserver.port=$PORT -jar target/bookaro-backend-1.0.3.jar

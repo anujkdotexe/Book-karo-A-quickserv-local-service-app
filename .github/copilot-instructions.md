@@ -21,7 +21,7 @@
    ```
    Terminal 1 (pwsh): Backend ONLY
    $ cd D:\Springboard\backend
-   $ java -jar target/bookaro-backend-1.0.2.jar
+   $ java -jar target/bookaro-backend-1.0.3.jar
    [LEAVE RUNNING - DON'T TOUCH]
    
    Terminal 2 (node/pwsh): Frontend ONLY  
@@ -31,11 +31,20 @@
    
    Terminal 3 (pwsh): Work/Testing/Git/Everything Else
    $ cd D:\Springboard
-   $ .\test_comprehensive.ps1
+   $ mvn compile
+   $ npm run build
    $ git status
-   $ mvn package
-   [USE THIS FOR ALL OTHER COMMANDS]
+   $ Invoke-RestMethod (API testing)
+   [USE THIS FOR ALL OTHER COMMANDS - NEVER in Terminal 1 or 2]
    ```
+
+   **CRITICAL: When Testing After Changes**
+   - Backend/Frontend must ALREADY be running in their dedicated terminals
+   - NEVER stop backend/frontend to run test commands
+   - ALWAYS open NEW terminal (Terminal 3) for verification commands
+   - Example: If backend running in Terminal 1, open Terminal 3 to run `mvn compile`
+   - Example: If frontend running in Terminal 2, open Terminal 3 to run `npm run build`
+   - This ensures you can see live server logs while testing
 
 4. **Before Testing - Checklist** (MANDATORY VERIFICATION)
    - ✓ Is backend running in Terminal 1? (Check http://localhost:8081/api/v1/services)
@@ -85,6 +94,12 @@
 - NEVER push *_RESULTS.md, *_STATUS*.md (temporary reports)
 - GitHub gets: README.md, QUICK_START.md, docs/important/, source code
 - Local only: My rules, test results, status reports, archive
+
+**React Context Provider Mistakes**:
+- Hook inside provider requires its provider as parent (ToastProvider wraps AuthProvider, not inside)
+
+**Authentication Mistakes**:
+- Always include logout button when implementing auth
 
 ### Fix Verification & Testing Rules (MANDATORY)
 
@@ -193,6 +208,98 @@
 - Only testing success case (must test error cases too)
 - Not checking browser console for JavaScript errors
 
+### Post-Change Verification Rules (CRITICAL - ALWAYS FOLLOW)
+
+**AFTER making ANY code changes (backend OR frontend), ALWAYS:**
+
+1. **Check for Compilation Errors** (MANDATORY):
+   ```powershell
+   # Terminal 3 (Work terminal) - Check both projects
+   
+   # Backend Check (if Java files modified)
+   cd D:\Springboard\backend
+   mvn clean compile
+   # MUST show "BUILD SUCCESS" - fix any errors immediately
+   
+   # Frontend Check (if JS/CSS files modified)
+   cd D:\Springboard\frontend
+   npm run build
+   # MUST complete without errors - fix any warnings/errors immediately
+   ```
+
+2. **Error Resolution Workflow**:
+   - **If backend compilation fails**:
+     - Read error message carefully (syntax, imports, missing dependencies)
+     - Fix the error in the source file
+     - Re-run `mvn clean compile` until BUILD SUCCESS
+     - Then rebuild JAR: `mvn clean package -DskipTests`
+     - Restart backend in Terminal 1
+   
+   - **If frontend build fails**:
+     - Read error message (usually in terminal output)
+     - Common issues: syntax errors, missing imports, undefined variables
+     - Fix the error in the source file
+     - Re-run `npm run build` until no errors
+     - Check running frontend in Terminal 2 (auto-recompiles if `npm start` is running)
+     - Check browser console for runtime errors
+
+3. **Verification Checklist** (BEFORE claiming task complete):
+   - ✓ Backend compiles without errors (`mvn clean compile`)
+   - ✓ Frontend builds without errors (`npm run build`)
+   - ✓ Backend server starts successfully (if backend changed)
+   - ✓ Frontend dev server running without errors (if frontend changed)
+   - ✓ Browser console shows no errors (F12 → Console tab)
+   - ✓ Network tab shows API calls returning 200 status (if API changed)
+   - ✓ Manual testing of changed feature confirms it works
+
+4. **When to Run These Checks**:
+   - After modifying any Java file (.java)
+   - After modifying any React component (.js, .jsx)
+   - After modifying any CSS file (.css)
+   - After modifying any configuration file (application.properties, package.json)
+   - Before committing changes to Git
+   - Before claiming "task complete"
+
+5. **Integration Testing After Major Changes**:
+   ```powershell
+   # If both backend AND frontend were modified:
+   
+   # 1. Rebuild backend
+   cd D:\Springboard\backend
+   mvn clean package -DskipTests
+   
+   # 2. Restart backend (Terminal 1)
+   # Kill existing process (Ctrl+C)
+   java -jar target/bookaro-backend-1.0.2.jar
+   
+   # 3. Verify frontend (Terminal 2 should auto-reload)
+   # If not, restart:
+   cd D:\Springboard\frontend
+   npm start
+   
+   # 4. Test the integration (Terminal 3)
+   # Example: Test registration → login → browse services → create booking
+   Invoke-RestMethod -Uri "http://localhost:8081/api/v1/services" -Method GET
+   # Open browser: http://localhost:3000
+   # Test the actual feature in UI
+   ```
+
+6. **Error Documentation**:
+   - If errors found, document in session notes
+   - Explain what caused the error
+   - Explain how it was fixed
+   - Add prevention rule if it's a new mistake pattern
+
+**NEVER skip these checks. NEVER assume code works without verification.**
+
+**Common Testing Mistakes to Avoid**:
+- Testing against OLD backend version (check JAR timestamp)
+- Not waiting for backend to fully start before testing
+- Assuming code works without running actual test
+- Only testing success case (must test error cases too)
+- Not checking browser console for JavaScript errors
+- Skipping compilation checks after "small" changes
+
 ## Project Overview
 Bookaro is a three-tier service marketplace platform (Spring Boot + React + PostgreSQL) connecting customers with service providers. Currently in Phase 1 (User Module) - production-ready for customer-facing features.
 
@@ -245,6 +352,221 @@ Bookaro is a three-tier service marketplace platform (Spring Boot + React + Post
 - **Creative Freedom**: Exercise creativity for modern, responsive user experiences
 - **Current Theme**: Deep Navy Blue, Bright Royal Blue, White, Light Gray (color codes: 1a2332, 2563eb, ffffff, e5e7eb)
 - **Professional Design**: Clean, business-appropriate design without decorative elements
+
+## UI/UX Patterns & Components
+
+### Form Validation Pattern
+**Field-level validation with real-time feedback:**
+```javascript
+const [fieldErrors, setFieldErrors] = useState({});
+
+const validateForm = () => {
+  const errors = {};
+  if (!formData.email) {
+    errors.email = 'Email is required';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = 'Please enter a valid email address';
+  }
+  setFieldErrors(errors);
+  return Object.keys(errors).length === 0;
+};
+
+// In JSX:
+<input
+  aria-invalid={!!fieldErrors.email}
+  aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+/>
+{fieldErrors.email && (
+  <span className="field-error" id="email-error" role="alert">
+    {fieldErrors.email}
+  </span>
+)}
+```
+
+### Password Toggle Pattern
+```javascript
+const [showPassword, setShowPassword] = useState(false);
+
+<div className="password-input-wrapper">
+  <input type={showPassword ? 'text' : 'password'} />
+  <button
+    type="button"
+    className="password-toggle"
+    onClick={() => setShowPassword(!showPassword)}
+    aria-label={showPassword ? 'Hide password' : 'Show password'}
+  >
+    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+  </button>
+</div>
+```
+
+### Unsaved Changes Warning
+```javascript
+const [originalData, setOriginalData] = useState({});
+const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+useEffect(() => {
+  const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
+  setHasUnsavedChanges(hasChanges);
+}, [formData, originalData]);
+
+useEffect(() => {
+  const handleBeforeUnload = (e) => {
+    if (hasUnsavedChanges && isEditing) {
+      e.preventDefault();
+      e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    }
+  };
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+}, [hasUnsavedChanges, isEditing]);
+```
+
+### Empty State Card Pattern
+All empty states use this consistent structure:
+```javascript
+<div className="empty-state-card">
+  <svg width="120" height="120">{/* Large icon */}</svg>
+  <h2>No Items Yet</h2>
+  <p>Descriptive message explaining the empty state</p>
+  <div className="empty-state-benefits">
+    <h3>Why use this feature?</h3>
+    <ul>
+      <li>Benefit point 1</li>
+      <li>Benefit point 2</li>
+      <li>Benefit point 3</li>
+      <li>Benefit point 4</li>
+    </ul>
+  </div>
+  <button className="btn btn-primary btn-large">
+    Primary Action
+  </button>
+</div>
+```
+
+**CSS for empty states:**
+```css
+.empty-state-card {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  background-color: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.empty-state-benefits li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--royal-blue);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+```
+
+### Error Message Card Pattern
+For service failures and errors:
+```javascript
+{error && (
+  <div className="error-message-card" role="alert">
+    <svg width="48" height="48">{/* Alert icon */}</svg>
+    <h3>Unable to Load Services</h3>
+    <p>{error}</p>
+    <button onClick={retryFunction} className="btn btn-primary">
+      Try Again
+    </button>
+  </div>
+)}
+```
+
+### No Results Pattern
+For search/filter with zero results:
+```javascript
+<div className="no-results-card">
+  <svg width="64" height="64">{/* Search icon */}</svg>
+  <h2>No Services Found</h2>
+  <p>We couldn't find any services matching your search criteria.</p>
+  <div className="no-results-suggestions">
+    <h3>Try these tips:</h3>
+    <ul>
+      <li>Check your spelling and try different keywords</li>
+      <li>Select a different city or remove location filters</li>
+      <li>Adjust your price range or rating filters</li>
+      <li>Try browsing all categories</li>
+    </ul>
+  </div>
+  <div className="no-results-actions">
+    <button onClick={clearFilters} className="btn btn-primary">
+      Clear All Filters
+    </button>
+    <Link to="/contact" className="btn btn-outline">
+      Request a Service
+    </Link>
+  </div>
+</div>
+```
+
+### Design System Tokens
+**CSS Custom Properties (use these consistently):**
+```
+Colors:
+  navy-blue: 1e3a8a
+  royal-blue: 2563eb
+  light-gray: f3f4f6
+  border-color: e5e7eb
+  text-primary: 1f2937
+  text-secondary: 6b7280
+
+Spacing:
+  spacing-xs: 4px
+  spacing-sm: 8px
+  spacing-md: 16px
+  spacing-lg: 24px
+  spacing-xl: 32px
+  spacing-2xl: 48px
+
+Border Radius:
+  radius-sm: 4px
+  radius-md: 8px
+  radius-lg: 12px
+  radius-xl: 16px
+  radius-full: 9999px
+
+Shadows:
+  shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05)
+  shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1)
+  shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1)
+```
+
+### Button Variants
+```css
+.btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all var(--transition-normal);
+}
+
+.btn-primary {
+  background-color: var(--royal-blue);
+  color: white;
+  border: none;
+}
+
+.btn-outline {
+  background-color: white;
+  color: var(--royal-blue);
+  border: 2px solid var(--royal-blue);
+}
+
+.btn-large {
+  padding: var(--spacing-md) var(--spacing-2xl);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+```
 
 ## Critical Architecture Decisions
 
@@ -405,16 +727,29 @@ public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody Re
 
 ## Phase Status & Boundaries
 
-### Phase 1 - User Module (PRODUCTION READY)
+### Phase 1 - User Module (PRODUCTION READY) ✅
 **Delivered Features (Iteratively Tested & Verified):**
 - User registration/login with JWT authentication
-- Profile management (view/update personal information)
+- Show/hide password toggle with field-level validation
+- Profile management with unsaved changes warning
 - Service browsing/search (by category, location, with pagination)
-- Service details with vendor information
+- Enhanced error and no-results messaging with helpful suggestions
+- Service details with improved UI and prominent booking CTA
 - Booking creation with date/time selection
 - Booking status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED)
 - Review & rating system (1-5 stars with comments)
-- All 9 user features verified working in production configuration
+- Favorites toggle on service cards
+- Enhanced empty states for Bookings, Favorites, and Addresses pages
+- Comprehensive support pages (FAQ, Help Center, Contact)
+
+**Recent UI/UX Enhancements (October 2025)**:
+1. **Login Page**: Password visibility toggle, field validation, specific error messages
+2. **Profile Page**: Field-level errors, unsaved changes indicator with browser warning
+3. **Support Pages**: FAQ with accordion UI, Help Center with topics, Contact form
+4. **Service Search**: Error card with "Try Again" button, no-results with suggestions list
+5. **Service Detail**: Fixed layout overflow, prominent booking card, proper text wrapping
+6. **Empty States**: Beautiful cards with icons, benefits lists, and CTAs across 3 pages
+7. **Favorites**: Toggle heart icon on service cards, add/remove functionality working
 
 **Test Credentials:**
 - User: user@bookaro.com / password123
