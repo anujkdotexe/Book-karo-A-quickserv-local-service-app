@@ -33,42 +33,49 @@ public class ComprehensiveDataInitializer {
                                            ServiceRepository serviceRepository,
                                            PasswordEncoder passwordEncoder) {
         return args -> {
-            // DISABLED: Only use DataInitializer for test data
-            // User requested to remove all generated vendors and keep only TEST001
-            if (false) { // Changed from: if (serviceRepository.count() < 100)
+            // Generate 6 regional vendors (one per city) with multiple services each
+            if (serviceRepository.count() < 20) {
                 logger.info("============================================");
-                logger.info("GENERATING 150+ SERVICES WITH 50 VENDORS");
+                logger.info("GENERATING REGIONAL VENDORS WITH SERVICES");
                 logger.info("============================================");
                 
                 List<User> vendorUsers = new ArrayList<>();
                 List<Vendor> vendors = new ArrayList<>();
                 List<Service> services = new ArrayList<>();
                 
-                // Define categories and cities for variety
+                // 6 regions with their configurations
+                String[][] regionConfig = {
+                    {"Mumbai", "mumbai@bookaro.com", "MUM001", "5"},      // 5 services
+                    {"Pune", "pune@bookaro.com", "PUN001", "4"},          // 4 services
+                    {"Delhi", "delhi@bookaro.com", "DEL001", "5"},        // 5 services
+                    {"Bangalore", "bangalore@bookaro.com", "BLR001", "4"}, // 4 services
+                    {"Thane", "thane@bookaro.com", "THA001", "2"},        // 2 services
+                    {"Navi Mumbai", "navimumbai@bookaro.com", "NMB001", "5"} // 5 services
+                };
+                
                 String[] categories = {"Plumbing", "Electrical", "Cleaning", "Painting", "Carpentry", 
                                       "Appliance Repair", "Pest Control", "Beauty", "Fitness", "IT Services",
                                       "Car Services", "Gardening", "Laundry", "Photography", "Education"};
-                String[] cities = {"Mumbai", "Thane", "Navi Mumbai", "Pune", "Delhi", "Bangalore"};
                 
-                // Generate 50 vendors (each with a User account for login)
-                for (int i = 1; i <= 50; i++) {
-                    String category = categories[(i - 1) % categories.length];
-                    String city = cities[(i - 1) % cities.length];
-                    String vendorCode = String.format("VEN%03d", i);
-                    String email = String.format("vendor%d@bookaro.com", i);
+                // Generate 1 vendor per region
+                for (int i = 0; i < regionConfig.length; i++) {
+                    String city = regionConfig[i][0];
+                    String email = regionConfig[i][1];
+                    String vendorCode = regionConfig[i][2];
+                    String category = categories[i % categories.length];
                     
                     // Create User account for vendor (for login)
                     User vendorUser = new User();
                     vendorUser.setEmail(email);
-                    vendorUser.setPassword(passwordEncoder.encode("vendor123")); // All vendors same password for testing
-                    vendorUser.setFirstName("Vendor");
-                    vendorUser.setLastName(String.format("#%d", i));
-                    vendorUser.setFullName(String.format("Vendor #%d", i));
-                    vendorUser.setPhone(String.format("98765%05d", 43200 + i));
+                    vendorUser.setPassword(passwordEncoder.encode("vendor123"));
+                    vendorUser.setFirstName(city);
+                    vendorUser.setLastName("Services");
+                    vendorUser.setFullName(city + " Services");
+                    vendorUser.setPhone(String.format("98765432%02d", 10 + i));
                     vendorUser.setAddress(generateLocation(city, i));
                     vendorUser.setCity(city);
                     vendorUser.setState(getState(city));
-                    vendorUser.setZipCode(String.format("%d", 400000 + i));
+                    vendorUser.setZipCode(String.format("%d", 400001 + i * 100));
                     vendorUser.setRole(User.UserRole.VENDOR);
                     vendorUser.setIsActive(true);
                     vendorUsers.add(vendorUser);
@@ -76,71 +83,68 @@ public class ComprehensiveDataInitializer {
                     // Create Vendor entity
                     Vendor vendor = Vendor.builder()
                             .vendorCode(vendorCode)
-                            .businessName(generateBusinessName(category, i))
+                            .businessName(city + " Services Co.")
                             .primaryCategory(category)
-                            .phone(String.format("98765%05d", 43200 + i))
+                            .phone(String.format("98765432%02d", 10 + i))
                             .email(email)
                             .location(generateLocation(city, i))
                             .city(city)
                             .state(getState(city))
-                            .postalCode(String.format("%d", 400000 + i))
+                            .postalCode(String.format("%d", 400001 + i * 100))
                             .availability(generateAvailability(i))
-                            .yearsOfExperience(5 + (i % 15))
-                            .averageRating(new BigDecimal(String.format("%.1f", 4.0 + (i % 10) / 10.0)))
-                            .totalReviews(50 + (i * 3))
+                            .yearsOfExperience(5 + i)
+                            .averageRating(new BigDecimal(String.format("%.1f", 4.2 + (i * 0.1))))
+                            .totalReviews(50 + (i * 20))
                             .isActive(true)
                             .isVerified(true)
-                            .description(generateDescription(category))
+                            .description(city + "'s trusted service provider for all your needs")
                             .build();
                     vendors.add(vendor);
                 }
                 
                 // Save all vendor users first
                 userRepository.saveAll(vendorUsers);
-                logger.info("Created {} vendor user accounts (login: vendorX@bookaro.com / vendor123)", vendorUsers.size());
+                logger.info("Created {} regional vendor user accounts", vendorUsers.size());
                 
                 // Save all vendors
                 vendorRepository.saveAll(vendors);
-                logger.info("Created {} vendors", vendors.size());
+                logger.info("Created {} regional vendors", vendors.size());
                 
-                // Generate 3-4 services per vendor (150-200 services total)
-                int serviceCount = 1;
-                for (Vendor vendor : vendors) {
-                    int servicesPerVendor = 3 + (serviceCount % 2); // 3 or 4 services per vendor
+                // Generate services for each vendor
+                int globalServiceIndex = 1;
+                for (int i = 0; i < vendors.size(); i++) {
+                    Vendor vendor = vendors.get(i);
+                    int serviceCount = Integer.parseInt(regionConfig[i][3]);
                     
-                    for (int j = 0; j < servicesPerVendor; j++) {
-                        Service service = generateService(vendor, j, serviceCount);
+                    for (int j = 0; j < serviceCount; j++) {
+                        Service service = generateService(vendor, j, globalServiceIndex);
                         services.add(service);
-                        serviceCount++;
+                        globalServiceIndex++;
                     }
                 }
                 
                 // Save all services
                 serviceRepository.saveAll(services);
-                logger.info("Created {} services", services.size());
+                logger.info("Created {} services across {} vendors", services.size(), vendors.size());
                 
                 logger.info("============================================");
-                logger.info("COMPREHENSIVE DATA GENERATION COMPLETE");
-                logger.info("Total Vendors: {}", vendorRepository.count());
-                logger.info("Total Services: {}", serviceRepository.count());
+                logger.info("REGIONAL DATA GENERATION COMPLETE");
                 logger.info("============================================");
-                logger.info("VENDOR LOGIN CREDENTIALS:");
-                logger.info("Email: vendor1@bookaro.com to vendor50@bookaro.com");
+                logger.info("REGIONAL VENDOR LOGIN CREDENTIALS:");
+                logger.info("Mumbai: mumbai@bookaro.com (5 services)");
+                logger.info("Pune: pune@bookaro.com (4 services)");
+                logger.info("Delhi: delhi@bookaro.com (5 services)");
+                logger.info("Bangalore: bangalore@bookaro.com (4 services)");
+                logger.info("Thane: thane@bookaro.com (2 services)");
+                logger.info("Navi Mumbai: navimumbai@bookaro.com (5 services)");
                 logger.info("Password: vendor123 (all vendors)");
+                logger.info("Total Services: {}", services.size());
                 logger.info("============================================");
             } else {
-                logger.info("Comprehensive data already exists ({} vendors, {} services)", 
+                logger.info("Regional data already exists ({} vendors, {} services)", 
                         vendorRepository.count(), serviceRepository.count());
             }
         };
-    }
-    
-    private String generateBusinessName(String category, int index) {
-        String[] prefixes = {"Pro", "Expert", "Premium", "Elite", "Quick", "Smart", "Perfect", "Golden", "Royal", "Star"};
-        String[] suffixes = {"Services", "Solutions", "Experts", "Professionals", "Care", "Hub", "Point", "Zone", "Plus", "Masters"};
-        String prefix = prefixes[index % prefixes.length];
-        String suffix = suffixes[(index / 2) % suffixes.length];
-        return prefix + " " + category + " " + suffix;
     }
     
     private String generateLocation(String city, int index) {
@@ -169,27 +173,6 @@ public class ComprehensiveDataInitializer {
             "Mon-Sun 9AM-9PM"
         };
         return availabilities[index % availabilities.length];
-    }
-    
-    private String generateDescription(String category) {
-        switch (category) {
-            case "Plumbing": return "Professional plumbing services for residential and commercial properties with 24/7 emergency support";
-            case "Electrical": return "Licensed electricians providing safe and reliable electrical services for all your needs";
-            case "Cleaning": return "Professional cleaning services using eco-friendly products and trained staff";
-            case "Painting": return "Quality painting services with premium paints and experienced painters";
-            case "Carpentry": return "Custom furniture design, repair, and installation by skilled carpenters";
-            case "Appliance Repair": return "Expert repair services for all home appliances with genuine parts";
-            case "Pest Control": return "Safe and effective pest control using government-approved chemicals";
-            case "Beauty": return "Professional beauty services at your doorstep by certified beauticians";
-            case "Fitness": return "Personalized fitness training by certified trainers for all fitness levels";
-            case "IT Services": return "Computer and laptop repair, software solutions, and tech support";
-            case "Car Services": return "Complete car care services including washing, detailing, and maintenance";
-            case "Gardening": return "Professional gardening and landscaping services for beautiful outdoor spaces";
-            case "Laundry": return "Premium laundry and dry cleaning services with pickup and delivery";
-            case "Photography": return "Professional photography services for all occasions and events";
-            case "Education": return "Expert tutoring services for all subjects and competitive exams";
-            default: return "Professional services delivered with quality and reliability";
-        }
     }
     
     private Service generateService(Vendor vendor, int serviceIndex, int globalIndex) {

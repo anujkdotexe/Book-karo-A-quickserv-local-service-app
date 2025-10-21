@@ -183,54 +183,107 @@ const Login = () => {
             </button>
           </form>
 
-          <div style={{ marginTop: '20px', padding: '15px', background: '#f0f4f8', borderRadius: '8px' }}>
-            <p style={{ fontSize: '14px', marginBottom: '10px', color: '#1e3a8a', fontWeight: '600' }}>Quick Login (Test Accounts):</p>
-            <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+          <div style={{ marginTop: '24px', padding: '20px', background: '#f0f9ff', borderRadius: '12px', border: '2px solid #2563eb' }}>
+            <h3 style={{ fontSize: '16px', marginBottom: '16px', color: '#1e3a8a', fontWeight: '700', textAlign: 'center' }}>
+              Test Accounts - Quick Login
+            </h3>
+            
+            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column', marginBottom: '20px' }}>
               <button
                 onClick={() => handleQuickLogin('user@bookaro.com', 'password123')}
                 disabled={loading}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 16px',
                   background: '#2563eb',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '13px'
+                  borderRadius: '8px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s',
+                  opacity: loading ? '0.6' : '1'
                 }}
+                onMouseEnter={(e) => !loading && (e.target.style.background = '#1d4ed8')}
+                onMouseLeave={(e) => !loading && (e.target.style.background = '#2563eb')}
               >
                 Login as User
               </button>
               <button
-                onClick={() => handleQuickLogin('vendor@bookaro.com', 'password123')}
+                onClick={() => handleQuickLogin('mumbai@bookaro.com', 'vendor123')}
                 disabled={loading}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 16px',
                   background: '#2563eb',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '13px'
+                  borderRadius: '8px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s',
+                  opacity: loading ? '0.6' : '1'
                 }}
+                onMouseEnter={(e) => !loading && (e.target.style.background = '#1d4ed8')}
+                onMouseLeave={(e) => !loading && (e.target.style.background = '#2563eb')}
               >
-                Login as Vendor
+                Login as Vendor (Mumbai - Default)
               </button>
               <button
                 onClick={() => handleQuickLogin('admin@bookaro.com', 'admin123')}
                 disabled={loading}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 16px',
                   background: '#2563eb',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '13px'
+                  borderRadius: '8px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s',
+                  opacity: loading ? '0.6' : '1'
                 }}
+                onMouseEnter={(e) => !loading && (e.target.style.background = '#1d4ed8')}
+                onMouseLeave={(e) => !loading && (e.target.style.background = '#2563eb')}
               >
                 Login as Admin
               </button>
+            </div>
+
+            <div style={{ background: 'white', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <h4 style={{ fontSize: '14px', marginBottom: '12px', color: '#1e3a8a', fontWeight: '600' }}>
+                Regional Vendor Credentials:
+              </h4>
+              <div style={{ fontSize: '13px', lineHeight: '1.8', color: '#374151', fontFamily: 'monospace' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
+                  <span><strong>Mumbai:</strong> mumbai@bookaro.com</span>
+                  <span style={{ color: '#059669' }}>vendor123</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
+                  <span><strong>Pune:</strong> pune@bookaro.com</span>
+                  <span style={{ color: '#059669' }}>vendor123</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
+                  <span><strong>Delhi:</strong> delhi@bookaro.com</span>
+                  <span style={{ color: '#059669' }}>vendor123</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
+                  <span><strong>Bangalore:</strong> bangalore@bookaro.com</span>
+                  <span style={{ color: '#059669' }}>vendor123</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
+                  <span><strong>Thane:</strong> thane@bookaro.com</span>
+                  <span style={{ color: '#059669' }}>vendor123</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
+                  <span><strong>Navi Mumbai:</strong> navimumbai@bookaro.com</span>
+                  <span style={{ color: '#059669' }}>vendor123</span>
+                </div>
+              </div>
+              <p style={{ fontSize: '11px', marginTop: '12px', color: '#6b7280', fontStyle: 'italic' }}>
+                All vendor passwords: vendor123
+              </p>
             </div>
           </div>
 

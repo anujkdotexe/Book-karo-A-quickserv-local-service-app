@@ -278,7 +278,6 @@
 
 .profile-menu-item svg {
   flex-shrink: 0;
-  opacity: 0.9;
 }
 
 .profile-menu-divider {
@@ -411,7 +410,6 @@
 .mobile-icon-link:hover,
 .mobile-profile-icon:hover {
   transform: scale(1.1);
-  opacity: 0.9;
 }
 
 .cart-badge-mobile {
@@ -540,7 +538,6 @@
 
 .mobile-menu-item svg {
   flex-shrink: 0;
-  opacity: 0.9;
 }
 
 .mobile-menu-divider {
