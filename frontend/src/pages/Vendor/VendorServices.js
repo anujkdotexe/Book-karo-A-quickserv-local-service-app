@@ -160,7 +160,7 @@ const VendorServices = () => {
                 {service.averageRating > 0 && (
                   <div className="detail-item">
                     <span className="detail-label">Rating:</span>
-                    <span>⭐ {service.averageRating.toFixed(1)}</span>
+                    <span>{service.averageRating.toFixed(1)} / 5.0</span>
                   </div>
                 )}
               </div>

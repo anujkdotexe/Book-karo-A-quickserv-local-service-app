@@ -71,7 +71,6 @@ public class BookingReminderService {
             
             log.info("Reminder sent to {} ({}): {}", userName, booking.getUser().getEmail(), message);
             
-            // TODO: Integrate with actual notification services
             // emailService.sendEmail(booking.getUser().getEmail(), "Booking Reminder", message);
             // smsService.sendSMS(booking.getUser().getPhone(), message);
             // pushNotificationService.send(booking.getUser().getId(), "Booking Reminder", message);

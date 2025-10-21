@@ -1,5 +1,14 @@
 {
-  "buildCommand": "npm run build" ,
-  "outputDirectory": "build",
-  "installCommand": "npm install"
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/build",
+  "installCommand": "cd frontend && npm install",
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
+  "github": {
+    "silent": true
+  },
+  "ignoreCommand": "bash vercel-build.sh"
 }

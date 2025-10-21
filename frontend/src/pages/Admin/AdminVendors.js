@@ -161,7 +161,7 @@ const AdminVendors = () => {
                 {vendor.averageRating > 0 && (
                   <div className="detail-item">
                     <span className="detail-label">Rating:</span>
-                    <span>⭐ {vendor.averageRating.toFixed(1)}</span>
+                    <span>{vendor.averageRating.toFixed(1)} / 5.0</span>
                   </div>
                 )}
               </div>

@@ -52,7 +52,7 @@ const VendorDashboard = () => {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon bookings">📅</div>
+          <div className="stat-icon bookings">Bookings</div>
           <div className="stat-content">
             <h3>Total Bookings</h3>
             <p className="stat-value">{stats?.totalBookings || 0}</p>
@@ -60,7 +60,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon pending">⏳</div>
+          <div className="stat-icon pending">Pending</div>
           <div className="stat-content">
             <h3>Pending</h3>
             <p className="stat-value">{stats?.pendingBookings || 0}</p>
@@ -68,7 +68,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon confirmed">✓</div>
+          <div className="stat-icon confirmed">Confirmed</div>
           <div className="stat-content">
             <h3>Confirmed</h3>
             <p className="stat-value">{stats?.confirmedBookings || 0}</p>
@@ -76,7 +76,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon completed">🎉</div>
+          <div className="stat-icon completed">Completed</div>
           <div className="stat-content">
             <h3>Completed</h3>
             <p className="stat-value">{stats?.completedBookings || 0}</p>
@@ -84,7 +84,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon services">🛠️</div>
+          <div className="stat-icon services">Services</div>
           <div className="stat-content">
             <h3>Total Services</h3>
             <p className="stat-value">{stats?.totalServices || 0}</p>
@@ -92,7 +92,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon active">✨</div>
+          <div className="stat-icon active">Active</div>
           <div className="stat-content">
             <h3>Active Services</h3>
             <p className="stat-value">{stats?.activeServices || 0}</p>
@@ -100,7 +100,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon revenue">💰</div>
+          <div className="stat-icon revenue">Revenue</div>
           <div className="stat-content">
             <h3>Total Revenue</h3>
             <p className="stat-value">Rs.{stats?.totalRevenue?.toLocaleString() || 0}</p>
@@ -108,7 +108,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon monthly">📊</div>
+          <div className="stat-icon monthly">Monthly</div>
           <div className="stat-content">
             <h3>Monthly Revenue</h3>
             <p className="stat-value">Rs.{stats?.monthlyRevenue?.toLocaleString() || 0}</p>
@@ -116,7 +116,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon rating">⭐</div>
+          <div className="stat-icon rating">Rating</div>
           <div className="stat-content">
             <h3>Average Rating</h3>
             <p className="stat-value">{stats?.averageRating?.toFixed(1) || 'N/A'}</p>
@@ -124,7 +124,7 @@ const VendorDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon reviews">💬</div>
+          <div className="stat-icon reviews">Reviews</div>
           <div className="stat-content">
             <h3>Total Reviews</h3>
             <p className="stat-value">{stats?.totalReviews || 0}</p>
@@ -167,9 +167,9 @@ const VendorDashboard = () => {
                   <div className="service-info">
                     <h4>{service.serviceName}</h4>
                     <div className="service-metrics">
-                      <span>📅 {service.bookingCount} bookings</span>
-                      <span>💰 Rs.{service.revenue.toLocaleString()}</span>
-                      <span>⭐ {service.averageRating.toFixed(1)}</span>
+                      <span>Bookings: {service.bookingCount}</span>
+                      <span>Revenue: Rs.{service.revenue.toLocaleString()}</span>
+                      <span>Rating: {service.averageRating.toFixed(1)}</span>
                     </div>
                   </div>
                 </div>

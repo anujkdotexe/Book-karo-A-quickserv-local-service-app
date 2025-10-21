@@ -46,8 +46,7 @@ const Services = () => {
       const ids = new Set(favServices.map(fav => fav.id));
       setFavoriteIds(ids);
     } catch (err) {
-      // User not logged in or no favorites, that's okay
-      console.log('No favorites loaded (user may not be logged in)');
+      // User not logged in or no favorites - silently continue
     }
   };
 

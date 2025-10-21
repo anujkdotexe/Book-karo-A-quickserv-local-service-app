@@ -46,10 +46,10 @@ export const ToastProvider = ({ children }) => {
             onClick={() => removeToast(toast.id)}
           >
             <div className="toast-icon">
-              {toast.type === 'success' && '✓'}
-              {toast.type === 'error' && '✕'}
-              {toast.type === 'warning' && '⚠'}
-              {toast.type === 'info' && 'ℹ'}
+              {toast.type === 'success' && 'OK'}
+              {toast.type === 'error' && 'X'}
+              {toast.type === 'warning' && '!'}
+              {toast.type === 'info' && 'i'}
             </div>
             <div className="toast-message">{toast.message}</div>
           </div>

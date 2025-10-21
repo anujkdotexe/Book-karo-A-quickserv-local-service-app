@@ -37,8 +37,7 @@ api.interceptors.response.use(
         });
         window.dispatchEvent(event);
       } catch (e) {
-        // Fallback if toast isn't available
-        console.log('Session expired - redirecting to login');
+        // Fallback: silently redirect
       }
       
       // Redirect to login after a brief delay to show message

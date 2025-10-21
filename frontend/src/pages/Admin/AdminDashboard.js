@@ -48,7 +48,7 @@ const AdminDashboard = () => {
 
       <div className="stats-grid">
         <div className="stat-card primary">
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon">Users</div>
           <div className="stat-content">
             <h3>Total Users</h3>
             <p className="stat-value">{stats?.totalUsers || 0}</p>
@@ -56,7 +56,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card success">
-          <div className="stat-icon">🏪</div>
+          <div className="stat-icon">Vendors</div>
           <div className="stat-content">
             <h3>Total Vendors</h3>
             <p className="stat-value">{stats?.totalVendors || 0}</p>
@@ -64,7 +64,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card warning">
-          <div className="stat-icon">🛠️</div>
+          <div className="stat-icon">Services</div>
           <div className="stat-content">
             <h3>Total Services</h3>
             <p className="stat-value">{stats?.totalServices || 0}</p>
@@ -72,7 +72,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card info">
-          <div className="stat-icon">📅</div>
+          <div className="stat-icon">Bookings</div>
           <div className="stat-content">
             <h3>Total Bookings</h3>
             <p className="stat-value">{stats?.totalBookings || 0}</p>
@@ -80,7 +80,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card danger">
-          <div className="stat-icon">⏰</div>
+          <div className="stat-icon">Pending</div>
           <div className="stat-content">
             <h3>Pending Vendor Approvals</h3>
             <p className="stat-value">{stats?.pendingVendorApprovals || 0}</p>
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card danger">
-          <div className="stat-icon">📋</div>
+          <div className="stat-icon">Approvals</div>
           <div className="stat-content">
             <h3>Pending Service Approvals</h3>
             <p className="stat-value">{stats?.pendingServiceApprovals || 0}</p>
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card success">
-          <div className="stat-icon">💰</div>
+          <div className="stat-icon">Revenue</div>
           <div className="stat-content">
             <h3>Platform Revenue</h3>
             <p className="stat-value">Rs.{stats?.platformRevenue?.toLocaleString() || 0}</p>
@@ -104,7 +104,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card info">
-          <div className="stat-icon">📈</div>
+          <div className="stat-icon">Growth</div>
           <div className="stat-content">
             <h3>Monthly Revenue</h3>
             <p className="stat-value">Rs.{stats?.monthlyRevenue?.toLocaleString() || 0}</p>
