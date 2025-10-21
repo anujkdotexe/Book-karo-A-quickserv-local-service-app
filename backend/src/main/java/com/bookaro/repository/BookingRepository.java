@@ -3,6 +3,7 @@ package com.bookaro.repository;
 import com.bookaro.model.Booking;
 import com.bookaro.model.Booking.BookingStatus;
 import com.bookaro.model.User;
+import com.bookaro.model.Vendor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -67,5 +68,29 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "LEFT JOIN FETCH b.address " +
            "WHERE b.id = :id")
     Optional<Booking> findByIdWithDetails(@Param("id") Long id);
-}
 
+    /**
+     * Find all bookings for multiple service IDs
+     */
+    List<Booking> findByServiceIdIn(List<Long> serviceIds);
+    
+    /**
+     * Find bookings by vendor (new methods for Vendor entity)
+     */
+    @Query("SELECT b FROM Booking b " +
+           "JOIN FETCH b.user " +
+           "JOIN FETCH b.service s " +
+           "JOIN FETCH s.vendor v " +
+           "LEFT JOIN FETCH b.address " +
+           "WHERE v = :vendor " +
+           "ORDER BY b.bookingDate DESC")
+    List<Booking> findByServiceVendorEntityOrderByBookingDateDesc(@Param("vendor") Vendor vendor);
+    
+    @Query("SELECT b FROM Booking b " +
+           "JOIN FETCH b.user " +
+           "JOIN FETCH b.service s " +
+           "JOIN FETCH s.vendor v " +
+           "LEFT JOIN FETCH b.address " +
+           "WHERE v = :vendor AND b.status = :status")
+    List<Booking> findByServiceVendorEntityAndStatus(@Param("vendor") Vendor vendor, @Param("status") BookingStatus status);
+}

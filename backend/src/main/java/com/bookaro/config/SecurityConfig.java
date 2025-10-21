@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/api-docs/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/services/**").permitAll()
+                        .requestMatchers("/api/v1/public/**").permitAll()
                         
                         // Vendor-only endpoints
                         .requestMatchers("/api/v1/vendor/**").hasRole("VENDOR")

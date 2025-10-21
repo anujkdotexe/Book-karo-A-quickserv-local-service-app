@@ -21,6 +21,9 @@
     <properties>
         <java.version>21</java.version>
         <jjwt.version>0.11.5</jjwt.version>
+        <!-- Compilation Performance -->
+        <maven.compiler.fork>true</maven.compiler.fork>
+        <maven.compiler.maxmem>1024m</maven.compiler.maxmem>
     </properties>
 
     <dependencies>
@@ -87,6 +90,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Apache Commons CSV -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
         <!-- Development Tools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -111,12 +121,30 @@
 
     <build>
         <plugins>
+            <!-- Faster jar packaging -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <fork>${maven.compiler.fork}</fork>
+                    <maxmem>${maven.compiler.maxmem}</maxmem>
+                    <compilerArgs>
+                        <arg>-Xlint:none</arg>
+                        <arg>-g:none</arg>
+                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -132,10 +160,17 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.bookaro.BookaroApplication</mainClass>
+                    <layers>
+                        <enabled>true</enabled>
+                    </layers>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                        </exclude>
+                        <exclude>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-devtools</artifactId>
                         </exclude>
                     </excludes>
                 </configuration>

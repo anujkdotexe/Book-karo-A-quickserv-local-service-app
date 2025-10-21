@@ -19,6 +19,11 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
     Optional<Vendor> findByVendorCode(String vendorCode);
 
     /**
+     * Find vendor by user ID
+     */
+    Optional<Vendor> findByUserId(Long userId);
+
+    /**
      * Find vendors by primary category
      */
     Page<Vendor> findByPrimaryCategoryContainingIgnoreCase(String category, Pageable pageable);

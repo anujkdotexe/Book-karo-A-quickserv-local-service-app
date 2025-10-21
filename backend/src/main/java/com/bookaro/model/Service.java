@@ -73,6 +73,18 @@ public class Service {
     @Builder.Default
     private Boolean isAvailable = true;
 
+    @Column(name = "is_featured")
+    @Builder.Default
+    private Boolean isFeatured = false;
+
+    @Column(name = "approval_status")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private ApprovalStatus approvalStatus = ApprovalStatus.APPROVED;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @Column(name = "average_rating", precision = 3, scale = 2)
     @Builder.Default
     private BigDecimal averageRating = BigDecimal.ZERO;
@@ -88,5 +100,14 @@ public class Service {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * Service Approval Status Enum
+     */
+    public enum ApprovalStatus {
+        PENDING,    // Waiting for admin approval
+        APPROVED,   // Approved by admin
+        REJECTED    // Rejected by admin
+    }
 }
 

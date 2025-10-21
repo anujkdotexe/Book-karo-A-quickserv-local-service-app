@@ -16,6 +16,7 @@ public class UserDto {
     private String lastName;
     private String phone;
     private String address;
+    private String profilePicture;
     private String city;
     private String state;
     private String zipCode;

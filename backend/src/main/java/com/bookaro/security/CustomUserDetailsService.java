@@ -86,23 +86,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         logger.debug("Loading user: {}", email);
 
-        // Lazy initialize hardcoded users on first use
-        initializeHardcodedUsers();
-
-        // Check hardcoded users first - RETURN IMMEDIATELY if found
-        if (hardcodedUsers != null && hardcodedUsers.containsKey(email)) {
-            logger.debug("Using hardcoded credentials for: {}", email);
-            return hardcodedUsers.get(email);
-        }
-
-        // Try to load from database ONLY if NOT a hardcoded user
+        // Try to load from database
         User user = userRepository.findByEmailAndIsActiveTrue(email)
                 .orElseThrow(() -> {
                     logger.warn("User not found: {}", email);
                     return new UsernameNotFoundException("User not found with email: " + email);
                 });
 
-        logger.debug("User found in database: {}", user.getEmail());
+        logger.debug("User found in database: {} with role: {}", user.getEmail(), user.getRole());
         
         // Check if password is empty
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
@@ -110,10 +101,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User has invalid password configuration");
         }
         
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())))
-                .build();
+        // Return CustomUserDetails with user ID and role
+        return new CustomUserDetails(user);
     }
 }

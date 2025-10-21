@@ -23,11 +23,26 @@ import PrivacyPolicy from './pages/Support/PrivacyPolicy';
 import Cart from './pages/Cart/Cart';
 import CartCheckout from './pages/Cart/CartCheckout';
 
+// Vendor Pages
+import VendorDashboard from './pages/Vendor/VendorDashboard';
+import VendorServices from './pages/Vendor/VendorServices';
+import VendorBookings from './pages/Vendor/VendorBookings';
+
+// Admin Pages
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import AdminUsers from './pages/Admin/AdminUsers';
+import AdminVendors from './pages/Admin/AdminVendors';
+import AdminServices from './pages/Admin/AdminServices';
+
+// Error Pages
+import Forbidden from './pages/Forbidden/Forbidden';
+
 // Utils
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/Toast/Toast';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 /**
  * Bookaro Main Application Component
@@ -99,6 +114,48 @@ function App() {
                   <CartCheckout />
                 </PrivateRoute>
               } />
+
+              {/* Vendor Routes (VENDOR role only) */}
+              <Route path="/vendor/dashboard" element={
+                <ProtectedRoute allowedRoles={['VENDOR']}>
+                  <VendorDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/services" element={
+                <ProtectedRoute allowedRoles={['VENDOR']}>
+                  <VendorServices />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/bookings" element={
+                <ProtectedRoute allowedRoles={['VENDOR']}>
+                  <VendorBookings />
+                </ProtectedRoute>
+              } />
+
+              {/* Admin Routes (ADMIN role only) */}
+              <Route path="/admin/dashboard" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminUsers />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/vendors" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminVendors />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/services" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminServices />
+                </ProtectedRoute>
+              } />
+
+              {/* Error Pages */}
+              <Route path="/403" element={<Forbidden />} />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />

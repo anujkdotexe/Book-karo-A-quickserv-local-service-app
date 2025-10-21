@@ -52,14 +52,16 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setError('');
+    setSuccessMessage('');
+    
     // Validate form before submission
     if (!validateForm()) {
       return;
     }
     
     setLoading(true);
-    setError('');
-    setSuccessMessage('');
 
     const result = await login(formData.email, formData.password);
 
@@ -69,17 +71,9 @@ const Login = () => {
         navigate('/services');
       }, 1000);
     } else {
-      // Provide more specific error messages
+      // Show the raw backend error message for clarity
       const errorMsg = result.message || 'Login failed';
-      if (errorMsg.includes('Invalid credentials') || errorMsg.includes('password')) {
-        setError('Incorrect email or password. Please try again.');
-      } else if (errorMsg.includes('not found') || errorMsg.includes('User')) {
-        setError('No account found with this email address.');
-      } else if (errorMsg.includes('disabled') || errorMsg.includes('locked')) {
-        setError('Your account has been disabled. Please contact support.');
-      } else {
-        setError(errorMsg);
-      }
+      setError(errorMsg);
     }
     setLoading(false);
   };

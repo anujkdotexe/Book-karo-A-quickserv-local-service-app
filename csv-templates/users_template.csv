@@ -1,0 +1,6 @@
+firstName,lastName,email,password,phone,address,city,state,postalCode,role
+John,Doe,john.doe@example.com,password123,9876543210,123 Main St,Mumbai,Maharashtra,400001,USER
+Jane,Smith,jane.smith@example.com,password123,9876543211,456 Oak Ave,Mumbai,Maharashtra,400050,USER
+Raj,Kumar,raj.kumar@example.com,password123,9876543212,789 MG Road,Mumbai,Maharashtra,400076,VENDOR
+Priya,Sharma,priya.sharma@example.com,password123,9876543213,321 Park Lane,Mumbai,Maharashtra,400028,USER
+Admin,User,superadmin@example.com,admin123,9876543214,999 Admin Blvd,Mumbai,Maharashtra,400001,ADMIN

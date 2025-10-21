@@ -47,6 +47,11 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     
     @Query("SELECT s FROM Service s WHERE s.vendor.id = :vendorId")
     List<Service> findAllByVendorId(@Param("vendorId") Long vendorId);
+
+    /**
+     * Find all services by vendor ID (without pagination)
+     */
+    List<Service> findByVendorId(Long vendorId);
     
     @Query("SELECT s FROM Service s WHERE s.isAvailable = true AND " +
            "(:category IS NULL OR CAST(s.category AS string) LIKE UPPER(:category)) AND " +

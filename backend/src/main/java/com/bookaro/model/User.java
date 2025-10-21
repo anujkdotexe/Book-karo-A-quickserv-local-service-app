@@ -38,6 +38,9 @@ public class User {
 
     @Column(length = 255)
     private String address;
+    
+    @Column(name = "profile_picture", length = 500)
+    private String profilePicture;
 
     @Column(length = 100)
     private String city;
@@ -60,6 +63,10 @@ public class User {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    // Link to Vendor (for VENDOR role users)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Vendor vendor;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -121,6 +128,9 @@ public class User {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+    
+    public String getProfilePicture() { return profilePicture; }
+    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
@@ -151,4 +161,7 @@ public class User {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Vendor getVendor() { return vendor; }
+    public void setVendor(Vendor vendor) { this.vendor = vendor; }
 }

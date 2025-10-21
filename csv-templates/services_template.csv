@@ -1,0 +1,8 @@
+serviceName,description,category,price,durationMinutes,address,city,state,postalCode,vendorCode
+Emergency Pipe Repair,24/7 emergency plumbing repair for leaks and burst pipes,Plumbing,2500,120,123 Service Lane Andheri,Mumbai,Maharashtra,400058,PLUMB001
+Deep Home Cleaning,Complete home cleaning including kitchen bathroom and living areas,Cleaning,3500,240,456 Clean Street Bandra,Mumbai,Maharashtra,400051,CLEAN001
+Electrical Wiring Installation,New wiring and rewiring services for homes and offices,Electrical,4000,180,789 Power Road Powai,Mumbai,Maharashtra,400076,ELEC001
+Interior Wall Painting,Professional interior painting with premium quality paints,Painting,5000,480,12 Paint Avenue Juhu,Mumbai,Maharashtra,400049,PAINT001
+AC Servicing and Repair,Complete AC servicing including gas refilling and repairs,Appliance Repair,1800,90,45 Cool Street Goregaon,Mumbai,Maharashtra,400063,AC001
+Kitchen Sink Installation,Installation of new kitchen sinks with plumbing connections,Plumbing,1500,60,123 Service Lane Andheri,Mumbai,Maharashtra,400058,PLUMB001
+Office Cleaning Service,Professional office cleaning with sanitization,Cleaning,2000,120,456 Clean Street Bandra,Mumbai,Maharashtra,400051,CLEAN001

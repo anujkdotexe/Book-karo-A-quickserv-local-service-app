@@ -97,8 +97,21 @@ public class Vendor {
     @Builder.Default
     private Boolean isVerified = false;
 
+    @Column(name = "approval_status")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    // Link to User (for VENDOR role users)
+    @OneToOne
+    @JoinColumn(name = "user_id", unique = true)
+    private User user;
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -111,6 +124,16 @@ public class Vendor {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * Vendor Approval Status Enum
+     */
+    public enum ApprovalStatus {
+        PENDING,    // Waiting for admin approval
+        APPROVED,   // Approved by admin
+        REJECTED,   // Rejected by admin
+        SUSPENDED   // Suspended due to violations
+    }
 
     // Helper method to add service
     public void addService(Service service) {

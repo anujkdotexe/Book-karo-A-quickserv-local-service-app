@@ -27,70 +27,112 @@ public class DataInitializer {
                                    VendorRepository vendorRepository,
                                    PasswordEncoder passwordEncoder) {
         return args -> {
-            if (userRepository.count() == 0) {
-                User testUser = new User();
-                testUser.setEmail("user@bookaro.com");
-                testUser.setPassword(passwordEncoder.encode("password123"));
-                testUser.setFullName("Test User");
-                testUser.setPhone("1234567890");
-                testUser.setAddress("123 Test Street");
-                testUser.setCity("Test City");
-                testUser.setState("Test State");
-                testUser.setZipCode("12345");
-                testUser.setRole(User.UserRole.USER);
-                testUser.setIsActive(true);
+            // Check if test users exist, if not initialize
+            boolean needsInitialization = false;
+            
+            if (userRepository.findByEmail("user@bookaro.com").isEmpty()) {
+                logger.warn("Test USER account missing - reinitializing database");
+                needsInitialization = true;
+            }
+            if (userRepository.findByEmail("vendor@bookaro.com").isEmpty()) {
+                logger.warn("Test VENDOR account missing - reinitializing database");
+                needsInitialization = true;
+            }
+            if (userRepository.findByEmail("admin@bookaro.com").isEmpty()) {
+                logger.warn("Test ADMIN account missing - reinitializing database");
+                needsInitialization = true;
+            }
+            
+            // Declare vendor entity variable at outer scope
+            Vendor testVendorEntity = null;
+            
+            if (needsInitialization || userRepository.count() == 0) {
+                logger.info("======================================");
+                logger.info("INITIALIZING DATABASE WITH TEST DATA");
+                logger.info("======================================");
+                
+                // Create USER account
+                if (userRepository.findByEmail("user@bookaro.com").isEmpty()) {
+                    User testUser = new User();
+                    testUser.setEmail("user@bookaro.com");
+                    testUser.setPassword(passwordEncoder.encode("password123"));
+                    testUser.setFirstName("Test");
+                    testUser.setLastName("User");
+                    testUser.setFullName("Test User");
+                    testUser.setPhone("1234567890");
+                    testUser.setAddress("123 Test Street");
+                    testUser.setCity("Mumbai");
+                    testUser.setState("Maharashtra");
+                    testUser.setZipCode("400001");
+                    testUser.setRole(User.UserRole.USER);
+                    testUser.setIsActive(true);
+                    userRepository.save(testUser);
+                    logger.info("Created USER account: user@bookaro.com");
+                }
 
-                userRepository.save(testUser);
+                // Create VENDOR account
+                if (userRepository.findByEmail("vendor@bookaro.com").isEmpty()) {
+                    User testVendor = new User();
+                    testVendor.setEmail("vendor@bookaro.com");
+                    testVendor.setPassword(passwordEncoder.encode("password123"));
+                    testVendor.setFirstName("Test");
+                    testVendor.setLastName("Vendor");
+                    testVendor.setFullName("Test Vendor");
+                    testVendor.setPhone("0987654321");
+                    testVendor.setAddress("456 Vendor Avenue");
+                    testVendor.setCity("Mumbai");
+                    testVendor.setState("Maharashtra");
+                    testVendor.setZipCode("400050");
+                    testVendor.setRole(User.UserRole.VENDOR);
+                    testVendor.setIsActive(true);
+                    userRepository.save(testVendor);
+                    logger.info("Created VENDOR account: vendor@bookaro.com");
+                }
 
-                User testVendor = new User();
-                testVendor.setEmail("vendor@bookaro.com");
-                testVendor.setPassword(passwordEncoder.encode("password123"));
-                testVendor.setFullName("Test Vendor");
-                testVendor.setPhone("0987654321");
-                testVendor.setAddress("456 Vendor Avenue");
-                testVendor.setCity("Vendor City");
-                testVendor.setState("Vendor State");
-                testVendor.setZipCode("54321");
-                testVendor.setRole(User.UserRole.VENDOR);
-                testVendor.setIsActive(true);
-
-                userRepository.save(testVendor);
-
-                User testAdmin = new User();
-                testAdmin.setEmail("admin@bookaro.com");
-                testAdmin.setPassword(passwordEncoder.encode("admin123"));
-                testAdmin.setFullName("Admin User");
-                testAdmin.setPhone("1112223333");
-                testAdmin.setAddress("789 Admin Road");
-                testAdmin.setCity("Admin City");
-                testAdmin.setState("Admin State");
-                testAdmin.setZipCode("99999");
-                testAdmin.setRole(User.UserRole.ADMIN);
-                testAdmin.setIsActive(true);
-
-                userRepository.save(testAdmin);
+                // Create ADMIN account
+                if (userRepository.findByEmail("admin@bookaro.com").isEmpty()) {
+                    User testAdmin = new User();
+                    testAdmin.setEmail("admin@bookaro.com");
+                    testAdmin.setPassword(passwordEncoder.encode("admin123"));
+                    testAdmin.setFirstName("Admin");
+                    testAdmin.setLastName("User");
+                    testAdmin.setFullName("Admin User");
+                    testAdmin.setPhone("1112223333");
+                    testAdmin.setAddress("789 Admin Road");
+                    testAdmin.setCity("Mumbai");
+                    testAdmin.setState("Maharashtra");
+                    testAdmin.setZipCode("400076");
+                    testAdmin.setRole(User.UserRole.ADMIN);
+                    testAdmin.setIsActive(true);
+                    userRepository.save(testAdmin);
+                    logger.info("Created ADMIN account: admin@bookaro.com");
+                }
 
                 // Create test vendor entity for services
-                Vendor testVendorEntity = Vendor.builder()
-                        .vendorCode("TEST001")
-                        .businessName("Test Services Co.")
-                        .primaryCategory("Home Services")
-                        .phone("0987654321")
-                        .email("vendor@bookaro.com")
-                        .location("Mumbai Central")
-                        .city("Mumbai")
-                        .state("Maharashtra")
-                        .postalCode("400001")
-                        .availability("Mon-Sat 9AM-6PM")
-                        .yearsOfExperience(5)
-                        .averageRating(new BigDecimal("4.5"))
-                        .totalReviews(50)
-                        .isActive(true)
-                        .isVerified(true)
-                        .description("Professional home service provider offering plumbing, cleaning, and electrical services")
-                        .build();
-                
-                vendorRepository.save(testVendorEntity);
+                testVendorEntity = vendorRepository.findByVendorCode("TEST001").orElse(null);
+                if (testVendorEntity == null) {
+                    testVendorEntity = Vendor.builder()
+                            .vendorCode("TEST001")
+                            .businessName("Test Services Co.")
+                            .primaryCategory("Home Services")
+                            .phone("0987654321")
+                            .email("vendor@bookaro.com")
+                            .location("Mumbai Central")
+                            .city("Mumbai")
+                            .state("Maharashtra")
+                            .postalCode("400001")
+                            .availability("Mon-Sat 9AM-6PM")
+                            .yearsOfExperience(5)
+                            .averageRating(new BigDecimal("4.5"))
+                            .totalReviews(50)
+                            .isActive(true)
+                            .isVerified(true)
+                            .description("Professional home service provider offering plumbing, cleaning, and electrical services")
+                            .build();
+                    
+                    vendorRepository.save(testVendorEntity);
+                    logger.info("Created test vendor entity: TEST001");
+                }
 
                 logger.info("======================================");
                 logger.info("DATABASE INITIALIZED WITH TEST USERS");
@@ -99,6 +141,15 @@ public class DataInitializer {
                 logger.info("VENDOR: vendor@bookaro.com / password123");
                 logger.info("ADMIN: admin@bookaro.com / admin123");
                 logger.info("======================================");
+            } else {
+                logger.info("Test users already exist in database");
+                // Get existing vendor for service creation
+                testVendorEntity = vendorRepository.findByVendorCode("TEST001").orElse(null);
+            }
+            
+            // Only create services if we have a vendor and services don't already exist
+            if (testVendorEntity != null && serviceRepository.count() < 15) {
+                logger.info("Creating sample services...");
 
                 // Add sample services (Prices in Indian Rupees)
                 Service service1 = Service.builder()
@@ -361,7 +412,7 @@ public class DataInitializer {
                 logger.info("15 SAMPLE SERVICES ADDED");
                 logger.info("======================================");
             } else {
-                logger.info("Database already contains {} users. Skipping initialization.", userRepository.count());
+                logger.info("Sample services already exist ({} services found)", serviceRepository.count());
             }
         };
     }
