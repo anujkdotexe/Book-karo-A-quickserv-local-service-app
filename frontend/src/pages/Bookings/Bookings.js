@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { bookingAPI } from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -10,11 +10,7 @@ const Bookings = () => {
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  useEffect(() => {
-    fetchBookings();
-  }, [statusFilter]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -32,17 +28,11 @@ const Bookings = () => {
       setError('Failed to load bookings');
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
 
-  const getStatusColor = (status) => {
-    const colors = {
-      PENDING: '#f59e0b',
-      CONFIRMED: '#3b82f6',
-      COMPLETED: '#10b981',
-      CANCELLED: '#ef4444'
-    };
-    return colors[status] || '#6b7280';
-  };
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
 
   const getStatusLabel = (status) => {
     const labels = {

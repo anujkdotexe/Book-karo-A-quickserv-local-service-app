@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { serviceAPI, bookingAPI, reviewAPI, favoriteAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -29,12 +29,6 @@ const ServiceDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  useEffect(() => {
-    fetchServiceDetails();
-    fetchReviews();
-    checkFavoriteStatus();
-  }, [id]);
-
   // Track unsaved changes in booking form
   useEffect(() => {
     const hasData = showBookingForm && (
@@ -58,7 +52,7 @@ const ServiceDetail = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  const checkFavoriteStatus = async () => {
+  const checkFavoriteStatus = useCallback(async () => {
     if (!user) return;
     try {
       const response = await favoriteAPI.checkFavorite(id);
@@ -66,7 +60,7 @@ const ServiceDetail = () => {
     } catch (err) {
       // Not favorite or not logged in
     }
-  };
+  }, [id, user]);
 
   const handleToggleFavorite = async () => {
     if (!user) {
@@ -91,7 +85,7 @@ const ServiceDetail = () => {
     }
   };
 
-  const fetchServiceDetails = async () => {
+  const fetchServiceDetails = useCallback(async () => {
     try {
       const response = await serviceAPI.getServiceById(id);
       setService(response.data.data);
@@ -100,16 +94,22 @@ const ServiceDetail = () => {
       setError('Failed to load service details');
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const response = await reviewAPI.getServiceReviews(id);
       setReviews(response.data.data || []);
     } catch (err) {
       console.error('Failed to load reviews:', err);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchServiceDetails();
+    fetchReviews();
+    checkFavoriteStatus();
+  }, [fetchServiceDetails, fetchReviews, checkFavoriteStatus]);
 
   const handleBookingChange = (e) => {
     const { name, value } = e.target;

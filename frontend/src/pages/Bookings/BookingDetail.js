@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingAPI, reviewAPI } from '../../services/api';
 import { useToast } from '../../components/Toast/Toast';
@@ -19,11 +19,7 @@ const BookingDetail = () => {
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
 
-  useEffect(() => {
-    fetchBookingDetails();
-  }, [id]);
-
-  const fetchBookingDetails = async () => {
+  const fetchBookingDetails = useCallback(async () => {
     try {
       const response = await bookingAPI.getBookingById(id);
       setBooking(response.data.data);
@@ -32,7 +28,11 @@ const BookingDetail = () => {
       setError('Failed to load booking details');
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchBookingDetails();
+  }, [fetchBookingDetails]);
 
   const handleReviewChange = (e) => {
     setReviewData({
