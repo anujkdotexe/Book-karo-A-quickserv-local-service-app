@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import './Support.css';
 
 const Contact = () => {
-  const toast = useToast();
+  const modal = useModal();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -63,7 +63,7 @@ const Contact = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('Please fix the errors below');
+      modal.error('Please fix the errors below');
       return;
     }
     
@@ -71,7 +71,7 @@ const Contact = () => {
     
     // Simulate API call (replace with actual API call in production)
     setTimeout(() => {
-      toast.success('Message sent successfully! We\'ll get back to you soon.');
+      modal.success('Thank you for contacting us! We\'ll get back to you within 24 hours.');
       setFormData({
         name: '',
         email: '',

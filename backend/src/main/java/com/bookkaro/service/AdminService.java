@@ -288,17 +288,24 @@ public class AdminService {
     }
 
     /**
-     * Get all services
+     * Get all services (with vendor eagerly loaded)
      */
+    @Transactional(readOnly = true)
     public Page<Service> getAllServices(Pageable pageable) {
-        return serviceRepository.findAll(pageable);
+        // Fetch all services with vendor, then paginate in memory
+        List<Service> allServices = serviceRepository.findAllWithVendor();
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allServices.size());
+        List<Service> pageContent = allServices.subList(start, end);
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, allServices.size());
     }
 
     /**
-     * Get pending service approvals
+     * Get pending service approvals (with vendor eagerly loaded)
      */
+    @Transactional(readOnly = true)
     public List<Service> getPendingServices() {
-        return serviceRepository.findAll().stream()
+        return serviceRepository.findAllWithVendor().stream()
             .filter(s -> s.getApprovalStatus() == Service.ApprovalStatus.PENDING)
             .collect(Collectors.toList());
     }
@@ -308,7 +315,7 @@ public class AdminService {
      */
     @Transactional
     public Service approveService(Long serviceId) {
-        Service service = serviceRepository.findById(serviceId)
+        Service service = serviceRepository.findByIdWithVendor(serviceId)
             .orElseThrow(() -> new RuntimeException("Service not found"));
         service.setApprovalStatus(Service.ApprovalStatus.APPROVED);
         return serviceRepository.save(service);
@@ -319,7 +326,7 @@ public class AdminService {
      */
     @Transactional
     public Service rejectService(Long serviceId, String reason) {
-        Service service = serviceRepository.findById(serviceId)
+        Service service = serviceRepository.findByIdWithVendor(serviceId)
             .orElseThrow(() -> new RuntimeException("Service not found"));
         service.setApprovalStatus(Service.ApprovalStatus.REJECTED);
         service.setRejectionReason(reason);
@@ -332,7 +339,7 @@ public class AdminService {
      */
     @Transactional
     public Service toggleServiceFeatured(Long serviceId) {
-        Service service = serviceRepository.findById(serviceId)
+        Service service = serviceRepository.findByIdWithVendor(serviceId)
             .orElseThrow(() -> new RuntimeException("Service not found"));
         service.setIsFeatured(!service.getIsFeatured());
         return serviceRepository.save(service);
@@ -349,14 +356,24 @@ public class AdminService {
     // ==================== BOOKING MANAGEMENT ====================
 
     /**
-     * Get all bookings with optional status filter
+     * Get all bookings with optional status filter (with relationships eagerly loaded)
      */
+    @Transactional(readOnly = true)
     public Page<Booking> getAllBookings(String status, Pageable pageable) {
+        List<Booking> allBookings = bookingRepository.findAllWithDetails();
+        
         if (status != null && !status.isEmpty()) {
             Booking.BookingStatus bookingStatus = Booking.BookingStatus.valueOf(status);
-            return bookingRepository.findByStatus(bookingStatus, pageable);
+            allBookings = allBookings.stream()
+                .filter(b -> b.getStatus() == bookingStatus)
+                .collect(Collectors.toList());
         }
-        return bookingRepository.findAll(pageable);
+        
+        // Paginate in memory
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allBookings.size());
+        List<Booking> pageContent = allBookings.subList(start, end);
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, allBookings.size());
     }
 
     /**
@@ -364,7 +381,7 @@ public class AdminService {
      */
     @Transactional
     public Booking cancelBooking(Long bookingId, String reason) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
             .orElseThrow(() -> new RuntimeException("Booking not found"));
         
         booking.setStatus(Booking.BookingStatus.CANCELLED);
@@ -379,7 +396,7 @@ public class AdminService {
      */
     @Transactional
     public Booking updateBookingStatus(Long bookingId, String newStatus) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
             .orElseThrow(() -> new RuntimeException("Booking not found"));
         
         Booking.BookingStatus status = Booking.BookingStatus.valueOf(newStatus);

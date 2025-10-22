@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { bookingAPI } from '../../services/api';
-import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
 import './Bookings.css';
 
 const Bookings = () => {
@@ -43,10 +43,6 @@ const Bookings = () => {
     };
     return labels[status] || status;
   };
-
-  if (loading) {
-    return <LoadingSpinner fullScreen />;
-  }
 
   return (
     <div className="bookings-page">
@@ -91,7 +87,11 @@ const Bookings = () => {
 
         {error && <div className="error-message">{error}</div>}
 
-        {bookings.length > 0 ? (
+        {loading ? (
+          <div className="bookings-grid">
+            <SkeletonLoader type="booking" count={6} />
+          </div>
+        ) : bookings.length > 0 ? (
           <div className="bookings-grid">
             {bookings.map((booking) => (
               <Link
@@ -192,7 +192,7 @@ const Bookings = () => {
             </p>
             {statusFilter === 'ALL' && (
               <div className="empty-state-benefits">
-                <h3>Why book with bookkaro?</h3>
+                <h3>Why book with Book-Karo?</h3>
                 <ul>
                   <li>Browse 165+ quality services across multiple categories</li>
                   <li>Verified service providers with real customer ratings</li>

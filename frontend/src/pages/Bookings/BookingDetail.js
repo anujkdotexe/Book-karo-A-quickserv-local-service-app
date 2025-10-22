@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingAPI, reviewAPI, refundAPI } from '../../services/api';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import './BookingDetail.css';
 
 const BookingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const toast = useToast();
+  const modal = useModal();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -103,19 +103,22 @@ const BookingDetail = () => {
   };
 
   const handleCancelBooking = async () => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) {
-      return;
-    }
-
-    try {
-      await bookingAPI.updateBookingStatus(id, 'CANCELLED');
-      toast.success('Booking cancelled successfully');
-      fetchBookingDetails();
-    } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Failed to cancel booking';
-      setError(errorMsg);
-      toast.error(errorMsg);
-    }
+    modal.confirm('Are you sure you want to cancel this booking?', {
+      onConfirm: async () => {
+        try {
+          await bookingAPI.updateBookingStatus(id, 'CANCELLED');
+          modal.success('Booking cancelled successfully');
+          fetchBookingDetails();
+        } catch (err) {
+          const errorMsg = err.response?.data?.message || 'Failed to cancel booking';
+          setError(errorMsg);
+          modal.error(errorMsg);
+        }
+      },
+      title: 'Cancel Booking',
+      confirmText: 'Yes, Cancel',
+      cancelText: 'No, Keep It'
+    });
   };
 
   const getStatusColor = (status) => {

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import api from '../../services/api';
 import './Auth.css';
 
 const ForgotPassword = () => {
-  const toast = useToast();
+  const modal = useModal();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -36,13 +36,13 @@ const ForgotPassword = () => {
       if (response.data.success) {
         setEmailSent(true);
         setResetToken(response.data.data); // Token returned since no email service
-        toast.success('Password reset token generated');
+        modal.success('Password reset token generated successfully');
       } else {
-        toast.error(response.data.message || 'Failed to send reset email');
+        modal.error(response.data.message || 'Failed to send reset email');
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to send reset email. Please try again.';
-      toast.error(errorMsg);
+      modal.error(errorMsg);
       setFieldError(errorMsg);
     } finally {
       setLoading(false);

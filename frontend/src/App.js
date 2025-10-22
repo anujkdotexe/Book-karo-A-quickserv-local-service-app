@@ -48,6 +48,7 @@ import Forbidden from './pages/Forbidden/Forbidden';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/Toast/Toast';
+import { ModalProvider } from './components/Modal/Modal';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 /**
@@ -56,13 +57,14 @@ import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
  */
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <CartProvider>
-          <Router>
-            <div className="app">
-              <Navbar />
-              <main className="main-content">
+    <ModalProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Router>
+              <div className="app">
+                <Navbar />
+                <main className="main-content">
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Home />} />
@@ -202,6 +204,7 @@ function App() {
       </CartProvider>
       </AuthProvider>
     </ToastProvider>
+    </ModalProvider>
   );
 }
 

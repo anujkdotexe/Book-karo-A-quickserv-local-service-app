@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { favoriteAPI } from '../../services/api';
-import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import { useModal } from '../../components/Modal/Modal';
+import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
 import './Favorites.css';
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const modal = useModal();
 
   useEffect(() => {
     fetchFavorites();
@@ -29,14 +31,12 @@ const Favorites = () => {
     try {
       await favoriteAPI.removeFromFavorites(serviceId);
       setFavorites(favorites.filter(service => service.id !== serviceId));
+      modal.success('Service removed from your favorites successfully');
     } catch (err) {
       setError('Failed to remove from favorites');
+      modal.error('Failed to remove from favorites. Please try again.');
     }
   };
-
-  if (loading) {
-    return <LoadingSpinner fullScreen />;
-  }
 
   return (
     <div className="favorites-page">
@@ -48,7 +48,11 @@ const Favorites = () => {
 
         {error && <div className="error-message">{error}</div>}
 
-        {favorites.length === 0 ? (
+        {loading ? (
+          <div className="favorites-grid">
+            <SkeletonLoader type="service" count={6} />
+          </div>
+        ) : favorites.length === 0 ? (
           <div className="empty-state-card">
             <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>

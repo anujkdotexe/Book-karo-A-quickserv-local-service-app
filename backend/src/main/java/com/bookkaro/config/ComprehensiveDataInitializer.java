@@ -106,9 +106,14 @@ public class ComprehensiveDataInitializer {
                 userRepository.saveAll(vendorUsers);
                 logger.info("Created {} regional vendor user accounts", vendorUsers.size());
                 
+                // Link vendors to their user accounts
+                for (int i = 0; i < vendors.size(); i++) {
+                    vendors.get(i).setUser(vendorUsers.get(i));
+                }
+                
                 // Save all vendors
                 vendorRepository.saveAll(vendors);
-                logger.info("Created {} regional vendors", vendors.size());
+                logger.info("Created {} regional vendors linked to user accounts", vendors.size());
                 
                 // Generate services for each vendor
                 int globalServiceIndex = 1;

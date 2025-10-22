@@ -1,6 +1,7 @@
 package com.bookkaro.service;
 
 import com.bookkaro.dto.BookingDto;
+import com.bookkaro.dto.ServiceDto;
 import com.bookkaro.dto.VendorDashboardStats;
 import com.bookkaro.model.Booking;
 import com.bookkaro.model.Vendor;
@@ -227,9 +228,11 @@ public class VendorService {
     /**
      * Get vendor services
      */
-    public List<com.bookkaro.model.Service> getVendorServices(Long userId) {
+    public List<ServiceDto> getVendorServices(Long userId) {
         Vendor vendor = getVendorByUserId(userId);
-        return serviceRepository.findByVendorId(vendor.getId());
+        return serviceRepository.findByVendorId(vendor.getId()).stream()
+                .map(ServiceDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     /**

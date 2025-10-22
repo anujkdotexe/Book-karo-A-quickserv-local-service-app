@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import api from '../../services/api';
 import './Auth.css';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const toast = useToast();
+  const modal = useModal();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 
@@ -21,10 +21,10 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (!token) {
-      toast.error('Invalid reset link. Please request a new password reset.');
+      modal.error('Invalid reset link. Please request a new password reset.');
       navigate('/forgot-password');
     }
-  }, [token, navigate, toast]);
+  }, [token, navigate, modal]);
 
   const validateForm = () => {
     const errors = {};
@@ -74,14 +74,14 @@ const ResetPassword = () => {
       });
 
       if (response.data.success) {
-        toast.success('Password reset successful! Please login with your new password.');
+        modal.success('Password reset successful! Please login with your new password.');
         navigate('/login');
       } else {
-        toast.error(response.data.message || 'Failed to reset password');
+        modal.error(response.data.message || 'Failed to reset password');
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to reset password. Please try again.';
-      toast.error(errorMsg);
+      modal.error(errorMsg);
       
       if (errorMsg.includes('expired') || errorMsg.includes('invalid')) {
         setTimeout(() => navigate('/forgot-password'), 2000);

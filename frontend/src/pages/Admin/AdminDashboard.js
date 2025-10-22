@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../services/adminAPI';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -27,7 +28,11 @@ const AdminDashboard = () => {
   };
 
   if (loading) {
-    return <div className="admin-dashboard"><div className="loading-spinner">Loading dashboard...</div></div>;
+    return (
+      <div className="admin-dashboard">
+        <LoadingSpinner message="Loading dashboard..." size="large" />
+      </div>
+    );
   }
 
   if (error) {

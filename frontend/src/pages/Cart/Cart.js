@@ -1,29 +1,34 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import './Cart.css';
 
 const Cart = () => {
   const { cartItems, removeFromCart, clearCart, getCartTotal } = useCart();
-  const toast = useToast();
+  const modal = useModal();
   const navigate = useNavigate();
 
   const handleRemove = (serviceId, serviceName) => {
     removeFromCart(serviceId);
-    toast.success(`${serviceName} removed from cart`);
+    modal.success(`${serviceName} removed from cart`);
   };
 
   const handleClearCart = () => {
-    if (window.confirm('Are you sure you want to clear your cart?')) {
-      clearCart();
-      toast.success('Cart cleared');
-    }
+    modal.confirm('Are you sure you want to clear your cart?', {
+      onConfirm: () => {
+        clearCart();
+        modal.success('Cart cleared successfully');
+      },
+      title: 'Clear Cart',
+      confirmText: 'Yes, Clear',
+      cancelText: 'Cancel'
+    });
   };
 
   const handleCheckout = () => {
     if (cartItems.length === 0) {
-      toast.error('Your cart is empty');
+      modal.error('Your cart is empty');
       return;
     }
     // Navigate to multi-service booking page

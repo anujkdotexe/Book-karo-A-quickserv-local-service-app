@@ -69,6 +69,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "WHERE b.id = :id")
     Optional<Booking> findByIdWithDetails(@Param("id") Long id);
 
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "JOIN FETCH b.user " +
+           "JOIN FETCH b.service s " +
+           "JOIN FETCH s.vendor")
+    List<Booking> findAllWithDetails();
+
     /**
      * Find all bookings for multiple service IDs
      */

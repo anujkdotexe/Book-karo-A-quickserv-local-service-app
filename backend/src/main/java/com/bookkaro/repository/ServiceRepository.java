@@ -53,13 +53,21 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
      */
     List<Service> findByVendorId(Long vendorId);
     
-    @Query("SELECT s FROM Service s WHERE s.isAvailable = true AND " +
+    @Query(value = "SELECT * FROM services s WHERE s.is_available = true AND " +
            "(:category IS NULL OR s.category = :category) AND " +
-           "(:city IS NULL OR LOWER(s.city) LIKE LOWER(CONCAT('%', :city, '%'))) AND " +
-           "(:location IS NULL OR LOWER(s.address) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
+           "(:city IS NULL OR LOWER(CAST(s.city AS TEXT)) LIKE LOWER(CONCAT('%', :city, '%'))) AND " +
+           "(:location IS NULL OR LOWER(CAST(s.address AS TEXT)) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
            "(:minPrice IS NULL OR s.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR s.price <= :maxPrice) AND " +
-           "(:minRating IS NULL OR s.averageRating >= :minRating)")
+           "(:minRating IS NULL OR s.average_rating >= :minRating)",
+           countQuery = "SELECT COUNT(*) FROM services s WHERE s.is_available = true AND " +
+           "(:category IS NULL OR s.category = :category) AND " +
+           "(:city IS NULL OR LOWER(CAST(s.city AS TEXT)) LIKE LOWER(CONCAT('%', :city, '%'))) AND " +
+           "(:location IS NULL OR LOWER(CAST(s.address AS TEXT)) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
+           "(:minPrice IS NULL OR s.price >= :minPrice) AND " +
+           "(:maxPrice IS NULL OR s.price <= :maxPrice) AND " +
+           "(:minRating IS NULL OR s.average_rating >= :minRating)",
+           nativeQuery = true)
     Page<Service> advancedSearch(
             @Param("category") String category,
             @Param("city") String city,
@@ -74,6 +82,9 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     
     @Query("SELECT s FROM Service s LEFT JOIN FETCH s.vendor WHERE s.id = :id")
     java.util.Optional<Service> findByIdWithVendor(@Param("id") Long id);
+    
+    @Query("SELECT DISTINCT s FROM Service s LEFT JOIN FETCH s.vendor")
+    List<Service> findAllWithVendor();
     
     // Analytics methods
     Long countByIsAvailableTrue();

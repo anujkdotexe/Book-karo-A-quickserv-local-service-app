@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import { bookingAPI } from '../../services/api';
 import './CartCheckout.css';
 
@@ -12,7 +12,7 @@ import './CartCheckout.css';
 const CartCheckout = () => {
   const navigate = useNavigate();
   const { cartItems, clearCart } = useCart();
-  const toast = useToast();
+  const modal = useModal();
 
   const [loading, setLoading] = useState(false);
   const [commonBookingData, setCommonBookingData] = useState({
@@ -26,10 +26,10 @@ const CartCheckout = () => {
   // Redirect if cart is empty
   useEffect(() => {
     if (cartItems.length === 0) {
-      toast.error('Your cart is empty. Please add services first.');
+      modal.error('Your cart is empty. Please add services first.');
       navigate('/services');
     }
-  }, [cartItems, navigate, toast]);
+  }, [cartItems, navigate, modal]);
 
   // Track unsaved changes
   useEffect(() => {
@@ -62,12 +62,12 @@ const CartCheckout = () => {
 
   const validateForm = () => {
     if (!commonBookingData.bookingDate) {
-      toast.error('Please select a booking date');
+      modal.error('Please select a booking date');
       return false;
     }
 
     if (!commonBookingData.bookingTime) {
-      toast.error('Please select a booking time');
+      modal.error('Please select a booking time');
       return false;
     }
 
@@ -77,7 +77,7 @@ const CartCheckout = () => {
     today.setHours(0, 0, 0, 0);
 
     if (selectedDate < today) {
-      toast.error('Booking date cannot be in the past');
+      modal.error('Booking date cannot be in the past');
       return false;
     }
 
@@ -109,17 +109,17 @@ const CartCheckout = () => {
       const allSuccessful = results.every(result => result.data.success);
 
       if (allSuccessful) {
-        toast.success(`Successfully booked ${cartItems.length} service(s)!`);
+        modal.success(`Successfully booked ${cartItems.length} service(s)!`);
         clearCart();
         setHasUnsavedChanges(false);
         navigate('/bookings');
       } else {
-        toast.error('Some bookings failed. Please check your bookings page.');
+        modal.warning('Some bookings failed. Please check your bookings page.');
         navigate('/bookings');
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to create bookings. Please try again.';
-      toast.error(errorMsg);
+      modal.error(errorMsg);
     } finally {
       setLoading(false);
     }

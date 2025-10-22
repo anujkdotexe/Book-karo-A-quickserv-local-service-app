@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { vendorAPI } from '../../services/vendorAPI';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import './VendorBookings.css';
 
 const VendorBookings = () => {
@@ -47,7 +48,11 @@ const VendorBookings = () => {
   };
 
   if (loading) {
-    return <div className="vendor-bookings"><div className="loading-spinner">Loading bookings...</div></div>;
+    return (
+      <div className="vendor-bookings">
+        <LoadingSpinner message="Loading bookings..." />
+      </div>
+    );
   }
 
   return (

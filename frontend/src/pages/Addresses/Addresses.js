@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { addressAPI } from '../../services/api';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Addresses.css';
 
 const Addresses = () => {
-  const toast = useToast();
+  const modal = useModal();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -95,10 +95,10 @@ const Addresses = () => {
     try {
       if (editingAddress) {
         await addressAPI.updateAddress(editingAddress.id, formData);
-        toast.success('Address updated successfully');
+        modal.success('Address updated successfully');
       } else {
         const response = await addressAPI.createAddress(formData);
-        toast.success('Address added successfully');
+        modal.success('Address added successfully');
         // Optimistically add new address to list
         if (response.data.data) {
           setAddresses(prevAddresses => [...prevAddresses, response.data.data]);
@@ -112,7 +112,7 @@ const Addresses = () => {
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Failed to save address';
       setError(errorMsg);
-      toast.error(errorMsg);
+      modal.error(errorMsg);
     }
   };
 
@@ -132,28 +132,33 @@ const Addresses = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this address?')) {
-      try {
-        await addressAPI.deleteAddress(id);
-        toast.success('Address deleted successfully');
-        fetchAddresses();
-      } catch (err) {
-        const errorMsg = 'Failed to delete address';
-        setError(errorMsg);
-        toast.error(errorMsg);
-      }
-    }
+    modal.confirm('Are you sure you want to delete this address?', {
+      onConfirm: async () => {
+        try {
+          await addressAPI.deleteAddress(id);
+          modal.success('Address deleted successfully');
+          fetchAddresses();
+        } catch (err) {
+          const errorMsg = 'Failed to delete address';
+          setError(errorMsg);
+          modal.error(errorMsg);
+        }
+      },
+      title: 'Delete Address',
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel'
+    });
   };
 
   const handleSetDefault = async (id) => {
     try {
       await addressAPI.setDefaultAddress(id);
-      toast.success('Default address updated');
+      modal.success('Default address updated successfully');
       fetchAddresses();
     } catch (err) {
       const errorMsg = 'Failed to set default address';
       setError(errorMsg);
-      toast.error(errorMsg);
+      modal.error(errorMsg);
     }
   };
 

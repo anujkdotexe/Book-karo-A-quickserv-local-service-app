@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vendorAPI } from '../../services/vendorAPI';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import './VendorDashboard.css';
 
 const VendorDashboard = () => {
@@ -29,7 +30,7 @@ const VendorDashboard = () => {
   if (loading) {
     return (
       <div className="vendor-dashboard">
-        <div className="loading-spinner">Loading dashboard...</div>
+        <LoadingSpinner message="Loading dashboard..." size="large" />
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import './Home.css';
 
 const Home = () => {
@@ -21,7 +22,7 @@ const Home = () => {
 
   // Don't render home page if user is admin or vendor (they'll be redirected)
   if (isAuthenticated && user?.role && (user.role === 'ADMIN' || user.role === 'VENDOR')) {
-    return <div className="loading-spinner">Redirecting...</div>;
+    return <LoadingSpinner message="Redirecting..." fullScreen />;
   }
 
   return (

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { userAPI } from '../../services/api';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import './Profile.css';
 
 const Profile = () => {
-  const toast = useToast();
+  const modal = useModal();
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -152,19 +152,17 @@ const Profile = () => {
     // Validate form before submission
     if (!validateForm()) {
       setError('Please fix the errors below before saving');
-      toast.error('Please fix the validation errors');
+      modal.error('Please fix the validation errors before saving your profile');
       return;
     }
 
     try {
       await userAPI.updateProfile(formData);
-      toast.success('Profile updated successfully');
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
       setHasUnsavedChanges(false);
       
-      // Show toast success notification
-      toast.success('Profile updated successfully!');
+      modal.success('Profile updated successfully');
       
       fetchProfile();
     } catch (err) {
@@ -181,7 +179,7 @@ const Profile = () => {
       }
       
       setError(errorMsg);
-      toast.error(errorMsg);
+      modal.error(errorMsg);
     }
   };
 
@@ -243,7 +241,7 @@ const Profile = () => {
     e.preventDefault();
     
     if (!validatePasswordForm()) {
-      toast.error('Please fix the validation errors');
+      modal.error('Please fix the validation errors');
       return;
     }
     
@@ -254,7 +252,7 @@ const Profile = () => {
         newPassword: passwordData.newPassword,
       });
       
-      toast.success('Password changed successfully');
+      modal.success('Password changed successfully');
       setPasswordData({
         currentPassword: '',
         newPassword: '',
@@ -264,7 +262,7 @@ const Profile = () => {
       setShowPasswordChange(false);
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Failed to change password';
-      toast.error(errorMsg);
+      modal.error(errorMsg);
       if (err.response?.status === 401) {
         setPasswordErrors({ currentPassword: 'Current password is incorrect' });
       }
@@ -273,9 +271,9 @@ const Profile = () => {
 
   const copyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text).then(() => {
-      toast.success(`${label} copied to clipboard`);
+      modal.success(`${label} copied to clipboard`);
     }).catch(() => {
-      toast.error('Failed to copy to clipboard');
+      modal.error('Failed to copy to clipboard');
     });
   };
 

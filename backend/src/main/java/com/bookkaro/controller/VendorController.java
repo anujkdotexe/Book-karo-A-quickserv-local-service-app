@@ -2,6 +2,7 @@ package com.bookkaro.controller;
 
 import com.bookkaro.dto.ApiResponse;
 import com.bookkaro.dto.BookingDto;
+import com.bookkaro.dto.ServiceDto;
 import com.bookkaro.dto.VendorDashboardStats;
 import com.bookkaro.model.Service;
 import com.bookkaro.security.CustomUserDetails;
@@ -67,9 +68,9 @@ public class VendorController {
      * GET /api/v1/vendor/services
      */
     @GetMapping("/services")
-    public ResponseEntity<ApiResponse<List<Service>>> getServices(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<ServiceDto>>> getServices(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        List<Service> services = vendorService.getVendorServices(userDetails.getId());
+        List<ServiceDto> services = vendorService.getVendorServices(userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success("Services retrieved successfully", services));
     }
 

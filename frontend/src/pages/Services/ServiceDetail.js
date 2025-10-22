@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { serviceAPI, reviewAPI, favoriteAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import './ServiceDetail.css';
 
 const ServiceDetail = () => {
@@ -11,7 +11,7 @@ const ServiceDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToCart, isInCart } = useCart();
-  const toast = useToast();
+  const modal = useModal();
   const [service, setService] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +68,7 @@ const ServiceDetail = () => {
 
   const handleToggleFavorite = async () => {
     if (!user) {
-      toast.warning('Please login to save favorites');
+      modal.warning('Please login to save favorites');
       navigate('/login');
       return;
     }
@@ -77,14 +77,14 @@ const ServiceDetail = () => {
       if (isFavorite) {
         await favoriteAPI.removeFromFavorites(id);
         setIsFavorite(false);
-        toast.success('Removed from favorites');
+        modal.success('Service removed from your favorites');
       } else {
         await favoriteAPI.addToFavorites(id);
         setIsFavorite(true);
-        toast.success('Added to favorites');
+        modal.success('Service added to your favorites');
       }
     } catch (err) {
-      toast.error('Failed to update favorites');
+      modal.error('Failed to update favorites. Please try again.');
       setError('Failed to update favorites');
     }
   };
@@ -177,13 +177,13 @@ const ServiceDetail = () => {
 
   const handleAddToCart = () => {
     if (!user) {
-      toast.warning('Please login to add services to cart');
+      modal.warning('Please login to add services to cart');
       navigate('/login');
       return;
     }
 
     if (isInCart(parseInt(id))) {
-      toast.error('This service is already in your cart');
+      modal.info('This service is already in your cart');
       navigate('/cart');
       return;
     }
@@ -200,9 +200,9 @@ const ServiceDetail = () => {
     });
 
     if (result.success) {
-      toast.success('Service added to cart');
+      modal.success('Service added to cart successfully');
     } else {
-      toast.error(result.message);
+      modal.error(result.message);
     }
   };
 

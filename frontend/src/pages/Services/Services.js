@@ -1,24 +1,54 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { serviceAPI, favoriteAPI } from '../../services/api';
-import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import { useModal } from '../../components/Modal/Modal';
+import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
 import './Services.css';
 
 const Services = () => {
   const [urlSearchParams] = useSearchParams();
+  const modal = useModal();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchParams, setSearchParams] = useState({
-    category: '',
-    city: '',
-    location: '',
-    minPrice: '',
-    maxPrice: '',
-    minRating: '',
-  });
-  const [sortBy, setSortBy] = useState('averageRating');
-  const [sortDir, setSortDir] = useState('desc');
+  
+  // Load filters from localStorage on mount
+  const loadFiltersFromStorage = () => {
+    try {
+      const savedFilters = localStorage.getItem('serviceFilters');
+      if (savedFilters) {
+        return JSON.parse(savedFilters);
+      }
+    } catch (err) {
+      console.error('Failed to load filters from localStorage:', err);
+    }
+    return {
+      category: '',
+      city: '',
+      location: '',
+      minPrice: '',
+      maxPrice: '',
+      minRating: '',
+    };
+  };
+
+  const loadSortFromStorage = () => {
+    try {
+      const savedSort = localStorage.getItem('serviceSort');
+      if (savedSort) {
+        const { sortBy, sortDir } = JSON.parse(savedSort);
+        return { sortBy: sortBy || 'averageRating', sortDir: sortDir || 'desc' };
+      }
+    } catch (err) {
+      console.error('Failed to load sort from localStorage:', err);
+    }
+    return { sortBy: 'averageRating', sortDir: 'desc' };
+  };
+
+  const [searchParams, setSearchParams] = useState(loadFiltersFromStorage());
+  const savedSort = loadSortFromStorage();
+  const [sortBy, setSortBy] = useState(savedSort.sortBy);
+  const [sortDir, setSortDir] = useState(savedSort.sortDir);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -26,6 +56,24 @@ const Services = () => {
   const [categories, setCategories] = useState([]);
   const [cities, setCities] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState(new Set());
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('serviceFilters', JSON.stringify(searchParams));
+    } catch (err) {
+      console.error('Failed to save filters to localStorage:', err);
+    }
+  }, [searchParams]);
+
+  // Save sort to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('serviceSort', JSON.stringify({ sortBy, sortDir }));
+    } catch (err) {
+      console.error('Failed to save sort to localStorage:', err);
+    }
+  }, [sortBy, sortDir]);
 
   // Handle search query from URL
   useEffect(() => {
@@ -123,11 +171,14 @@ const Services = () => {
           newSet.delete(serviceId);
           return newSet;
         });
+        modal.success('Service removed from your favorites successfully');
       } else {
         await favoriteAPI.addToFavorites(serviceId);
         setFavoriteIds(prev => new Set([...prev, serviceId]));
+        modal.success('Service added to your favorites successfully');
       }
     } catch (err) {
+      modal.error('Failed to update favorites. Please login to save favorites.');
       setError('Failed to update favorites. Please login to save favorites.');
     }
   };
@@ -309,9 +360,7 @@ const Services = () => {
           </div>
         </div>
 
-        {loading && <LoadingSpinner fullScreen />}
-
-        {!loading && error && (
+        {error && (
           <div className="error-message-card" role="alert">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
@@ -333,7 +382,11 @@ const Services = () => {
         )}
 
         {/* Services Grid */}
-        {!loading && !error && services.length > 0 ? (
+        {loading && services.length === 0 ? (
+          <div className="services-grid">
+            <SkeletonLoader type="service" count={9} />
+          </div>
+        ) : !error && services.length > 0 ? (
           <>
             <div className="services-grid">
               {services.map((service) => (

@@ -2,6 +2,11 @@ package com.bookkaro.controller;
 
 import com.bookkaro.dto.AdminDashboardStats;
 import com.bookkaro.dto.ApiResponse;
+import com.bookkaro.dto.BookingDto;
+import com.bookkaro.dto.PagedResponse;
+import com.bookkaro.dto.ServiceDto;
+import com.bookkaro.dto.UserDto;
+import com.bookkaro.dto.VendorDto;
 import com.bookkaro.model.Service;
 import com.bookkaro.model.User;
 import com.bookkaro.model.Vendor;
@@ -47,12 +52,33 @@ public class AdminController {
      * GET /api/v1/admin/users?page=0&size=20
      */
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<Page<User>>> getAllUsers(
+    public ResponseEntity<ApiResponse<PagedResponse<UserDto>>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<User> users = adminService.getAllUsers(pageable);
-        return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", users));
+        Page<UserDto> userDtos = users.map(user -> {
+            UserDto dto = new UserDto();
+            dto.setId(user.getId());
+            dto.setEmail(user.getEmail());
+            dto.setFullName(user.getFirstName() + " " + user.getLastName());
+            dto.setFirstName(user.getFirstName());
+            dto.setLastName(user.getLastName());
+            dto.setPhone(user.getPhone());
+            dto.setAddress(user.getAddress());
+            dto.setCity(user.getCity());
+            dto.setState(user.getState());
+            dto.setPostalCode(user.getPostalCode());
+            dto.setLatitude(user.getLatitude());
+            dto.setLongitude(user.getLongitude());
+            dto.setRole(user.getRole() != null ? user.getRole().name() : null);
+            dto.setIsActive(user.getIsActive());
+            dto.setCreatedAt(user.getCreatedAt());
+            dto.setUpdatedAt(user.getUpdatedAt());
+            return dto;
+        });
+        PagedResponse<UserDto> pagedResponse = PagedResponse.from(userDtos);
+        return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", pagedResponse));
     }
 
     /**
@@ -105,12 +131,14 @@ public class AdminController {
      * GET /api/v1/admin/vendors?page=0&size=20
      */
     @GetMapping("/vendors")
-    public ResponseEntity<ApiResponse<Page<Vendor>>> getAllVendors(
+    public ResponseEntity<ApiResponse<PagedResponse<VendorDto>>> getAllVendors(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Vendor> vendors = adminService.getAllVendors(pageable);
-        return ResponseEntity.ok(ApiResponse.success("Vendors retrieved successfully", vendors));
+        Page<VendorDto> vendorDtos = vendors.map(VendorDto::fromEntity);
+        PagedResponse<VendorDto> pagedResponse = PagedResponse.from(vendorDtos);
+        return ResponseEntity.ok(ApiResponse.success("Vendors retrieved successfully", pagedResponse));
     }
 
     /**
@@ -166,12 +194,14 @@ public class AdminController {
      * GET /api/v1/admin/services?page=0&size=20
      */
     @GetMapping("/services")
-    public ResponseEntity<ApiResponse<Page<Service>>> getAllServices(
+    public ResponseEntity<ApiResponse<PagedResponse<ServiceDto>>> getAllServices(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Service> services = adminService.getAllServices(pageable);
-        return ResponseEntity.ok(ApiResponse.success("Services retrieved successfully", services));
+        Page<ServiceDto> serviceDtos = services.map(ServiceDto::fromEntity);
+        PagedResponse<ServiceDto> pagedResponse = PagedResponse.from(serviceDtos);
+        return ResponseEntity.ok(ApiResponse.success("Services retrieved successfully", pagedResponse));
     }
 
     /**
@@ -179,9 +209,12 @@ public class AdminController {
      * GET /api/v1/admin/services/pending
      */
     @GetMapping("/services/pending")
-    public ResponseEntity<ApiResponse<List<Service>>> getPendingServices() {
+    public ResponseEntity<ApiResponse<List<ServiceDto>>> getPendingServices() {
         List<Service> services = adminService.getPendingServices();
-        return ResponseEntity.ok(ApiResponse.success("Pending services retrieved successfully", services));
+        List<ServiceDto> serviceDtos = services.stream()
+                .map(ServiceDto::fromEntity)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success("Pending services retrieved successfully", serviceDtos));
     }
 
     /**
@@ -189,9 +222,9 @@ public class AdminController {
      * PUT /api/v1/admin/services/{id}/approve
      */
     @PutMapping("/services/{id}/approve")
-    public ResponseEntity<ApiResponse<Service>> approveService(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ServiceDto>> approveService(@PathVariable Long id) {
         Service service = adminService.approveService(id);
-        return ResponseEntity.ok(ApiResponse.success("Service approved successfully", service));
+        return ResponseEntity.ok(ApiResponse.success("Service approved successfully", ServiceDto.fromEntity(service)));
     }
 
     /**
@@ -199,12 +232,12 @@ public class AdminController {
      * PUT /api/v1/admin/services/{id}/reject
      */
     @PutMapping("/services/{id}/reject")
-    public ResponseEntity<ApiResponse<Service>> rejectService(
+    public ResponseEntity<ApiResponse<ServiceDto>> rejectService(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
         String reason = request.get("reason");
         Service service = adminService.rejectService(id, reason);
-        return ResponseEntity.ok(ApiResponse.success("Service rejected successfully", service));
+        return ResponseEntity.ok(ApiResponse.success("Service rejected successfully", ServiceDto.fromEntity(service)));
     }
 
     /**
@@ -212,9 +245,9 @@ public class AdminController {
      * PUT /api/v1/admin/services/{id}/toggle-featured
      */
     @PutMapping("/services/{id}/toggle-featured")
-    public ResponseEntity<ApiResponse<Service>> toggleServiceFeatured(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ServiceDto>> toggleServiceFeatured(@PathVariable Long id) {
         Service service = adminService.toggleServiceFeatured(id);
-        return ResponseEntity.ok(ApiResponse.success("Service featured status updated successfully", service));
+        return ResponseEntity.ok(ApiResponse.success("Service featured status updated successfully", ServiceDto.fromEntity(service)));
     }
 
     /**
@@ -329,13 +362,15 @@ public class AdminController {
      * GET /api/v1/admin/bookings?status=PENDING&page=0&size=20
      */
     @GetMapping("/bookings")
-    public ResponseEntity<ApiResponse<Page<com.bookkaro.model.Booking>>> getAllBookings(
+    public ResponseEntity<ApiResponse<PagedResponse<BookingDto>>> getAllBookings(
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<com.bookkaro.model.Booking> bookings = adminService.getAllBookings(status, pageable);
-        return ResponseEntity.ok(ApiResponse.success("Bookings retrieved successfully", bookings));
+        Page<BookingDto> bookingDtos = bookings.map(this::convertToDto);
+        PagedResponse<BookingDto> pagedResponse = PagedResponse.from(bookingDtos);
+        return ResponseEntity.ok(ApiResponse.success("Bookings retrieved successfully", pagedResponse));
     }
 
     /**
@@ -343,22 +378,42 @@ public class AdminController {
      * POST /api/v1/admin/bookings/{id}/cancel
      */
     @PostMapping("/bookings/{id}/cancel")
-    public ResponseEntity<ApiResponse<com.bookkaro.model.Booking>> cancelBooking(
+    public ResponseEntity<ApiResponse<BookingDto>> cancelBooking(
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
         com.bookkaro.model.Booking booking = adminService.cancelBooking(id, reason);
-        return ResponseEntity.ok(ApiResponse.success("Booking cancelled successfully", booking));
+        return ResponseEntity.ok(ApiResponse.success("Booking cancelled successfully", convertToDto(booking)));
     }
 
     /**
      * Update booking status (admin override)
-     * PATCH /api/v1/admin/bookings/{id}/status
+     * PATCH /api/v1/admin/bookings/{id}/status?status=CONFIRMED
      */
     @PatchMapping("/bookings/{id}/status")
-    public ResponseEntity<ApiResponse<com.bookkaro.model.Booking>> updateBookingStatus(
+    public ResponseEntity<ApiResponse<BookingDto>> updateBookingStatus(
             @PathVariable Long id,
-            @RequestParam String status) {
+            @RequestParam(required = true) String status) {
         com.bookkaro.model.Booking booking = adminService.updateBookingStatus(id, status);
-        return ResponseEntity.ok(ApiResponse.success("Booking status updated successfully", booking));
+        return ResponseEntity.ok(ApiResponse.success("Booking status updated successfully", convertToDto(booking)));
+    }
+
+    // Helper method to convert Booking entity to DTO
+    private BookingDto convertToDto(com.bookkaro.model.Booking booking) {
+        BookingDto dto = new BookingDto();
+        dto.setId(booking.getId());
+        dto.setUserId(booking.getUser().getId());
+        dto.setUserName(booking.getUser().getFullName());
+        dto.setUserEmail(booking.getUser().getEmail());
+        dto.setServiceId(booking.getService().getId());
+        dto.setServiceName(booking.getService().getServiceName());
+        dto.setVendorName(booking.getService().getVendor().getBusinessName());
+        dto.setBookingDate(booking.getBookingDate());
+        dto.setBookingTime(booking.getBookingTime());
+        dto.setStatus(booking.getStatus().toString());
+        dto.setTotalAmount(booking.getTotalAmount());
+        dto.setNotes(booking.getNotes());
+        dto.setCreatedAt(booking.getCreatedAt());
+        dto.setUpdatedAt(booking.getUpdatedAt());
+        return dto;
     }
 }
