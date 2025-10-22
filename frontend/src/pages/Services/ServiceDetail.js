@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { serviceAPI, bookingAPI, reviewAPI, favoriteAPI } from '../../services/api';
+import { serviceAPI, reviewAPI, favoriteAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../components/Toast/Toast';
@@ -53,12 +53,16 @@ const ServiceDetail = () => {
   }, [hasUnsavedChanges]);
 
   const checkFavoriteStatus = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setIsFavorite(false);
+      return;
+    }
     try {
       const response = await favoriteAPI.checkFavorite(id);
       setIsFavorite(response.data.data);
     } catch (err) {
-      // Not favorite or not logged in
+      // Not favorite or error occurred
+      setIsFavorite(false);
     }
   }, [id, user]);
 
@@ -101,7 +105,7 @@ const ServiceDetail = () => {
       const response = await reviewAPI.getServiceReviews(id);
       setReviews(response.data.data || []);
     } catch (err) {
-      console.error('Failed to load reviews:', err);
+      // Failed to load reviews - not critical, show empty reviews list
     }
   }, [id]);
 
@@ -149,26 +153,25 @@ const ServiceDetail = () => {
     setSubmitting(true);
 
     try {
-      await bookingAPI.createBooking({
-        serviceId: parseInt(id),
-        bookingDate: bookingData.bookingDate,
-        bookingTime: bookingData.bookingTime,
-        notes: bookingData.notes
+      // Navigate to payment page with booking data
+      navigate('/payment', {
+        state: {
+          bookingData: {
+            serviceId: parseInt(id),
+            bookingDate: bookingData.bookingDate,
+            bookingTime: bookingData.bookingTime,
+            notes: bookingData.notes
+          },
+          serviceName: service.name,
+          servicePrice: service.price
+        }
       });
       
-      setBookingSuccess('Booking created successfully');
-      setShowBookingForm(false);
-      setBookingData({ bookingDate: '', bookingTime: '', notes: '' });
       setHasUnsavedChanges(false);
-      
-      setTimeout(() => {
-        navigate('/bookings');
-      }, 2000);
     } catch (err) {
-      setBookingError(err.response?.data?.message || 'Failed to create booking');
+      setBookingError('Failed to proceed to payment');
     } finally {
-      // Re-enable button after 2 seconds to prevent rapid clicking
-      setTimeout(() => setSubmitting(false), 2000);
+      setTimeout(() => setSubmitting(false), 1000);
     }
   };
 

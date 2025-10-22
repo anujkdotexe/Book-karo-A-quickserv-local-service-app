@@ -9,7 +9,7 @@ const FAQ = () => {
       category: 'Getting Started',
       questions: [
         {
-          question: 'How do I create an account on Bookaro?',
+          question: 'How do I create an account on BOOK-KARO?',
           answer: 'Click on "Create Free Account" in the navigation bar, fill in your details including name, email, phone number, and address, then submit the form. You\'ll be automatically logged in and can start browsing services.'
         },
         {
@@ -48,11 +48,11 @@ const FAQ = () => {
       questions: [
         {
           question: 'What types of services are available?',
-          answer: 'Bookaro offers a wide range of home services including Plumbing, Electrical work, Cleaning, Carpentry, Painting, AC Repair, Appliance Repair, and more. Browse by category to see all available services.'
+          answer: 'BOOK-KARO offers a wide range of home services including Plumbing, Electrical work, Cleaning, Carpentry, Painting, AC Repair, Appliance Repair, and more. Browse by category to see all available services.'
         },
         {
           question: 'How are service providers verified?',
-          answer: 'All service providers on Bookaro undergo a verification process including identity checks, skill verification, and background checks. We continuously monitor provider ratings and reviews.'
+          answer: 'All service providers on BOOK-KARO undergo a verification process including identity checks, skill verification, and background checks. We continuously monitor provider ratings and reviews.'
         },
         {
           question: 'Can I choose a specific service provider?',
@@ -98,7 +98,7 @@ const FAQ = () => {
         },
         {
           question: 'How do I report a problem with a provider?',
-          answer: 'You can report issues through the Contact Us page or email us at support@bookaro.com. Include your booking ID and details of the issue for fastest resolution.'
+          answer: 'You can report issues through the Contact Us page or email us at support@BOOK-KARO.com. Include your booking ID and details of the issue for fastest resolution.'
         },
         {
           question: 'What are the service hours?',
@@ -119,7 +119,7 @@ const FAQ = () => {
         <div className="support-container fade-in">
           <div className="support-header">
             <h1>Frequently Asked Questions</h1>
-            <p>Find answers to common questions about Bookaro services</p>
+            <p>Find answers to common questions about BOOK-KARO services</p>
           </div>
 
           <div className="faq-container">

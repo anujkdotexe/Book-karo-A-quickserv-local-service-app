@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { bookingAPI, reviewAPI } from '../../services/api';
+import { bookingAPI, reviewAPI, refundAPI } from '../../services/api';
 import { useToast } from '../../components/Toast/Toast';
 import './BookingDetail.css';
 
@@ -18,6 +18,9 @@ const BookingDetail = () => {
   });
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
+  const [refund, setRefund] = useState(null);
+  const [refundEligible, setRefundEligible] = useState(false);
+  const [checkingRefund, setCheckingRefund] = useState(false);
 
   const fetchBookingDetails = useCallback(async () => {
     try {
@@ -33,6 +36,40 @@ const BookingDetail = () => {
   useEffect(() => {
     fetchBookingDetails();
   }, [fetchBookingDetails]);
+
+  // Check for existing refund and calculate refund eligibility
+  useEffect(() => {
+    const checkRefundStatus = async () => {
+      if (!booking) return;
+
+      setCheckingRefund(true);
+      
+      // Check if refund exists for this booking
+      try {
+        const response = await refundAPI.getRefundByBooking(booking.id);
+        setRefund(response.data.data);
+      } catch (err) {
+        // No refund exists, check eligibility
+        setRefund(null);
+        
+        // Calculate hours until booking
+        const bookingDateTime = new Date(`${booking.bookingDate}T${booking.bookingTime}`);
+        const now = new Date();
+        const hoursDiff = (bookingDateTime - now) / (1000 * 60 * 60);
+        
+        // Eligible if: CONFIRMED/PENDING status AND >12 hours before booking
+        const eligible = 
+          ['CONFIRMED', 'PENDING'].includes(booking.status) && 
+          hoursDiff >= 12;
+        
+        setRefundEligible(eligible);
+      } finally {
+        setCheckingRefund(false);
+      }
+    };
+
+    checkRefundStatus();
+  }, [booking]);
 
   const handleReviewChange = (e) => {
     setReviewData({
@@ -311,18 +348,89 @@ const BookingDetail = () => {
                 </div>
               </div>
 
-              {booking.status === 'PENDING' && (
+              {/* Refund Status Display */}
+              {refund && (
+                <div className="action-card refund-status-card">
+                  <h3>Refund Status</h3>
+                  <div className="refund-info">
+                    <div className="refund-info-row">
+                      <span className="refund-label">Status:</span>
+                      <span className={`refund-status-badge status-${refund.status.toLowerCase()}`}>
+                        {refund.status}
+                      </span>
+                    </div>
+                    <div className="refund-info-row">
+                      <span className="refund-label">Refund Amount:</span>
+                      <span className="refund-value">₹{refund.refundAmount}</span>
+                    </div>
+                    <div className="refund-info-row">
+                      <span className="refund-label">Requested:</span>
+                      <span className="refund-value">
+                        {new Date(refund.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {refund.reason && (
+                      <div className="refund-reason">
+                        <strong>Reason:</strong>
+                        <p>{refund.reason}</p>
+                      </div>
+                    )}
+                    {refund.adminNote && (
+                      <div className="refund-admin-note">
+                        <strong>Admin Note:</strong>
+                        <p>{refund.adminNote}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions Card - Cancel or Request Refund */}
+              {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && !refund && (
                 <div className="action-card">
                   <h3>Actions</h3>
-                  <button 
-                    className="btn btn-danger btn-block"
-                    onClick={handleCancelBooking}
-                  >
-                    Cancel Booking
-                  </button>
-                  <p className="action-note">
-                    You can cancel this booking before it is confirmed
-                  </p>
+                  
+                  {booking.status === 'PENDING' && (
+                    <>
+                      <button 
+                        className="btn btn-danger btn-block"
+                        onClick={handleCancelBooking}
+                      >
+                        Cancel Booking
+                      </button>
+                      <p className="action-note">
+                        You can cancel this booking before it is confirmed
+                      </p>
+                    </>
+                  )}
+                  
+                  {refundEligible && !checkingRefund && (
+                    <>
+                      <button 
+                        className="btn btn-warning btn-block"
+                        onClick={() => navigate(`/refunds/request/${booking.id}`)}
+                        style={{ marginTop: booking.status === 'PENDING' ? '12px' : '0' }}
+                      >
+                        Request Refund
+                      </button>
+                      <p className="action-note">
+                        Request a refund for this booking (eligible for {
+                          (() => {
+                            const bookingDateTime = new Date(`${booking.bookingDate}T${booking.bookingTime}`);
+                            const now = new Date();
+                            const hoursDiff = (bookingDateTime - now) / (1000 * 60 * 60);
+                            return hoursDiff >= 24 ? '100%' : '50%';
+                          })()
+                        } refund)
+                      </p>
+                    </>
+                  )}
+                  
+                  {!refundEligible && !checkingRefund && ['CONFIRMED', 'PENDING'].includes(booking.status) && (
+                    <p className="action-note refund-not-eligible">
+                      Refund not available - booking is less than 12 hours away
+                    </p>
+                  )}
                 </div>
               )}
             </div>

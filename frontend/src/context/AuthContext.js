@@ -60,9 +60,6 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      console.error('Login error:', error);
-      console.error('Error response:', error.response);
-      console.error('Error response data:', error.response?.data);
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed'
@@ -85,9 +82,6 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      console.error('Registration error:', error);
-      console.error('Error response:', error.response);
-      
       let errorMessage = 'Registration failed';
       
       if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {

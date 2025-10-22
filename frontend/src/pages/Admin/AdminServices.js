@@ -23,11 +23,12 @@ const AdminServices = () => {
     try {
       setLoading(true);
       const data = await adminAPI.getAllServices(currentPage, 20);
-      setServices(data.content);
-      setTotalPages(data.totalPages);
+      setServices(data.content || []);
+      setTotalPages(data.totalPages || 0);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load services');
+      setServices([]);
     } finally {
       setLoading(false);
     }
@@ -37,10 +38,11 @@ const AdminServices = () => {
     try {
       setLoading(true);
       const data = await adminAPI.getPendingServices();
-      setPendingServices(data);
+      setPendingServices(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load pending services');
+      setPendingServices([]);
     } finally {
       setLoading(false);
     }
@@ -127,7 +129,7 @@ const AdminServices = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {displayServices.length === 0 ? (
+      {!displayServices || displayServices.length === 0 ? (
         <div className="empty-state">
           <p>No {activeTab} services found.</p>
         </div>

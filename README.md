@@ -1,4 +1,4 @@
-# Bookaro - Quick Serve Local Service App
+# BOOK-KARO - Quick Serve Local Service App
 
 A production-ready three-tier service marketplace platform connecting customers with local service providers.
 
@@ -53,6 +53,19 @@ A production-ready three-tier service marketplace platform connecting customers 
 - Booking status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED)
 - View booking history
 
+**Payment Processing**
+- Mock payment gateway simulation (95% success rate)
+- Secure payment flow
+- Payment status tracking
+- Automatic booking creation on success
+
+**Refund Management** (NEW)
+- Request refunds for eligible bookings
+- Time-based refund policy (100%, 50%, or 0%)
+- Admin approval/rejection workflow
+- Refund status tracking (PENDING, PROCESSING, COMPLETED, REJECTED)
+- Automatic booking cancellation on approval
+
 **Favorites**
 - Add/remove services to favorites
 - Quick access to preferred services
@@ -69,13 +82,19 @@ A production-ready three-tier service marketplace platform connecting customers 
 
 ## Database Schema
 
-- **users**: User authentication and profile
-- **vendors**: Service provider information
-- **services**: Service catalog (165 services)
-- **bookings**: Customer bookings
+- **users**: User authentication and profile (9 users: 3 test + 6 vendors)
+- **vendors**: Service provider information (6 regional vendors)
+- **services**: Service catalog (25 services across 6 cities)
+- **bookings**: Customer bookings (30 sample bookings with reviews)
+- **payments**: Payment records
+- **refunds**: Refund requests and status
 - **reviews**: Service reviews and ratings
 - **addresses**: User address management
 - **favorites**: User favorites/wishlist
+- **cart_items**: Shopping cart
+- **content**: Public content (FAQ, Help)
+
+**Regional Coverage**: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai
 
 ## Setup Instructions
 
@@ -93,7 +112,7 @@ A production-ready three-tier service marketplace platform connecting customers 
 **Option 1: Use the startup script (Recommended)**
 ```powershell
 # Windows PowerShell
-.\START_APP.ps1
+.\scripts\START_APP.ps1
 ```
 
 **Option 2: Manual startup**
@@ -102,7 +121,7 @@ A production-ready three-tier service marketplace platform connecting customers 
 # Backend (Terminal 1)
 cd backend
 mvn clean package -DskipTests
-java -jar target/bookaro-backend-1.0.3.jar
+java -jar target/bookkaro-backend-1.0.3.jar
 
 # Frontend (Terminal 2)
 cd frontend
@@ -138,12 +157,12 @@ cd backend
 
 Create PostgreSQL database:
 ```sql
-CREATE DATABASE bookarodb;
+CREATE DATABASE bookkarodb;
 ```
 
 Update `backend/src/main/resources/application.properties`:
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/bookarodb
+spring.datasource.url=jdbc:postgresql://localhost:5432/bookkarodb
 spring.datasource.username=postgres
 spring.datasource.password=your_password
 ```
@@ -155,7 +174,7 @@ spring.datasource.password=your_password
 # Backend
 cd backend
 mvn clean package -DskipTests
-# Output: target/bookaro-backend-1.0.3.jar
+# Output: target/bookkaro-backend-1.0.3.jar
 
 # Frontend
 cd frontend
@@ -164,13 +183,22 @@ npm run build
 ```
 
 ### Environment Variables (Production)
+
+**IMPORTANT**: The application uses default values for development. Override these in production:
+
 ```bash
 SPRING_PROFILES_ACTIVE=prod
 SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/dbname
 SPRING_DATASOURCE_USERNAME=username
-SPRING_DATASOURCE_PASSWORD=password
-JWT_SECRET=your-super-secret-256-bit-key
+SPRING_DATASOURCE_PASSWORD=password  # Default in dev: root (CHANGE THIS!)
+JWT_SECRET=your-super-secret-256-bit-key  # Default in dev: bookkaroSecretKey2025... (CHANGE THIS!)
 PORT=8081
+```
+
+**Security**: Never use default database password or JWT secret in production. Generate a strong JWT secret using:
+```bash
+# Generate secure 256-bit secret
+openssl rand -base64 32
 ```
 
 ### Cloud Deployment
@@ -196,27 +224,29 @@ See detailed guides:
 
 ## Test Credentials
 
-- **User**: user@bookaro.com / password123
-- **Vendor**: vendor@bookaro.com / password123
-- **Admin**: admin@bookaro.com / admin123
+- **User**: user@bookkaro.com / password123
+- **Vendor**: vendor@bookkaro.com / password123
+- **Admin**: admin@bookkaro.com / admin123
 
 ## Project Status
 
 **Version**: 1.0.3  
 **Status**: Production Ready - Fully Optimized  
-**Last Updated**: October 21, 2025
+**Last Updated**: October 22, 2025
 
 ### Completed
-- Phase 1 - User Module (All 9 features)
+- Phase 1 - User Module (All 13 features including refunds)
 - Professional SLF4J logging
 - Modern UI/UX with consistent styling
 - Complete CRUD operations
 - JWT authentication & authorization
-- Database persistence with 165 services
+- Database with 25 services across 6 regional vendors (multi-city)
 - Backend startup optimization (60% faster)
 - Build compilation optimization (40% faster)
 - Cloud deployment ready
 - Multi-role system (USER/VENDOR/ADMIN)
+- Payment simulation with mock gateway
+- Complete refund management system with admin approval workflow
 
 ### Pending
 - [ ] Phase 2 - Vendor Module Testing
@@ -228,6 +258,7 @@ See detailed guides:
 
 - `README.md` - This file (overview and quick start)
 - `QUICK_START.md` - Detailed setup guide
+- `STRUCTURE.md` - Professional folder structure and organization
 - `backend/BUILD_OPTIMIZATION.md` - Compilation speed guide
 - `backend/DEPLOYMENT_OPTIMIZATION.md` - Startup optimization guide
 - `docs/important/` - Complete technical documentation
@@ -247,7 +278,7 @@ See detailed guides:
 
 ## API Documentation
 
-See `documentation/API_DOCUMENTATION.md` for complete API reference.
+See `docs/important/API_DOCUMENTATION.md` for complete API reference.
 
 ## Contributing
 

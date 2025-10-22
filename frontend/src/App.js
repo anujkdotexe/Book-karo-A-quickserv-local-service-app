@@ -8,6 +8,8 @@ import Footer from './components/Footer/Footer';
 import Home from './pages/Home/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
 import Profile from './pages/Profile/Profile';
 import Services from './pages/Services/Services';
 import ServiceDetail from './pages/Services/ServiceDetail';
@@ -22,17 +24,22 @@ import TermsOfService from './pages/Support/TermsOfService';
 import PrivacyPolicy from './pages/Support/PrivacyPolicy';
 import Cart from './pages/Cart/Cart';
 import CartCheckout from './pages/Cart/CartCheckout';
+import Payment from './pages/Payment/Payment';
+import RefundRequest from './pages/RefundRequest';
+import AdminRefunds from './pages/AdminRefunds';
 
 // Vendor Pages
 import VendorDashboard from './pages/Vendor/VendorDashboard';
 import VendorServices from './pages/Vendor/VendorServices';
 import VendorBookings from './pages/Vendor/VendorBookings';
+import VendorAnalytics from './pages/Vendor/VendorAnalytics';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AdminUsers from './pages/Admin/AdminUsers';
 import AdminVendors from './pages/Admin/AdminVendors';
 import AdminServices from './pages/Admin/AdminServices';
+import AdminBookings from './pages/Admin/AdminBookings';
 
 // Error Pages
 import Forbidden from './pages/Forbidden/Forbidden';
@@ -41,11 +48,10 @@ import Forbidden from './pages/Forbidden/Forbidden';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/Toast/Toast';
-import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 /**
- * Bookaro Main Application Component
+ * bookkaro Main Application Component
  * Phase 1: User Module (Customer Side)
  */
 function App() {
@@ -62,6 +68,8 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
@@ -70,49 +78,54 @@ function App() {
 
                   {/* Protected Routes */}
                 <Route path="/profile" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <Profile />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/addresses" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <Addresses />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/favorites" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <Favorites />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/services" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <Services />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/services/:id" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <ServiceDetail />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/bookings" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <Bookings />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/bookings/:id" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <BookingDetail />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/cart" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <Cart />
-                </PrivateRoute>
+                </ProtectedRoute>
               } />
               <Route path="/cart/checkout" element={
-                <PrivateRoute>
+                <ProtectedRoute>
                   <CartCheckout />
-                </PrivateRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/payment" element={
+                <ProtectedRoute>
+                  <Payment />
+                </ProtectedRoute>
               } />
 
               {/* Vendor Routes (VENDOR role only) */}
@@ -129,6 +142,11 @@ function App() {
               <Route path="/vendor/bookings" element={
                 <ProtectedRoute allowedRoles={['VENDOR']}>
                   <VendorBookings />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/analytics" element={
+                <ProtectedRoute allowedRoles={['VENDOR']}>
+                  <VendorAnalytics />
                 </ProtectedRoute>
               } />
 
@@ -151,6 +169,23 @@ function App() {
               <Route path="/admin/services" element={
                 <ProtectedRoute allowedRoles={['ADMIN']}>
                   <AdminServices />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/bookings" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminBookings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/refunds" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminRefunds />
+                </ProtectedRoute>
+              } />
+
+              {/* Refund Routes */}
+              <Route path="/refunds/request/:bookingId" element={
+                <ProtectedRoute>
+                  <RefundRequest />
                 </ProtectedRoute>
               } />
 

@@ -117,7 +117,7 @@ const Register = () => {
       <div className="auth-container fade-in">
         <div className="auth-card">
           <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join Bookaro today</p>
+          <p className="auth-subtitle">Join bookkaro today</p>
 
           {error && <div className="alert alert-error">{error}</div>}
 

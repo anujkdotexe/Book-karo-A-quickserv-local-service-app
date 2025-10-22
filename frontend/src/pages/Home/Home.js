@@ -1,10 +1,28 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Home.css';
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect admin and vendor to their dashboards immediately
+    if (isAuthenticated && user?.role) {
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
+      } else if (user.role === 'VENDOR') {
+        navigate('/vendor/dashboard', { replace: true });
+      }
+      // USER role stays on home page
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Don't render home page if user is admin or vendor (they'll be redirected)
+  if (isAuthenticated && user?.role && (user.role === 'ADMIN' || user.role === 'VENDOR')) {
+    return <div className="loading-spinner">Redirecting...</div>;
+  }
 
   return (
     <div className="home-page">
@@ -40,7 +58,7 @@ const Home = () => {
 
       <section className="features-section">
         <div className="container">
-          <h2 className="section-title">Why Choose Bookaro?</h2>
+          <h2 className="section-title">Why Choose BOOK-KARO?</h2>
           <div className="features-grid">
             <div className="feature-card fade-in">
               <div className="feature-icon-box">
@@ -78,7 +96,7 @@ const Home = () => {
         <div className="container">
           <div className="cta-content">
             <h2>Ready to Get Started?</h2>
-            <p>Join thousands of satisfied customers on Bookaro today!</p>
+            <p>Join thousands of satisfied customers on BOOK-KARO today!</p>
             {!isAuthenticated && (
               <Link to="/register" className="btn btn-hero-primary">
                 Create Free Account

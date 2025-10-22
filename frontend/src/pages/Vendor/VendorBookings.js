@@ -17,10 +17,11 @@ const VendorBookings = () => {
       setLoading(true);
       const statusFilter = filter === 'ALL' ? null : filter;
       const data = await vendorAPI.getBookings(statusFilter);
-      setBookings(data);
+      setBookings(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load bookings');
+      setBookings([]);
     } finally {
       setLoading(false);
     }
@@ -93,7 +94,7 @@ const VendorBookings = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {bookings.length === 0 ? (
+      {!bookings || bookings.length === 0 ? (
         <div className="empty-state">
           <p>No {filter.toLowerCase()} bookings found.</p>
         </div>

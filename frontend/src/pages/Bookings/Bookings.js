@@ -192,7 +192,7 @@ const Bookings = () => {
             </p>
             {statusFilter === 'ALL' && (
               <div className="empty-state-benefits">
-                <h3>Why book with Bookaro?</h3>
+                <h3>Why book with bookkaro?</h3>
                 <ul>
                   <li>Browse 165+ quality services across multiple categories</li>
                   <li>Verified service providers with real customer ratings</li>

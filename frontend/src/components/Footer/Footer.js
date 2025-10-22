@@ -9,7 +9,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer-container container">
         <div className="footer-section">
-          <h3 className="footer-title">Bookaro</h3>
+          <h3 className="footer-title">BOOK-KARO</h3>
           <p className="footer-description">
             Your trusted service marketplace platform. 
             Book services easily and securely.
@@ -79,7 +79,7 @@ const Footer = () => {
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                 <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
-              <a href="mailto:support@bookaro.com" className="footer-link">support@bookaro.com</a>
+              <a href="mailto:support@bookkaro.com" className="footer-link">support@bookkaro.com</a>
             </p>
             <p className="footer-text">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px', verticalAlign: 'middle'}}>
@@ -93,7 +93,7 @@ const Footer = () => {
 
       <div className="footer-bottom">
         <div className="container">
-          <p>&copy; {currentYear} Bookaro. All rights reserved.</p>
+          <p>&copy; {currentYear} BOOK-KARO. All rights reserved.</p>
         </div>
       </div>
     </footer>

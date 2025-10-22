@@ -1,8 +1,8 @@
 {
-  "name": "bookaro-frontend",
+  "name": "book-karo-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Bookaro - Service Marketplace Frontend",
+  "description": "BOOK-KARO - Service Marketplace Frontend",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

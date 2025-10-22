@@ -215,6 +215,8 @@
 .checkout-summary-card .btn-outline {
   width: 100%;
   margin-bottom: var(--spacing-lg);
+  background-color: var(--royal-blue) !important;
+  color: var(--white) !important;
 }
 
 .checkout-info {

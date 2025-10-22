@@ -12,10 +12,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.bookaro</groupId>
-    <artifactId>bookaro-backend</artifactId>
-    <version>1.0.3</version>
-    <name>Bookaro Backend</name>
+    <groupId>com.bookkaro</groupId>
+    <artifactId>bookkaro-backend</artifactId>
+    <version>1.0.4</version>
+    <name>Book-Karo Backend</name>
     <description>Service Marketplace Platform - Backend API</description>
 
     <properties>
@@ -159,7 +159,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.bookaro.BookaroApplication</mainClass>
+                    <mainClass>com.bookkaro.BookkaroApplication</mainClass>
                     <layers>
                         <enabled>true</enabled>
                     </layers>

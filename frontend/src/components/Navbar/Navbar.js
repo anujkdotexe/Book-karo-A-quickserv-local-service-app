@@ -69,6 +69,18 @@ const Navbar = () => {
     setSearchQuery('');
   };
 
+  // Get logo destination based on role
+  const getLogoDestination = () => {
+    if (!isAuthenticated || userRole === 'USER') {
+      return '/';
+    } else if (userRole === 'ADMIN') {
+      return '/admin/dashboard';
+    } else if (userRole === 'VENDOR') {
+      return '/vendor/dashboard';
+    }
+    return '/';
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container container">
@@ -85,8 +97,8 @@ const Navbar = () => {
         </button>
 
         {/* Logo (Center on Mobile, Left on Desktop) */}
-        <Link to="/" className="navbar-brand">
-          <span className="brand-name">Bookaro</span>
+        <Link to={getLogoDestination()} className="navbar-brand">
+          <span className="brand-name">BOOK-KARO</span>
         </Link>
 
         {/* Mobile Right Icons */}
@@ -140,21 +152,27 @@ const Navbar = () => {
                 </form>
               )}
 
-              <Link to="/" className={`mobile-menu-item ${isActive('/') ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                Home
-              </Link>
+              {/* Home - only for non-authenticated or USER role */}
+              {(!isAuthenticated || userRole === 'USER') && (
+                <Link to="/" className={`mobile-menu-item ${isActive('/') ? 'active' : ''}`} onClick={closeMobileMenu}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                  Home
+                </Link>
+              )}
 
-              <Link to="/services" className={`mobile-menu-item ${isActive('/services') ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
-                Services
-              </Link>
+              {/* Services - only for non-authenticated or USER role */}
+              {(!isAuthenticated || userRole === 'USER') && (
+                <Link to="/services" className={`mobile-menu-item ${isActive('/services') ? 'active' : ''}`} onClick={closeMobileMenu}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                  Services
+                </Link>
+              )}
 
               {isAuthenticated && (
                 <>
@@ -341,22 +359,70 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="navbar-menu desktop-only">
-          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} aria-label="Home page">
-            Home
-          </Link>
-          <Link to="/services" className={`nav-link ${isActive('/services') ? 'active' : ''}`} aria-label="Browse services">
-            Services
-          </Link>
+          {/* Home - only for non-authenticated or USER role */}
+          {(!isAuthenticated || userRole === 'USER') && (
+            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} aria-label="Home page">
+              Home
+            </Link>
+          )}
+          {/* Services - only for non-authenticated or USER role */}
+          {(!isAuthenticated || userRole === 'USER') && (
+            <Link to="/services" className={`nav-link ${isActive('/services') ? 'active' : ''}`} aria-label="Browse services">
+              Services
+            </Link>
+          )}
           
           {isAuthenticated ? (
             <>
-              <Link to="/favorites" className={`nav-link ${isActive('/favorites') ? 'active' : ''}`} aria-label="View favorites">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-              </Link>
+              {/* VENDOR Navigation */}
+              {userRole === 'VENDOR' && (
+                <>
+                  <Link to="/vendor/dashboard" className={`nav-link ${isActive('/vendor/dashboard') ? 'active' : ''}`} aria-label="Vendor Dashboard">
+                    Dashboard
+                  </Link>
+                  <Link to="/vendor/services" className={`nav-link ${isActive('/vendor/services') ? 'active' : ''}`} aria-label="Manage Services">
+                    My Services
+                  </Link>
+                  <Link to="/vendor/bookings" className={`nav-link ${isActive('/vendor/bookings') ? 'active' : ''}`} aria-label="View Bookings">
+                    Bookings
+                  </Link>
+                  <Link to="/vendor/analytics" className={`nav-link ${isActive('/vendor/analytics') ? 'active' : ''}`} aria-label="View Analytics">
+                    Analytics
+                  </Link>
+                </>
+              )}
+
+              {/* ADMIN Navigation */}
+              {userRole === 'ADMIN' && (
+                <>
+                  <Link to="/admin/dashboard" className={`nav-link ${isActive('/admin/dashboard') ? 'active' : ''}`} aria-label="Admin Dashboard">
+                    Dashboard
+                  </Link>
+                  <Link to="/admin/users" className={`nav-link ${isActive('/admin/users') ? 'active' : ''}`} aria-label="Manage Users">
+                    Users
+                  </Link>
+                  <Link to="/admin/vendors" className={`nav-link ${isActive('/admin/vendors') ? 'active' : ''}`} aria-label="Manage Vendors">
+                    Vendors
+                  </Link>
+                  <Link to="/admin/services" className={`nav-link ${isActive('/admin/services') ? 'active' : ''}`} aria-label="Manage Services">
+                    Services
+                  </Link>
+                  <Link to="/admin/bookings" className={`nav-link ${isActive('/admin/bookings') ? 'active' : ''}`} aria-label="View All Bookings">
+                    Bookings
+                  </Link>
+                </>
+              )}
+
+              {/* USER Navigation */}
+              {userRole === 'USER' && (
+                <>
+                  <Link to="/favorites" className={`nav-link ${isActive('/favorites') ? 'active' : ''}`} aria-label="View favorites">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                  </Link>
               
-              <Link to="/cart" className={`nav-link cart-link ${isActive('/cart') ? 'active' : ''}`} aria-label="View cart">
+                  <Link to="/cart" className={`nav-link cart-link ${isActive('/cart') ? 'active' : ''}`} aria-label="View cart">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <circle cx="9" cy="21" r="1"></circle>
                   <circle cx="20" cy="21" r="1"></circle>
@@ -368,6 +434,8 @@ const Navbar = () => {
                   </span>
                 )}
               </Link>
+                </>
+              )}
 
               <div className="profile-dropdown" ref={profileMenuRef}>
                 <button 

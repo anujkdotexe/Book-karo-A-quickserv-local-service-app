@@ -1,4 +1,4 @@
-# Bookaro Quick Start Guide
+# BOOK-KARO Quick Start Guide
 
 ## Prerequisites
 - Java 21+ installed
@@ -11,7 +11,7 @@
 ### Option 1: Automated Startup (Recommended)
 ```powershell
 cd D:\Springboard
-.\START_APP.ps1
+.\scripts\START_APP.ps1
 ```
 This script starts both backend and frontend automatically.
 
@@ -23,12 +23,12 @@ cd D:\Springboard\backend
 
 # Fast build + run (8-10 seconds)
 mvn clean package -DskipTests
-java -jar target/bookaro-backend-1.0.3.jar
+java -jar target/bookkaro-backend-1.0.3.jar
 
 # OR for development (with hot reload)
 mvn spring-boot:run
 ```
-**Wait for**: "Started BookaroApplication" message (~5-10 seconds)  
+**Wait for**: "Started bookkaroApplication" message (~5-10 seconds)  
 **Backend URL**: http://localhost:8081/api/v1
 
 #### 2. Start Frontend (Terminal 2)
@@ -80,7 +80,7 @@ mvn clean package -DskipTests
 
 ### Login
 1. Go to http://localhost:3000/login
-2. Email: `user@bookaro.com`
+2. Email: `user@bookkaro.com`
 3. Password: `password123`
 4. Click Login
 
@@ -118,16 +118,32 @@ mvn clean package -DskipTests
 | Addresses | http://localhost:3000/addresses |
 | My Bookings | http://localhost:3000/bookings |
 | Profile | http://localhost:3000/profile |
+| Cart | http://localhost:3000/cart |
+| **Request Refund** | http://localhost:3000/refunds/request/:bookingId |
+| **Admin Refunds** | http://localhost:3000/admin/refunds |
 
 ---
 
 ## Test Credentials
 
+**Standard Test Accounts**:
 | Role | Email | Password |
 |------|-------|----------|
-| User | user@bookaro.com | password123 |
-| Vendor | vendor@bookaro.com | password123 |
-| Admin | admin@bookaro.com | admin123 |
+| User | user@bookkaro.com | password123 |
+| Vendor | vendor@bookkaro.com | password123 |
+| Admin | admin@bookkaro.com | admin123 |
+
+**Regional Vendor Accounts** (6 cities):
+| City | Email | Password | Services |
+|------|-------|----------|----------|
+| Mumbai | mumbai@bookkaro.com | vendor123 | 5 services |
+| Pune | pune@bookkaro.com | vendor123 | 4 services |
+| Delhi | delhi@bookkaro.com | vendor123 | 5 services |
+| Bangalore | bangalore@bookkaro.com | vendor123 | 4 services |
+| Thane | thane@bookkaro.com | vendor123 | 2 services |
+| Navi Mumbai | navimumbai@bookkaro.com | vendor123 | 5 services |
+
+**Total**: 9 user accounts, 6 vendors, 25 services across 6 cities
 
 ---
 
@@ -135,7 +151,7 @@ mvn clean package -DskipTests
 
 ```powershell
 $env:PGPASSWORD='root'
-psql -U postgres -d bookarodb
+psql -U postgres -d bookkarodb
 
 # Inside psql:
 \dt                          # List all tables
@@ -159,17 +175,17 @@ netstat -ano | findstr :8081
 Get-Service postgresql*
 
 # 3. Check database connection
-psql -U postgres -d bookarodb
+psql -U postgres -d bookkarodb
 
 # 4. Use production profile for faster startup
 $env:SPRING_PROFILES_ACTIVE='prod'
-java -jar target/bookaro-backend-1.0.3.jar
+java -jar target/bookkaro-backend-1.0.3.jar
 ```
 
 **Database connection errors:**
 - Verify PostgreSQL is running on port 5432
 - Check credentials in `application.properties`
-- Ensure database `bookarodb` exists
+- Ensure database `bookkarodb` exists
 
 **Compilation errors:**
 ```powershell
@@ -237,10 +253,10 @@ spring.jpa.hibernate.ddl-auto=validate
 **To improve further**:
 ```bash
 # Use production profile
-SPRING_PROFILES_ACTIVE=prod java -jar target/bookaro-backend-1.0.3.jar
+SPRING_PROFILES_ACTIVE=prod java -jar target/bookkaro-backend-1.0.3.jar
 
 # Increase JVM memory (if you have 8GB+ RAM)
-java -Xms512m -Xmx1024m -jar target/bookaro-backend-1.0.3.jar
+java -Xms512m -Xmx1024m -jar target/bookkaro-backend-1.0.3.jar
 ```
 
 ### Build Optimization
@@ -275,14 +291,14 @@ mvn clean package -DskipTests
 - [ ] Submit reviews and ratings
 
 ### Vendor Features (Phase 2)
-- [ ] Login as vendor@bookaro.com
+- [ ] Login as vendor@bookkaro.com
 - [ ] View vendor dashboard
 - [ ] Manage services (add, edit, delete)
 - [ ] Accept/reject bookings
 - [ ] View revenue stats
 
 ### Admin Features (Phase 3)
-- [ ] Login as admin@bookaro.com
+- [ ] Login as admin@bookkaro.com
 - [ ] View admin dashboard
 - [ ] Manage users (role changes, activate/deactivate)
 - [ ] Approve/reject vendors
@@ -327,7 +343,8 @@ See `backend/DEPLOYMENT_OPTIMIZATION.md` for complete guide.
    ```bash
    SPRING_PROFILES_ACTIVE=prod
    SPRING_DATASOURCE_URL=jdbc:postgresql://...
-   JWT_SECRET=your-256-bit-secret
+   SPRING_DATASOURCE_PASSWORD=your-secure-password  # Don't use default "root"
+   JWT_SECRET=your-256-bit-secret  # Generate with: openssl rand -base64 32
    ```
 2. Build optimized JAR: `mvn clean package -DskipTests`
 3. Allocate minimum 512MB RAM
@@ -367,17 +384,17 @@ Invoke-WebRequest -Uri "http://localhost:8081/api/v1/services" -Method GET
 Invoke-WebRequest -Uri "http://localhost:3000" -Method GET
 
 # View database tables
-psql -U postgres -d bookarodb -c "\dt"
+psql -U postgres -d bookkarodb -c "\dt"
 
 # Count records
-psql -U postgres -d bookarodb -c "SELECT COUNT(*) FROM services;"
+psql -U postgres -d bookkarodb -c "SELECT COUNT(*) FROM services;"
 ```
 
 ---
 
 ## Success Indicators
 
-[WORKING] Backend logs show: "Started BookaroApplication"  
+[WORKING] Backend logs show: "Started bookkaroApplication"  
 [WORKING] Frontend shows: "Compiled successfully!"  
 [WORKING] No console errors in browser  
 [WORKING] Can login with test credentials  

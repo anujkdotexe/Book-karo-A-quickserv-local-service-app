@@ -183,6 +183,46 @@ export const adminAPI = {
   deleteService: async (serviceId) => {
     const response = await api.delete(`/admin/services/${serviceId}`);
     return response.data;
+  },
+
+  // ========== Booking Management ==========
+  
+  /**
+   * Get all bookings with optional status filter (paginated)
+   * @param {string} status - Filter by status (PENDING, CONFIRMED, COMPLETED, CANCELLED) or null for all
+   * @param {number} page - Page number (0-indexed)
+   * @param {number} size - Page size
+   * @returns {Promise} Paginated booking list
+   */
+  getAllBookings: async (status = null, page = 0, size = 20) => {
+    const params = { page, size };
+    if (status) params.status = status;
+    const response = await api.get('/admin/bookings', { params });
+    return response.data.data;
+  },
+
+  /**
+   * Cancel booking (admin override)
+   * @param {number} bookingId - Booking ID
+   * @param {string} reason - Cancellation reason (optional)
+   * @returns {Promise} Updated booking
+   */
+  cancelBooking: async (bookingId, reason = null) => {
+    const params = {};
+    if (reason) params.reason = reason;
+    const response = await api.post(`/admin/bookings/${bookingId}/cancel`, null, { params });
+    return response.data.data;
+  },
+
+  /**
+   * Update booking status (admin override)
+   * @param {number} bookingId - Booking ID
+   * @param {string} status - New status (PENDING, CONFIRMED, COMPLETED, CANCELLED)
+   * @returns {Promise} Updated booking
+   */
+  updateBookingStatus: async (bookingId, status) => {
+    const response = await api.patch(`/admin/bookings/${bookingId}/status`, null, { params: { status } });
+    return response.data.data;
   }
 };
 

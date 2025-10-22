@@ -1,9 +1,9 @@
-# Bookaro Architecture Documentation
+# BOOK-KARO Architecture Documentation
 
 ## System Architecture
 
 ### Overview
-Bookaro follows a modern three-tier architecture with clear separation of concerns:
+BOOK-KARO follows a modern three-tier architecture with clear separation of concerns:
 - **Presentation Layer:** React-based SPA
 - **Application Layer:** Spring Boot REST APIs
 - **Data Layer:** PostgreSQL database with JPA/Hibernate
@@ -32,7 +32,7 @@ Bookaro follows a modern three-tier architecture with clear separation of concer
 
 ### Layer Structure
 ```
-com.bookaro
+com.bookkaro
 ├── config/           # Configuration classes (Security, CORS, etc.)
 ├── controller/       # REST API endpoints
 ├── service/          # Business logic

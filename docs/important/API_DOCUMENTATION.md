@@ -1,8 +1,8 @@
-# Bookaro API Documentation
+# BOOK-KARO API Documentation
 
 ## Base URL
 ```
-http://localhost:8080/api/v1
+http://localhost:8081/api/v1
 ```
 
 ## Authentication
@@ -353,36 +353,36 @@ Response 200 OK:
 - `500 Internal Server Error` - Server error
 
 ---
-Last Updated: October 15, 2025
-# Bookaro - Service Marketplace Platform
+Last Updated: October 22, 2025
+# BOOK-KARO - Service Marketplace Platform
 
 ## Overview
-Bookaro is a robust, scalable, and production-ready web application for a service marketplace platform. It connects customers with service providers, enabling seamless service discovery, booking, and reviews.
+BOOK-KARO is a robust, scalable, and production-ready web application for a service marketplace platform. It connects customers with service providers, enabling seamless service discovery, booking, and reviews.
 
 ## Project Structure
 ```
-Bookaro/
+BOOK-KARO/
 ├── backend/          # Spring Boot REST API
 ├── frontend/         # React application
-├── documentation/    # Project documentation
+├── docs/             # Project documentation
 └── README.md
 ```
 
 ## Technology Stack
-- **Backend:** Java 17+, Spring Boot 3.x, Spring Security, Hibernate (JPA), PostgreSQL
-- **Frontend:** React 18+, Material-UI, Axios
+- **Backend:** Java 21, Spring Boot 3.5.0, Spring Security, Hibernate (JPA), PostgreSQL 15.13
+- **Frontend:** React 18+, React Router, Axios
 - **Authentication:** JWT with Spring Security
 - **Database:** PostgreSQL
 
 ## Current Phase
-Phase 1 - User Module (Customer Side)
+Phase 1 - User Module (Customer Side) - Production Ready
 
 ## Getting Started
-See `/documentation` folder for detailed setup and API documentation.
+See `/docs/important` folder for detailed setup and API documentation.
 
 ## Brand Colors
-- Deep Navy Blue: `#1a2332`
+- Deep Navy Blue: `#1e3a8a`
 - Bright Royal Blue: `#2563eb`
 - White: `#ffffff`
-- Light Gray: `#e5e7eb`
+- Light Gray: `#f3f4f6`
 

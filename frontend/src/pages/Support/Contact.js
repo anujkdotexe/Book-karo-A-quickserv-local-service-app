@@ -123,7 +123,7 @@ const Contact = () => {
                   </svg>
                 </div>
                 <h3>Email Us</h3>
-                <p>support@bookaro.com<br />info@bookaro.com</p>
+                <p>support@bookkaro.com<br />info@bookkaro.com</p>
               </div>
 
               <div className="contact-card">

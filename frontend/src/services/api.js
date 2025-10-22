@@ -112,4 +112,31 @@ export const favoriteAPI = {
   checkFavorite: (serviceId) => api.get(`/favorites/${serviceId}/check`),
 };
 
+export const cartAPI = {
+  getCartItems: () => api.get('/cart'),
+  addToCart: (serviceId, quantity = 1) => api.post('/cart/add', { serviceId, quantity }),
+  removeFromCart: (cartItemId) => api.delete(`/cart/${cartItemId}`),
+  clearCart: () => api.delete('/cart/clear'),
+  getCartCount: () => api.get('/cart/count'),
+};
+
+export const paymentAPI = {
+  processPayment: (paymentData) => api.post('/payments', paymentData),
+  getPaymentHistory: () => api.get('/payments/history'),
+  getPaymentDetails: (paymentId) => api.get(`/payments/${paymentId}`),
+};
+
+export const refundAPI = {
+  requestRefund: (bookingId, reason) => api.post('/refunds/request', { bookingId, reason }),
+  getUserRefunds: () => api.get('/refunds/user'),
+  getRefundByBooking: (bookingId) => api.get(`/refunds/booking/${bookingId}`),
+  getAllRefunds: (status = null, page = 0, size = 20) => {
+    const params = new URLSearchParams({ page, size });
+    if (status) params.append('status', status);
+    return api.get(`/refunds/admin?${params}`);
+  },
+  approveRefund: (refundId) => api.patch(`/refunds/${refundId}/approve`),
+  rejectRefund: (refundId, reason) => api.patch(`/refunds/${refundId}/reject`, null, { params: { reason } }),
+};
+
 export default api;

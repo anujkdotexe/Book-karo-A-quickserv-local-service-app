@@ -1,15 +1,15 @@
-# Production Readiness Checklist - Bookaro Application
+# Production Readiness Checklist - BOOK-KARO Application
 
 ##  Database Configuration
 
 ### PostgreSQL Setup
--  **Database**: `bookarodb` on localhost:5432
+-  **Database**: `bookkarodb` on localhost:5432
 -  **Data Persistence**: Permanent storage (not in-memory)
 -  **Schema Management**: `validate` mode (no auto schema changes)
 -  **Connection Pooling**: HikariCP (built-in with Spring Boot)
 
 ### Data State
--  **Users**: 3 test users (user@bookaro.com, vendor@bookaro.com, admin@bookaro.com)
+-  **Users**: 3 test users (user@bookkaro.com, vendor@bookkaro.com, admin@bookkaro.com)
 -  **Vendors**: 1 test vendor (TEST001 - "Test Services Co.")
 -  **Services**: 3 test services (Plumbing, Cleaning, Electrical)
 -  **Data Persists**: Across application restarts
@@ -206,7 +206,7 @@ JWT_SECRET=<random-256-bit-key>
    export DB_PASSWORD=<secure-password>
    export JWT_SECRET=<256-bit-random-key>
    ```
-3. **Run application**: `java -jar bookaro-backend-1.0.0.jar`
+3. **Run application**: `java -jar bookkaro-backend-1.0.0.jar`
 4. **Verify health**: `curl http://localhost:8081/api/v1/services`
 5. **Monitor logs**: Check for errors or warnings
 
@@ -224,15 +224,15 @@ JWT_SECRET=<random-256-bit-key>
 ### Test Users (For Testing Only)
 ```
 USER:
-  Email: user@bookaro.com
+  Email: user@bookkaro.com
   Password: password123
 
 VENDOR:
-  Email: vendor@bookaro.com
+  Email: vendor@bookkaro.com
   Password: password123
 
 ADMIN:
-  Email: admin@bookaro.com
+  Email: admin@bookkaro.com
   Password: admin123
 ```
 
@@ -273,7 +273,7 @@ Services:
 ### Current Configuration (application.properties)
 ```properties
 # Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/bookarodb
+spring.datasource.url=jdbc:postgresql://localhost:5432/bookkarodb
 spring.datasource.username=postgres
 spring.datasource.password=root  # ⚠ CHANGE FOR PRODUCTION
 
@@ -281,7 +281,7 @@ spring.datasource.password=root  # ⚠ CHANGE FOR PRODUCTION
 spring.jpa.hibernate.ddl-auto=validate  #  PRODUCTION SAFE
 
 # JWT
-jwt.secret=bookaroSecretKey2025...  # ⚠ CHANGE FOR PRODUCTION
+jwt.secret=bookkaroSecretKey2025...  # ⚠ CHANGE FOR PRODUCTION
 jwt.expiration=86400000  # 24 hours
 
 # Server
@@ -299,7 +299,7 @@ jwt.secret=${JWT_SECRET}
 spring.profiles.active=production
 
 # Disable debug logging
-logging.level.com.bookaro=INFO
+logging.level.com.bookkaro=INFO
 logging.level.org.hibernate.SQL=WARN
 ```
 
@@ -311,7 +311,7 @@ For complete API documentation, see:
 
 ##  Summary
 
-**The Bookaro User Module is PRODUCTION READY** with the following capabilities:
+**The bookkaro User Module is PRODUCTION READY** with the following capabilities:
 
  **Fully Functional User Features**
  **Persistent PostgreSQL Database**  

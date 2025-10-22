@@ -1,4 +1,4 @@
-# Bookaro Development Instructions
+# bookkaro Development Instructions
 
 ## CRITICAL: Operational Rules (MUST FOLLOW)
 
@@ -21,7 +21,7 @@
    ```
    Terminal 1 (pwsh): Backend ONLY
    $ cd D:\Springboard\backend
-   $ java -jar target/bookaro-backend-1.0.3.jar
+   $ java -jar target/bookkaro-backend-1.0.3.jar
    [LEAVE RUNNING - DON'T TOUCH]
    
    Terminal 2 (node/pwsh): Frontend ONLY  
@@ -121,7 +121,7 @@
 
 3. **Backend API Testing** (BEFORE claiming fix works):
    - Start fresh backend server (kill old processes first)
-   - Wait for "Started BookaroApplication" message
+   - Wait for "Started bookkaroApplication" message
    - Test EACH fixed endpoint with real HTTP requests
    - Use Invoke-RestMethod or Invoke-WebRequest in PowerShell
    - Verify response structure matches expected format
@@ -270,7 +270,7 @@
    
    # 2. Restart backend (Terminal 1)
    # Kill existing process (Ctrl+C)
-   java -jar target/bookaro-backend-1.0.2.jar
+   java -jar target/bookkaro-backend-1.0.2.jar
    
    # 3. Verify frontend (Terminal 2 should auto-reload)
    # If not, restart:
@@ -301,7 +301,7 @@
 - Skipping compilation checks after "small" changes
 
 ## Project Overview
-Bookaro is a three-tier service marketplace platform (Spring Boot + React + PostgreSQL) connecting customers with service providers. Currently in Phase 1 (User Module) - production-ready for customer-facing features.
+bookkaro is a three-tier service marketplace platform (Spring Boot + React + PostgreSQL) connecting customers with service providers. Currently in Phase 1 (User Module) - production-ready for customer-facing features.
 
 ## CRITICAL: Professional Code Standards
 
@@ -574,46 +574,53 @@ Shadows:
 - **Vendors** and **Services** are SEPARATE entities with distinct tables
 - One vendor can provide multiple services (Vendor 1:N Service relationship)
 - Service.vendor_id references Vendor.id (NOT User.id)
-- **CSV data loading was USED ONCE** to load 150 Mumbai services initially
-- CSV file: `mumbai_vendors_150.csv` (committed to Git for production deployments)
-- Data loads ONCE when `serviceRepository.count() <= 20`, then persists permanently
-- **Note**: CSV file deleted from local after initial load - data now lives in PostgreSQL permanently
+- **Multi-City Regional Setup**: 6 vendors across 6 major Indian cities
+- **No CSV Data Loader**: Data is generated programmatically via ComprehensiveDataInitializer
+- Data loads ONCE when `serviceRepository.count() < 20`, then persists permanently
 
-### CSV Data Loader Behavior (DEPLOYMENT CRITICAL)
-**IMPORTANT for GitHub deployments and new instances:**
-1. **File Location**: `D:\Springboard\mumbai_vendors_150.csv` (root directory) - **IN GIT REPO**
-2. **Auto-Loading**: CSVDataLoader runs on every application startup
-3. **Smart Skip**: If database has >20 services, CSV loading is skipped
-4. **First Deployment**: Fresh database will auto-load all 150 services
-5. **Persistence**: All data stored in PostgreSQL - survives restarts forever
-6. **Git Tracked**: CSV file IS committed to Git and pushed to GitHub ✅
-7. **Local Deletion**: After initial load, CSV can be deleted locally (data in database)
+### Data Initialization System (DEPLOYMENT CRITICAL)
+**Current Implementation**:
+1. **DataInitializer** (@Order(1)):
+   - Creates 3 test user accounts (USER, VENDOR, ADMIN)
+   - Email: user@bookkaro.com, vendor@bookkaro.com, admin@bookkaro.com
+   - Password: password123 (admin123 for admin)
 
-**When deploying to production (Railway, Render, Heroku, etc.):**
-- CSV file will be included in the repository ✅
-- On first startup, CSVDataLoader will detect empty database
-- All 151 vendors and 165 services will be automatically loaded
-- Subsequent restarts will skip loading (count > 20 check)
-- **All users see the SAME services** - they're in the shared database, not per-user
-- CSV file remains in Git for future deployments but can be deleted locally
+2. **ComprehensiveDataInitializer** (@Order(3)):
+   - Creates 6 regional vendors (one per city)
+   - Cities: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai
+   - Each vendor has User account with VENDOR role for login
+   - Total: 25 services across 6 vendors
+   - Vendor credentials: [city]@bookkaro.com / vendor123
+   - Example: mumbai@bookkaro.com, pune@bookkaro.com, delhi@bookkaro.com
 
-**Local Development Note**:
-- CSV file deleted from local D:\Springboard\ directory after successful load
-- Data persists in PostgreSQL bookarodb database (165 services, 151 vendors)
-- No need for CSV file locally since database has all the data
-- CSV remains in GitHub repo for production deployments only
+3. **BookingReviewInitializer** (@Order(3)):
+   - Creates 30 sample bookings for test user
+   - Various statuses: PENDING, CONFIRMED, COMPLETED, CANCELLED
+   - Includes reviews for completed bookings
 
-**File**: `backend/src/main/java/com/bookaro/util/CSVDataLoader.java`
-- Active: `@Component` annotation is present
-- Order: `@Order(2)` (runs after DataInitializer)
-- Check: `if (serviceRepository.count() > 20) return;`
+**Data Summary**:
+- 9 users total (3 test accounts + 6 vendor accounts)
+- 6 vendors (regional coverage across major Indian cities)
+- 25 services (5+4+5+4+2+5 across vendors)
+- 30 sample bookings with reviews
+
+**When deploying to production (Railway, Render, Heroku, etc.)**:
+- No CSV files needed - all data generated programmatically
+- On first startup with empty database, all initializers run automatically
+- Check: `if (serviceRepository.count() < 20)` - runs if services < 20
+- Subsequent restarts skip initialization
+- All data stored in PostgreSQL - survives restarts forever
+
+**File**: `backend/src/main/java/com/bookkaro/config/ComprehensiveDataInitializer.java`
+- Active: `@Configuration` with `@Bean @Order(3)` CommandLineRunner
+- Generates vendors + services programmatically (no external files)
 
 ### Database Schema Management (PRODUCTION CRITICAL)
 ```properties
 spring.jpa.hibernate.ddl-auto=validate  # NEVER change to create-drop/update
 ```
 - **validate**: Production-safe mode - only validates schema, makes NO changes
-- Data persists permanently in PostgreSQL (bookarodb)
+- Data persists permanently in PostgreSQL (bookkarodb)
 - Schema changes require manual migrations (never auto-applied)
 - Database: PostgreSQL 15.13 on localhost:5432, user: postgres, password: root
 
@@ -653,7 +660,7 @@ mvn spring-boot:run
 # Production JAR (port 8081)
 cd backend
 mvn clean package -DskipTests
-java -jar target/bookaro-backend-1.0.0.jar
+java -jar target/bookkaro-backend-1.0.0.jar
 ```
 
 **Context path**: `/api/v1` (e.g., `http://localhost:8081/api/v1/services`)
@@ -668,7 +675,7 @@ npm start  # Runs on port 3000
 ### Database Verification
 ```bash
 $env:PGPASSWORD='root'
-psql -U postgres -d bookarodb -c "SELECT COUNT(*) FROM vendors; SELECT COUNT(*) FROM services;"
+psql -U postgres -d bookkarodb -c "SELECT COUNT(*) FROM vendors; SELECT COUNT(*) FROM services;"
 ```
 
 ## Project-Specific Patterns
@@ -735,16 +742,26 @@ public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody Re
 
 ## Data Initialization
 
-### Test Data (DataInitializer.java)
-- 3 users: user@bookaro.com, vendor@bookaro.com, admin@bookaro.com (all password: password123 or admin123)
-- 1 vendor: TEST001 - "Test Services Co."
-- 3 services: Plumbing (Rs.1500), Cleaning (Rs.2500), Electrical (Rs.2000)
+### Test Data & Initialization
 
-### CSVDataLoader (ENABLED)
-- Active with @Component annotation
-- Loads 150 Mumbai vendors + services on first deployment
-- Skips loading if database already has >20 services
-- CSV file tracked in Git for deployment
+**DataInitializer.java** (@Order 1):
+- 3 test users: user@bookkaro.com, vendor@bookkaro.com, admin@bookkaro.com
+- Passwords: password123 (user/vendor), admin123 (admin)
+- All Mumbai-based test accounts
+
+**ComprehensiveDataInitializer.java** (@Order 3):
+- 6 regional vendors across 6 cities
+- Cities: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai
+- Vendor logins: [city]@bookkaro.com / vendor123
+- Examples: mumbai@bookkaro.com, pune@bookkaro.com, delhi@bookkaro.com
+- 25 services total (5+4+5+4+2+5 distribution)
+
+**BookingReviewInitializer.java** (@Order 3):
+- 30 sample bookings for user@bookkaro.com
+- Mix of statuses: PENDING, CONFIRMED, COMPLETED, CANCELLED
+- Reviews included for completed bookings
+
+**Total Data**: 9 users, 6 vendors, 25 services, 30 sample bookings
 
 ## Key Files & Their Purpose
 
@@ -785,9 +802,9 @@ public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody Re
 7. **Favorites**: Toggle heart icon on service cards, add/remove functionality working
 
 **Test Credentials:**
-- User: user@bookaro.com / password123
-- Vendor: vendor@bookaro.com / password123
-- Admin: admin@bookaro.com / admin123
+- User: user@bookkaro.com / password123
+- Vendor: vendor@bookkaro.com / password123
+- Admin: admin@bookkaro.com / admin123
 
 ### Phase 2 - Vendor Module (NOT STARTED)
 **DO NOT implement vendor features unless explicitly requested:**

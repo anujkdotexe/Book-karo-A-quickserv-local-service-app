@@ -29,6 +29,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# MCP Servers (local only)
+mcp/
+
 # IDEs
 .idea/
 *.iml

@@ -67,8 +67,19 @@ const Login = () => {
 
     if (result.success) {
       setSuccessMessage('Login successful! Redirecting...');
+      
+      // Get user data from localStorage (just set by login function)
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
       setTimeout(() => {
-        navigate('/services');
+        // Navigate based on role
+        if (userData?.role === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else if (userData?.role === 'VENDOR') {
+          navigate('/vendor/dashboard');
+        } else {
+          navigate('/'); // USER goes to home page
+        }
       }, 1000);
     } else {
       // Show the raw backend error message for clarity
@@ -88,8 +99,19 @@ const Login = () => {
 
     if (result.success) {
       setSuccessMessage('Login successful! Redirecting...');
+      
+      // Get user data from localStorage (just set by login function)
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
       setTimeout(() => {
-        navigate('/services');
+        // Navigate based on role
+        if (userData?.role === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else if (userData?.role === 'VENDOR') {
+          navigate('/vendor/dashboard');
+        } else {
+          navigate('/'); // USER goes to home page
+        }
       }, 1000);
     } else {
       setError(result.message || 'Login failed');
@@ -102,7 +124,7 @@ const Login = () => {
       <div className="auth-container fade-in">
         <div className="auth-card">
           <h1 className="auth-title">Welcome Back</h1>
-          <p className="auth-subtitle">Sign in to continue to Bookaro</p>
+          <p className="auth-subtitle">Sign in to continue to bookkaro</p>
 
           {error && (
             <div className="alert alert-error" role="alert" aria-live="polite">
@@ -178,6 +200,16 @@ const Login = () => {
               )}
             </div>
 
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <label htmlFor="remember" style={{ display: 'flex', alignItems: 'center', fontSize: '14px', color: '#374151', cursor: 'pointer' }}>
+                <input type="checkbox" id="remember" style={{ marginRight: '8px' }} />
+                Remember me
+              </label>
+              <Link to="/forgot-password" className="auth-link" style={{ fontSize: '14px' }}>
+                Forgot password?
+              </Link>
+            </div>
+
             <button type="submit" className="btn btn-auth-primary" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -190,7 +222,7 @@ const Login = () => {
             
             <div style={{ display: 'flex', gap: '12px', flexDirection: 'column', marginBottom: '20px' }}>
               <button
-                onClick={() => handleQuickLogin('user@bookaro.com', 'password123')}
+                onClick={() => handleQuickLogin('user@bookkaro.com', 'password123')}
                 disabled={loading}
                 style={{
                   padding: '10px 16px',
@@ -210,7 +242,7 @@ const Login = () => {
                 Login as User
               </button>
               <button
-                onClick={() => handleQuickLogin('mumbai@bookaro.com', 'vendor123')}
+                onClick={() => handleQuickLogin('mumbai@bookkaro.com', 'vendor123')}
                 disabled={loading}
                 style={{
                   padding: '10px 16px',
@@ -230,7 +262,7 @@ const Login = () => {
                 Login as Vendor (Mumbai - Default)
               </button>
               <button
-                onClick={() => handleQuickLogin('admin@bookaro.com', 'admin123')}
+                onClick={() => handleQuickLogin('admin@bookkaro.com', 'admin123')}
                 disabled={loading}
                 style={{
                   padding: '10px 16px',
@@ -257,27 +289,27 @@ const Login = () => {
               </h4>
               <div style={{ fontSize: '13px', lineHeight: '1.8', color: '#374151', fontFamily: 'monospace' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Mumbai:</strong> mumbai@bookaro.com</span>
+                  <span><strong>Mumbai:</strong> mumbai@bookkaro.com</span>
                   <span style={{ color: '#059669' }}>vendor123</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Pune:</strong> pune@bookaro.com</span>
+                  <span><strong>Pune:</strong> pune@bookkaro.com</span>
                   <span style={{ color: '#059669' }}>vendor123</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Delhi:</strong> delhi@bookaro.com</span>
+                  <span><strong>Delhi:</strong> delhi@bookkaro.com</span>
                   <span style={{ color: '#059669' }}>vendor123</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Bangalore:</strong> bangalore@bookaro.com</span>
+                  <span><strong>Bangalore:</strong> bangalore@bookkaro.com</span>
                   <span style={{ color: '#059669' }}>vendor123</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Thane:</strong> thane@bookaro.com</span>
+                  <span><strong>Thane:</strong> thane@bookkaro.com</span>
                   <span style={{ color: '#059669' }}>vendor123</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
-                  <span><strong>Navi Mumbai:</strong> navimumbai@bookaro.com</span>
+                  <span><strong>Navi Mumbai:</strong> navimumbai@bookkaro.com</span>
                   <span style={{ color: '#059669' }}>vendor123</span>
                 </div>
               </div>

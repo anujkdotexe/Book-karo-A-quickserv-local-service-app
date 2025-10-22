@@ -25,10 +25,11 @@ const VendorServices = () => {
     try {
       setLoading(true);
       const data = await vendorAPI.getServices();
-      setServices(data);
+      setServices(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load services');
+      setServices([]);
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,7 @@ const VendorServices = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {services.length === 0 ? (
+      {!services || services.length === 0 ? (
         <div className="empty-state">
           <p>No services yet. Create your first service to start receiving bookings!</p>
           <button onClick={() => handleOpenModal()} className="btn btn-primary">

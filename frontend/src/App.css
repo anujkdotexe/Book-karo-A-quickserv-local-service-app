@@ -55,8 +55,8 @@
 }
 
 .btn-outline {
-  background-color: transparent;
-  color: var(--royal-blue);
+  background-color: var(--royal-blue);
+  color: var(--white);
   border: 2px solid var(--royal-blue);
   opacity: 1 !important;
   visibility: visible !important;

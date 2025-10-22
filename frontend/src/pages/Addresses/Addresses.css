@@ -295,8 +295,8 @@
 }
 
 .btn-outline.btn-sm {
-  background: transparent;
-  color: var(--royal-blue);
+  background: var(--royal-blue);
+  color: var(--white);
   border-color: var(--royal-blue);
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminAPI } from '../../services/adminAPI';
 import './AdminVendors.css';
 
@@ -11,40 +11,42 @@ const AdminVendors = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
 
+  const loadVendors = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await adminAPI.getAllVendors(currentPage, 20);
+      setVendors(data.content || []);
+      setTotalPages(data.totalPages || 0);
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load vendors');
+      setVendors([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage]);
+
+  const loadPendingVendors = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await adminAPI.getPendingVendors();
+      setPendingVendors(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load pending vendors');
+      setPendingVendors([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (activeTab === 'pending') {
       loadPendingVendors();
     } else {
       loadVendors();
     }
-  }, [activeTab, currentPage]);
-
-  const loadVendors = async () => {
-    try {
-      setLoading(true);
-      const data = await adminAPI.getAllVendors(currentPage, 20);
-      setVendors(data.content);
-      setTotalPages(data.totalPages);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load vendors');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadPendingVendors = async () => {
-    try {
-      setLoading(true);
-      const data = await adminAPI.getPendingVendors();
-      setPendingVendors(data);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load pending vendors');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [activeTab, currentPage, loadVendors, loadPendingVendors]);
 
   const handleApprove = async (vendorId) => {
     try {
@@ -119,7 +121,7 @@ const AdminVendors = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {displayVendors.length === 0 ? (
+      {!displayVendors || displayVendors.length === 0 ? (
         <div className="empty-state">
           <p>No {activeTab} vendors found.</p>
         </div>

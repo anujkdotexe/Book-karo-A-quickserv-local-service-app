@@ -425,10 +425,10 @@ This document requires approval from:
 ---
 
 **End of Document**
-# Product Requirements Document - Bookaro Service Marketplace Platform
+# Product Requirements Document - bookkaro Service Marketplace Platform
 
 ## Document Information
-**Project Name:** Bookaro - Service Marketplace Platform  
+**Project Name:** bookkaro - Service Marketplace Platform  
 **Version:** 1.0  
 **Date:** October 15, 2025,  
 **Status:** Active Development  
@@ -453,7 +453,7 @@ This document requires approval from:
 
 ## 1. Executive Summary
 
-Bookaro is a professional, production-ready service marketplace platform designed to connect customers with service providers. The platform follows Agile development methodology and is built using Java-based technologies with Spring Boot for backend and React for frontend.
+bookkaro is a professional, production-ready service marketplace platform designed to connect customers with service providers. The platform follows Agile development methodology and is built using Java-based technologies with Spring Boot for backend and React for frontend.
 
 The platform consists of three core modules:
 - **User Module (Customer Side)** - Phase 1 Focus

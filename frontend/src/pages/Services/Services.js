@@ -41,12 +41,13 @@ const Services = () => {
   const fetchFavorites = async () => {
     try {
       const response = await favoriteAPI.getFavorites();
-      // FIX: response.data.data is the array of SERVICES, not favorites with nested service
+      // Response contains array of services that are favorited
       const favServices = response.data.data || [];
       const ids = new Set(favServices.map(fav => fav.id));
       setFavoriteIds(ids);
     } catch (err) {
-      // User not logged in or no favorites - silently continue
+      // User not logged in or no favorites - start with empty set
+      setFavoriteIds(new Set());
     }
   };
 
@@ -55,7 +56,7 @@ const Services = () => {
       const response = await serviceAPI.getCities();
       setCities(response.data.data || []);
     } catch (err) {
-      console.error('Failed to load cities:', err);
+      // Failed to load cities - not critical, continue without city suggestions
     }
   };
 
@@ -98,7 +99,6 @@ const Services = () => {
       const uniqueCategories = [...new Set(servicesList.map(s => s.category).filter(Boolean))];
       setCategories(uniqueCategories);
     } catch (err) {
-      console.error('Error fetching services:', err);
       setError('Failed to load services. Please try again later.');
       setServices([]);
       setTotalPages(0);
@@ -128,7 +128,6 @@ const Services = () => {
         setFavoriteIds(prev => new Set([...prev, serviceId]));
       }
     } catch (err) {
-      console.error('Failed to toggle favorite:', err);
       setError('Failed to update favorites. Please login to save favorites.');
     }
   };
@@ -145,7 +144,7 @@ const Services = () => {
       [e.target.name]: e.target.value,
     };
     setSearchParams(newParams);
-    // FIX: Auto-trigger search when filters change
+    // Reset to page 0 when filters change
     setPage(0);
   };
 

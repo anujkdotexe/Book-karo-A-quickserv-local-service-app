@@ -278,12 +278,14 @@
   justify-content: center;
   gap: var(--spacing-sm);
   font-weight: 600;
+  background-color: var(--royal-blue) !important;
+  color: var(--white) !important;
 }
 
 .booking-card .btn-outline.in-cart {
-  background-color: #f0fdf4;
+  background-color: #22c55e !important;
   border-color: #22c55e;
-  color: #22c55e;
+  color: var(--white) !important;
   cursor: not-allowed;
 }
 

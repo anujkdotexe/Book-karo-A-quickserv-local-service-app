@@ -22,11 +22,11 @@ const PrivacyPolicy = () => {
           <section className="privacy-section">
             <h2>1. Introduction</h2>
             <p>
-              Welcome to Bookaro. We respect your privacy and are committed to protecting your personal data. This Privacy 
+              Welcome to BOOK-KARO. We respect your privacy and are committed to protecting your personal data. This Privacy 
               Policy explains how we collect, use, disclose, and safeguard your information when you use our service marketplace platform.
             </p>
             <p>
-              Please read this Privacy Policy carefully. By using Bookaro, you agree to the collection and use of information 
+              Please read this Privacy Policy carefully. By using BOOK-KARO, you agree to the collection and use of information 
               in accordance with this policy.
             </p>
           </section>
@@ -90,7 +90,7 @@ const PrivacyPolicy = () => {
             <ul>
               <li>Legal processes or government requests</li>
               <li>Enforcing our Terms of Service</li>
-              <li>Protecting the rights, property, or safety of Bookaro, our users, or others</li>
+              <li>Protecting the rights, property, or safety of BOOK-KARO, our users, or others</li>
               <li>Investigating fraud or security issues</li>
             </ul>
           </section>
@@ -125,7 +125,7 @@ const PrivacyPolicy = () => {
               <li><strong>Restrict Processing:</strong> Request limitation on how we use your data</li>
             </ul>
             <p>
-              To exercise these rights, please contact us at <a href="mailto:privacy@bookaro.com">privacy@bookaro.com</a>
+              To exercise these rights, please contact us at <a href="mailto:privacy@BOOK-KARO.com">privacy@BOOK-KARO.com</a>
             </p>
           </section>
 
@@ -195,9 +195,9 @@ const PrivacyPolicy = () => {
               If you have questions or concerns about this Privacy Policy or our data practices, please contact us:
             </p>
             <ul>
-              <li>Email: <a href="mailto:privacy@bookaro.com">privacy@bookaro.com</a></li>
+              <li>Email: <a href="mailto:privacy@BOOK-KARO.com">privacy@BOOK-KARO.com</a></li>
               <li>Phone: <a href="tel:+15551234567">+1 (555) 123-4567</a></li>
-              <li>Address: Bookaro Privacy Team, [Your Address]</li>
+              <li>Address: BOOK-KARO Privacy Team, [Your Address]</li>
               <li>Or visit our <Link to="/contact">Contact Page</Link></li>
             </ul>
           </section>

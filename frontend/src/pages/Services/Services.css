@@ -37,6 +37,21 @@
   gap: var(--spacing-md);
 }
 
+.search-inputs .btn {
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.search-inputs .btn-primary,
+.search-inputs .btn-outline {
+  background-color: var(--royal-blue) !important;
+  color: var(--white) !important;
+  border: 2px solid var(--royal-blue) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-block !important;
+}
+
 .search-inputs input,
 .search-inputs select {
   padding: var(--spacing-md);
@@ -186,6 +201,8 @@
 
 /* Ensure buttons are always visible */
 .btn.btn-outline {
+  background-color: var(--royal-blue) !important;
+  color: var(--white) !important;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
@@ -193,9 +210,31 @@
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--spacing-xl);
   margin-bottom: var(--spacing-2xl);
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Responsive grid */
+@media (max-width: 1400px) {
+  .services-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1000px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .service-card-wrapper {
@@ -210,18 +249,36 @@
   color: inherit;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border-color);
-  transition: all var(--transition-normal);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  min-height: 320px;
+  min-height: 360px;
   height: 100%;
+  position: relative;
 }
 
 .service-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.15);
   border-color: var(--royal-blue);
+}
+
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--royal-blue), var(--navy-blue));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.service-card:hover::before {
+  opacity: 1;
 }
 
 .favorite-icon-btn {

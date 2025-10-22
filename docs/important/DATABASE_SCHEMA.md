@@ -1,8 +1,8 @@
-# Database Schema Documentation
+# BOOK-KARO Database Schema Documentation
 
 ## Service Marketplace Platform - Phase 1: User Module
 
-### Database: MySQL/PostgreSQL
+### Database: PostgreSQL
 
 ---
 

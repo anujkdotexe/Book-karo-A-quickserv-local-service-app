@@ -22,7 +22,7 @@ const TermsOfService = () => {
           <section className="terms-section">
             <h2>1. Acceptance of Terms</h2>
             <p>
-              By accessing and using Bookaro ("the Service"), you accept and agree to be bound by the terms and 
+              By accessing and using BOOK-KARO ("the Service"), you accept and agree to be bound by the terms and 
               provisions of this agreement. If you do not agree to these Terms of Service, please do not use the Service.
             </p>
           </section>
@@ -30,11 +30,11 @@ const TermsOfService = () => {
           <section className="terms-section">
             <h2>2. Service Description</h2>
             <p>
-              Bookaro is a service marketplace platform that connects customers with service providers. We facilitate 
+              BOOK-KARO is a service marketplace platform that connects customers with service providers. We facilitate 
               bookings for various services including but not limited to home services, repairs, cleaning, and professional services.
             </p>
             <p>
-              Bookaro acts as an intermediary platform and is not directly responsible for the quality or delivery of 
+              BOOK-KARO acts as an intermediary platform and is not directly responsible for the quality or delivery of 
               services provided by third-party vendors.
             </p>
           </section>
@@ -62,18 +62,18 @@ const TermsOfService = () => {
             <h2>4. Booking and Payments</h2>
             <h3>4.1 Booking Process</h3>
             <p>
-              When you make a booking through Bookaro, you enter into a direct contract with the service provider. 
-              Bookaro facilitates the transaction but is not a party to the service agreement.
+              When you make a booking through BOOK-KARO, you enter into a direct contract with the service provider. 
+              BOOK-KARO facilitates the transaction but is not a party to the service agreement.
             </p>
             <h3>4.2 Pricing</h3>
             <p>
               All prices displayed are in Indian Rupees (Rs.) unless otherwise stated. Service providers set their own 
-              prices, and Bookaro may charge a service fee for facilitating bookings.
+              prices, and BOOK-KARO may charge a service fee for facilitating bookings.
             </p>
             <h3>4.3 Cancellation Policy</h3>
             <p>
               Cancellation policies vary by service provider. Please review the specific cancellation terms before making 
-              a booking. Bookaro is not responsible for refunds related to service provider cancellations.
+              a booking. BOOK-KARO is not responsible for refunds related to service provider cancellations.
             </p>
           </section>
 
@@ -94,7 +94,7 @@ const TermsOfService = () => {
           <section className="terms-section">
             <h2>6. Intellectual Property</h2>
             <p>
-              The Service and its original content, features, and functionality are owned by Bookaro and are protected 
+              The Service and its original content, features, and functionality are owned by BOOK-KARO and are protected 
               by international copyright, trademark, patent, trade secret, and other intellectual property laws.
             </p>
             <p>
@@ -106,7 +106,7 @@ const TermsOfService = () => {
           <section className="terms-section">
             <h2>7. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, Bookaro shall not be liable for any indirect, incidental, special, 
+              To the maximum extent permitted by law, BOOK-KARO shall not be liable for any indirect, incidental, special, 
               consequential, or punitive damages resulting from:
             </p>
             <ul>
@@ -158,7 +158,7 @@ const TermsOfService = () => {
               If you have any questions about these Terms of Service, please contact us:
             </p>
             <ul>
-              <li>Email: <a href="mailto:support@bookaro.com">support@bookaro.com</a></li>
+              <li>Email: <a href="mailto:support@BOOK-KARO.com">support@BOOK-KARO.com</a></li>
               <li>Phone: <a href="tel:+15551234567">+1 (555) 123-4567</a></li>
               <li>Or visit our <Link to="/contact">Contact Page</Link></li>
             </ul>

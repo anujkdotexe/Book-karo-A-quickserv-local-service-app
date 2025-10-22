@@ -1,4 +1,4 @@
-# Quick Start Checklist - Content Management
+# BOOK-KARO - Quick Start Checklist: Content Management
 
 ## Status: All TODO Features Complete [DONE]
 
@@ -20,7 +20,7 @@ Follow these steps to get the new content management features working.
 
 # 3. Start backend
 cd d:\Springboard\backend
-java -jar target/bookaro-backend-1.0.3.jar
+java -jar target/bookkaro-backend-1.0.3.jar
 
 # 4. Wait for startup, then stop (Ctrl+C)
 
@@ -28,18 +28,18 @@ java -jar target/bookaro-backend-1.0.3.jar
 #    spring.jpa.hibernate.ddl-auto=${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
 
 # 6. Start backend again
-java -jar target/bookaro-backend-1.0.3.jar
+java -jar target/bookkaro-backend-1.0.3.jar
 ```
 
 ### Method B: Manual SQL (Recommended for Production)
 ```powershell
 # Run the SQL script
 $env:PGPASSWORD='root'
-psql -U postgres -d bookarodb -f d:\Springboard\create_content_tables.sql
+psql -U postgres -d bookkarodb -f d:\Springboard\create_content_tables.sql
 
 # Then start backend
 cd d:\Springboard\backend
-java -jar target/bookaro-backend-1.0.3.jar
+java -jar target/bookkaro-backend-1.0.3.jar
 ```
 
 ---
@@ -49,7 +49,7 @@ java -jar target/bookaro-backend-1.0.3.jar
 ```powershell
 # Check tables exist
 $env:PGPASSWORD='root'
-psql -U postgres -d bookarodb -c "\dt"
+psql -U postgres -d bookkarodb -c "\dt"
 
 # Should see: faqs, announcements, banners (plus existing tables)
 ```
@@ -61,7 +61,7 @@ psql -U postgres -d bookarodb -c "\dt"
 ```powershell
 # Login as admin
 $loginBody = @{
-    email = "admin@bookaro.com"
+    email = "admin@bookkaro.com"
     password = "admin123"
 } | ConvertTo-Json
 
@@ -95,7 +95,7 @@ Write-Host "[DONE] Public FAQs Count: $($publicFaqs.data.Count)"
 
 # Create an announcement
 $announcementBody = @{
-    title = "Welcome to Bookaro!"
+    title = "Welcome to bookkaro!"
     content = "Thank you for using our platform."
     type = "INFO"
     targetAudience = "ALL"
@@ -193,11 +193,11 @@ See detailed testing in: `CONTENT_MANAGEMENT_TESTING.md`
 - **Solution:** Token expired or invalid. Re-login to get fresh token.
 
 ### "Build failed"
-- **Solution:** Already built! JAR exists at `backend/target/bookaro-backend-1.0.3.jar`
+- **Solution:** Already built! JAR exists at `backend/target/bookkaro-backend-1.0.3.jar`
 
 ### Backend won't start
 - **Solution:** Check PostgreSQL is running on port 5432
-- **Solution:** Verify database 'bookarodb' exists
+- **Solution:** Verify database 'bookkarodb' exists
 - **Solution:** Check application.properties password matches your PostgreSQL password
 
 ---
@@ -217,7 +217,7 @@ See detailed testing in: `CONTENT_MANAGEMENT_TESTING.md`
 [DONE] **27 New Endpoints** (22 admin + 5 public)  
 [DONE] **3 New Database Tables** (faqs, announcements, banners)  
 [DONE] **97 Files Compiled** Successfully  
-[DONE] **Production-Ready JAR** (bookaro-backend-1.0.3.jar)  
+[DONE] **Production-Ready JAR** (bookkaro-backend-1.0.3.jar)  
 [DONE] **Complete Documentation** (5 guides + SQL script)  
 
 ---
@@ -234,7 +234,7 @@ See detailed testing in: `CONTENT_MANAGEMENT_TESTING.md`
 
 ## Quick Reference: Admin Credentials
 
-**Email:** admin@bookaro.com  
+**Email:** admin@bookkaro.com  
 **Password:** admin123  
 
 ---
