@@ -9,11 +9,11 @@ const Payment = () => {
   const { bookingData, serviceName, servicePrice } = location.state || {};
 
   const [paymentData, setPaymentData] = useState({
-    cardNumber: '',
-    cardName: '',
-    expiryMonth: '',
-    expiryYear: '',
-    cvv: ''
+    cardNumber: '4111 1111 1111 1111',
+    cardName: 'TEST USER',
+    expiryMonth: '12',
+    expiryYear: '2025',
+    cvv: '123'
   });
 
   const [errors, setErrors] = useState({});

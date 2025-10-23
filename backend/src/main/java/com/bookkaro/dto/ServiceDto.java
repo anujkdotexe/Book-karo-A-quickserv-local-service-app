@@ -54,20 +54,34 @@ public class ServiceDto {
                 .build();
 
         if (service.getVendor() != null) {
-            dto.setVendor(VendorInfoDto.builder()
+            VendorInfoDto.VendorInfoDtoBuilder vendorBuilder = VendorInfoDto.builder()
                     .id(service.getVendor().getId())
                     .vendorCode(service.getVendor().getVendorCode())
                     .businessName(service.getVendor().getBusinessName())
+                    .contactPerson(service.getVendor().getContactPerson())
                     .primaryCategory(service.getVendor().getPrimaryCategory())
                     .phone(service.getVendor().getPhone())
                     .email(service.getVendor().getEmail())
                     .location(service.getVendor().getLocation())
+                    .address(service.getVendor().getAddress())
+                    .city(service.getVendor().getCity())
+                    .state(service.getVendor().getState())
+                    .postalCode(service.getVendor().getPostalCode())
                     .availability(service.getVendor().getAvailability())
                     .yearsOfExperience(service.getVendor().getYearsOfExperience())
                     .averageRating(service.getVendor().getAverageRating())
                     .totalReviews(service.getVendor().getTotalReviews())
                     .isVerified(service.getVendor().getIsVerified())
-                    .build());
+                    .description(service.getVendor().getDescription());
+            
+            // Add user info if available
+            if (service.getVendor().getUser() != null) {
+                vendorBuilder
+                    .firstName(service.getVendor().getUser().getFirstName())
+                    .lastName(service.getVendor().getUser().getLastName());
+            }
+            
+            dto.setVendor(vendorBuilder.build());
         }
 
         return dto;

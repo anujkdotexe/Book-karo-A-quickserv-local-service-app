@@ -16,7 +16,7 @@ public class UserUpdateRequest {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
     
-    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
+    @Pattern(regexp = "^\\+?[0-9]{10,13}$", message = "Phone number must be 10-13 digits (optional + prefix)")
     private String phone;
     
     @Size(max = 200, message = "Address must not exceed 200 characters")

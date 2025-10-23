@@ -46,12 +46,32 @@ public class BookingController {
         Service service = serviceRepository.findByIdWithVendor(request.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
+        // Parse booking time (supports formats like "10:00 AM", "14:30", "2:30 PM")
+        LocalTime bookingTime = parseBookingTime(request.getBookingTime());
+
+        // Validate booking time against service availability
+        if (service.getAvailableFromTime() != null && service.getAvailableToTime() != null) {
+            if (bookingTime.isBefore(service.getAvailableFromTime())) {
+                throw new RuntimeException(String.format(
+                    "Booking time %s is before service start time %s", 
+                    bookingTime, service.getAvailableFromTime()
+                ));
+            }
+            if (bookingTime.isAfter(service.getAvailableToTime())) {
+                throw new RuntimeException(String.format(
+                    "Booking time %s is after service end time %s. Service available from %s to %s", 
+                    bookingTime, service.getAvailableToTime(), 
+                    service.getAvailableFromTime(), service.getAvailableToTime()
+                ));
+            }
+        }
+
         // Create booking with total amount from service price
         Booking booking = Booking.builder()
                 .user(user)
                 .service(service)
                 .bookingDate(request.getBookingDate())
-                .bookingTime(request.getBookingTime())
+                .bookingTime(bookingTime)
                 .notes(request.getNotes())
                 .totalAmount(service.getPrice())
                 .status(BookingStatus.PENDING)
@@ -402,5 +422,47 @@ public class BookingController {
         dto.setCreatedAt(booking.getCreatedAt());
         dto.setUpdatedAt(booking.getUpdatedAt());
         return dto;
+    }
+
+    /**
+     * Parse booking time from various formats:
+     * - "10:00 AM" or "2:30 PM" (12-hour format with AM/PM)
+     * - "14:30" or "09:00" (24-hour format)
+     */
+    private LocalTime parseBookingTime(String timeStr) {
+        if (timeStr == null || timeStr.trim().isEmpty()) {
+            throw new IllegalArgumentException("Booking time cannot be empty");
+        }
+
+        timeStr = timeStr.trim().toUpperCase();
+
+        try {
+            // Check if it contains AM/PM (12-hour format)
+            if (timeStr.contains("AM") || timeStr.contains("PM")) {
+                boolean isPM = timeStr.contains("PM");
+                // Remove AM/PM and trim
+                timeStr = timeStr.replace("AM", "").replace("PM", "").trim();
+
+                // Parse hour and minute
+                String[] parts = timeStr.split(":");
+                int hour = Integer.parseInt(parts[0].trim());
+                int minute = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
+
+                // Convert 12-hour to 24-hour
+                if (isPM && hour != 12) {
+                    hour += 12;
+                } else if (!isPM && hour == 12) {
+                    hour = 0;
+                }
+
+                return LocalTime.of(hour, minute);
+            } else {
+                // 24-hour format (e.g., "14:30")
+                return LocalTime.parse(timeStr);
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid booking time format: " + timeStr + 
+                ". Expected format: '10:00 AM', '2:30 PM', or '14:30'");
+        }
     }
 }

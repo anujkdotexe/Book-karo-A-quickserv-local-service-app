@@ -371,6 +371,20 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.service-location svg {
+  flex-shrink: 0;
+  color: var(--royal-blue);
+}
+
+.service-rating svg {
+  flex-shrink: 0;
+  color: #fbbf24;
+  fill: #fbbf24;
 }
 
 .service-footer {
@@ -403,6 +417,37 @@
   align-items: center;
   gap: var(--spacing-lg);
   padding: var(--spacing-xl) 0;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn svg {
+  flex-shrink: 0;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pagination-btn:focus-visible {
+  outline: 2px solid var(--royal-blue);
+  outline-offset: 2px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: var(--royal-blue);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
 }
 
 .page-info {
@@ -598,5 +643,269 @@
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 0.9rem;
   }
+}
+
+/* ======================
+   Accessibility & Focus Indicators
+   ====================== */
+
+/* Focus styles for all interactive elements */
+.btn:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--royal-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+/* Favorite button focus */
+.favorite-icon-btn:focus-visible {
+  outline: 2px solid var(--royal-blue);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* Service card focus */
+.service-card:focus-visible {
+  outline: 3px solid var(--royal-blue);
+  outline-offset: 3px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Sort button loading spinner */
+.sort-loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(37, 99, 235, 0.3);
+  border-top-color: var(--royal-blue);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* No Results Message */
+.no-results-message {
+  text-align: center;
+  padding: var(--spacing-3xl);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  max-width: 700px;
+  margin: var(--spacing-2xl) auto;
+}
+
+.no-results-message svg {
+  color: var(--gray);
+  margin-bottom: var(--spacing-lg);
+}
+
+.no-results-message h3 {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.no-results-message p {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+  font-size: 1rem;
+}
+
+.active-filters-info {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-lg) 0;
+  text-align: left;
+}
+
+.active-filters-info p {
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+}
+
+.active-filters-info ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0;
+}
+
+.active-filters-info li {
+  padding: var(--spacing-xs) 0;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.active-filters-info li::before {
+  content: "•";
+  color: var(--royal-blue);
+  font-weight: bold;
+  margin-right: var(--spacing-sm);
+}
+
+.suggestion-text {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid #e5e7eb;
+  color: #6b7280 !important;
+  font-style: italic;
+}
+
+.no-results-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.available-cities {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 !important;
+}
+
+.available-cities strong {
+  color: var(--text-primary);
+}
+
+/* Service Description Truncation */
+.service-description {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+  max-height: 4.5em; /* 3 lines at 1.5 line-height */
+  word-wrap: break-word;
+}
+
+/* Pagination accessibility */
+.pagination {
+  margin-top: var(--spacing-2xl);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination button:disabled:hover {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.page-info {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Skip to main content link (for screen readers) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--royal-blue);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .btn, button {
+    border-width: 2px;
+  }
+  
+  .service-card {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .sort-loading-spinner {
+    animation: none;
+    border-top-color: transparent;
+  }
+}
+
+/* Browser Autofill Styling */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  background-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Input validation styling */
+input:invalid:not(:placeholder-shown) {
+  border-color: #ef4444;
+}
+
+input:valid:not(:placeholder-shown) {
+  border-color: #10b981;
+}
+
+/* Price range validation */
+.price-inputs input:invalid {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+/* Validation error messages */
+.validation-error {
+  display: block;
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #fef2f2;
+  border-radius: 4px;
+  border-left: 3px solid #ef4444;
+}
+
+.search-inputs .validation-error {
+  grid-column: 3;
+  margin-top: -0.5rem;
+}
+
+.filter-group .validation-error {
+  margin-top: 0.5rem;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: #ef4444;
+  background-color: #fef2f2;
 }
 

@@ -151,3 +151,10 @@ backend/BUILD_OPTIMIZATION.md
 CLEANUP_REPORT.md
 FINAL_CLEANUP_REPORT.md
 ISSUES_FIXED_SUMMARY.md
+testsprite testing prompt
+TESTSPRITE_TESTING_GUIDE.md
+TESTSPRITE_SUMMARY.md
+scripts/testsprite_comprehensive_results_20251023_005701.json
+scripts/testsprite_bugs_20251023_005701.json
+scripts/testsprite_results_20251023_005002.json
+BUG_FIXES_APPLIED.md

@@ -1,11 +1,11 @@
 package com.bookkaro.dto;
 
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Data
 public class CreateBookingRequest {
@@ -17,8 +17,8 @@ public class CreateBookingRequest {
     @Future(message = "Booking date must be in the future")
     private LocalDate bookingDate;
     
-    @NotNull(message = "Booking time is required")
-    private LocalTime bookingTime;
+    @NotBlank(message = "Booking time is required")
+    private String bookingTime;
     
     private String notes;
 }

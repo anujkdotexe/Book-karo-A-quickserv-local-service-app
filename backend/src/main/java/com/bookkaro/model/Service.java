@@ -93,6 +93,12 @@ public class Service {
     @Builder.Default
     private Integer totalReviews = 0;
 
+    @Column(name = "available_from_time")
+    private java.time.LocalTime availableFromTime;
+
+    @Column(name = "available_to_time")
+    private java.time.LocalTime availableToTime;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

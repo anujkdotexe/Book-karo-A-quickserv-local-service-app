@@ -402,11 +402,11 @@ const Addresses = () => {
 
                 <div className="address-details">
                   <p className="address-line">
-                    {address.addressLine1}
+                    {address.addressLine1 || 'Address not specified'}
                     {address.addressLine2 && `, ${address.addressLine2}`}
                   </p>
                   <p className="address-line">
-                    {address.city}, {address.state} - {address.postalCode}
+                    {address.city || 'City'}, {address.state || 'State'} - {address.postalCode || 'PIN'}
                   </p>
                   {address.landmark && (
                     <p className="address-landmark">

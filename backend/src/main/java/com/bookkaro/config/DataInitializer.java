@@ -18,6 +18,29 @@ public class DataInitializer {
     @Order(1)
     CommandLineRunner initDatabase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
+            logger.info("======================================");
+            logger.info("RESETTING TEST ACCOUNT PASSWORDS");
+            logger.info("======================================");
+            
+            // Force reset passwords for test accounts
+            userRepository.findByEmail("user@bookkaro.com").ifPresent(user -> {
+                user.setPassword(passwordEncoder.encode("password123"));
+                userRepository.save(user);
+                logger.info("Reset password: user@bookkaro.com → password123");
+            });
+            
+            userRepository.findByEmail("vendor@bookkaro.com").ifPresent(user -> {
+                user.setPassword(passwordEncoder.encode("password123"));
+                userRepository.save(user);
+                logger.info("Reset password: vendor@bookkaro.com → password123");
+            });
+            
+            userRepository.findByEmail("admin@bookkaro.com").ifPresent(user -> {
+                user.setPassword(passwordEncoder.encode("admin123"));
+                userRepository.save(user);
+                logger.info("Reset password: admin@bookkaro.com → admin123");
+            });
+            
             boolean needsInitialization = false;
             
             if (userRepository.findByEmail("user@bookkaro.com").isEmpty()) {

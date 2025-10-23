@@ -21,7 +21,7 @@ public class RegisterRequest {
     private String lastName;
 
     @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
+    @Pattern(regexp = "^\\+?[0-9]{10,13}$", message = "Phone number must be 10-13 digits (optional + prefix)")
     private String phone;
 
     private String address;

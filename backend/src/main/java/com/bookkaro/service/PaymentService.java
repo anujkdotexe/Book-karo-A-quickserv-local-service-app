@@ -33,6 +33,9 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse processPayment(PaymentRequest request, User user) {
+        // Validate payment method-specific requirements
+        validatePaymentMethodRequirements(request);
+        
         // Validate booking
         Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
@@ -219,6 +222,56 @@ public class PaymentService {
         }
         
         return details;
+    }
+
+    private void validatePaymentMethodRequirements(PaymentRequest request) {
+        switch (request.getMethod()) {
+            case UPI:
+                if (request.getUpiId() == null || request.getUpiId().trim().isEmpty()) {
+                    throw new RuntimeException("UPI ID is required for UPI payment");
+                }
+                break;
+            case CREDIT_CARD:
+            case DEBIT_CARD:
+                if (request.getCardNumber() == null || request.getCardNumber().trim().isEmpty()) {
+                    throw new RuntimeException("Card number is required for card payment");
+                }
+                if (request.getCardHolderName() == null || request.getCardHolderName().trim().isEmpty()) {
+                    throw new RuntimeException("Card holder name is required for card payment");
+                }
+                if (request.getExpiryMonth() == null || request.getExpiryMonth().trim().isEmpty()) {
+                    throw new RuntimeException("Expiry month is required for card payment");
+                }
+                if (request.getExpiryYear() == null || request.getExpiryYear().trim().isEmpty()) {
+                    throw new RuntimeException("Expiry year is required for card payment");
+                }
+                if (request.getCvv() == null || request.getCvv().trim().isEmpty()) {
+                    throw new RuntimeException("CVV is required for card payment");
+                }
+                // Validate card expiry date
+                try {
+                    int month = Integer.parseInt(request.getExpiryMonth());
+                    int year = Integer.parseInt(request.getExpiryYear());
+                    int currentYear = java.time.Year.now().getValue();
+                    int currentMonth = java.time.LocalDate.now().getMonthValue();
+                    
+                    if (year < currentYear || (year == currentYear && month < currentMonth)) {
+                        throw new RuntimeException("Card has expired");
+                    }
+                } catch (NumberFormatException e) {
+                    throw new RuntimeException("Invalid expiry date format");
+                }
+                break;
+            case NET_BANKING:
+                if (request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
+                    throw new RuntimeException("Bank code is required for net banking payment");
+                }
+                break;
+            case WALLET:
+            case CASH_ON_DELIVERY:
+                // No additional validation needed
+                break;
+        }
     }
 
     private PaymentResponse convertToResponse(Payment payment, String customMessage) {

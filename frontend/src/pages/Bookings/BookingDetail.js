@@ -190,19 +190,21 @@ const BookingDetail = () => {
                 <div className="info-grid">
                   <div className="info-item">
                     <span className="info-label">Service Name:</span>
-                    <span className="info-value">{booking.serviceName}</span>
+                    <span className="info-value">{booking.serviceName || 'N/A'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Category:</span>
-                    <span className="info-value">{booking.category}</span>
+                    <span className="info-value">{booking.category || 'N/A'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Service Provider:</span>
-                    <span className="info-value">{booking.vendorName}</span>
+                    <span className="info-value">{booking.vendorName || 'N/A'}</span>
                   </div>
                   <div className="info-item">
                     <span className="info-label">Price:</span>
-                    <span className="info-value">₹{booking.price}</span>
+                    <span className="info-value">
+                      ₹{booking.price != null ? parseFloat(booking.price).toFixed(2) : '0.00'}
+                    </span>
                   </div>
                 </div>
               </section>

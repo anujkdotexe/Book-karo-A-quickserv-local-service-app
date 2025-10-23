@@ -33,6 +33,7 @@ export const ModalProvider = ({ children }) => {
       onConfirm: options.onConfirm,
       confirmText: options.confirmText || 'OK',
       showCancel: false,
+      autoDismiss: options.autoDismiss !== false ? 3000 : false, // Auto-dismiss after 3s by default
     });
   }, [showModal]);
 
@@ -44,6 +45,7 @@ export const ModalProvider = ({ children }) => {
       onConfirm: options.onConfirm,
       confirmText: options.confirmText || 'OK',
       showCancel: false,
+      autoDismiss: false, // Errors don't auto-dismiss
     });
   }, [showModal]);
 
@@ -55,6 +57,7 @@ export const ModalProvider = ({ children }) => {
       onConfirm: options.onConfirm,
       confirmText: options.confirmText || 'OK',
       showCancel: false,
+      autoDismiss: options.autoDismiss !== false ? 4000 : false, // Auto-dismiss after 4s
     });
   }, [showModal]);
 
@@ -104,8 +107,20 @@ const ModalDialog = ({
   confirmText = 'OK',
   cancelText = 'Cancel',
   showCancel = false,
+  autoDismiss,
   onClose,
 }) => {
+  // Auto-dismiss effect
+  React.useEffect(() => {
+    if (autoDismiss && typeof autoDismiss === 'number') {
+      const timer = setTimeout(() => {
+        onClose();
+      }, autoDismiss);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoDismiss, onClose]);
+
   const handleConfirm = () => {
     if (onConfirm) {
       onConfirm();

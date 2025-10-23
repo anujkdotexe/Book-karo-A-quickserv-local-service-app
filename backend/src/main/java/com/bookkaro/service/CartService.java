@@ -43,7 +43,7 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
         
         // Check if item already exists in cart
-        CartItem cartItem = cartItemRepository.findByUserAndServiceId(user, service.getId())
+        CartItem cartItem = cartItemRepository.findByUserAndService_Id(user, service.getId())
                 .orElse(null);
         
         if (cartItem != null) {

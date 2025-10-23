@@ -17,6 +17,17 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
+  // Listen for logout events to clear cart
+  useEffect(() => {
+    const handleLogout = () => {
+      setCartItems([]);
+      localStorage.removeItem('cart');
+    };
+
+    window.addEventListener('user-logout', handleLogout);
+    return () => window.removeEventListener('user-logout', handleLogout);
+  }, []);
+
   // Load cart from backend on mount (if authenticated)
   useEffect(() => {
     if (token) {

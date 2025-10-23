@@ -59,7 +59,7 @@ const ServiceDetail = () => {
     }
     try {
       const response = await favoriteAPI.checkFavorite(id);
-      setIsFavorite(response.data.data);
+      setIsFavorite(response.data.data === true);
     } catch (err) {
       // Not favorite or error occurred
       setIsFavorite(false);
@@ -110,10 +110,18 @@ const ServiceDetail = () => {
   }, [id]);
 
   useEffect(() => {
+    // Reset favorite status when service changes
+    setIsFavorite(false);
+    
     fetchServiceDetails();
     fetchReviews();
     checkFavoriteStatus();
-  }, [fetchServiceDetails, fetchReviews, checkFavoriteStatus]);
+    
+    // Cleanup on unmount
+    return () => {
+      setIsFavorite(false);
+    };
+  }, [id, fetchServiceDetails, fetchReviews, checkFavoriteStatus]);
 
   const handleBookingChange = (e) => {
     const { name, value } = e.target;
@@ -277,11 +285,13 @@ const ServiceDetail = () => {
 
           <div className="service-rating-section">
             <div className="rating-display">
-              <span className="rating-stars">{service.averageRating || 0} stars</span>
+              <span className="rating-stars">
+                {service.averageRating ? parseFloat(service.averageRating).toFixed(1) : '0.0'} ⭐
+              </span>
               <span className="rating-count">({service.totalReviews || 0} reviews)</span>
             </div>
             <div className="availability-badge">
-              {service.isAvailable ? 'Available' : 'Not Available'}
+              {service.isAvailable ? '✓ Available' : '✗ Not Available'}
             </div>
           </div>
 
@@ -308,12 +318,18 @@ const ServiceDetail = () => {
                     {reviews.map((review) => (
                       <div key={review.id} className="review-card">
                         <div className="review-header">
-                          <div className="review-user">{review.userName}</div>
-                          <div className="review-rating">{review.rating} stars</div>
+                          <div className="review-user">{review.userName || 'Anonymous'}</div>
+                          <div className="review-rating">
+                            {'⭐'.repeat(Math.round(review.rating || 0))} ({review.rating || 0}/5)
+                          </div>
                         </div>
-                        <p className="review-comment">{review.comment}</p>
+                        <p className="review-comment">{review.comment || 'No comment provided'}</p>
                         <div className="review-date">
-                          {new Date(review.createdAt).toLocaleDateString()}
+                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          }) : 'Date not available'}
                         </div>
                       </div>
                     ))}
@@ -326,13 +342,31 @@ const ServiceDetail = () => {
               <div className="vendor-card">
                 <h3>Service Provider</h3>
                 <div className="vendor-info">
-                  <p><strong>Name:</strong> {service.vendor?.firstName} {service.vendor?.lastName}</p>
-                  <p><strong>Business:</strong> {service.vendor?.businessName}</p>
-                  <p><strong>Experience:</strong> {service.vendor?.yearsOfExperience} years</p>
-                  <p><strong>Contact:</strong> {service.vendor?.phone}</p>
+                  {service.vendor?.firstName && service.vendor?.lastName && (
+                    <p><strong>Name:</strong> {service.vendor.firstName} {service.vendor.lastName}</p>
+                  )}
+                  <p><strong>Business:</strong> {service.vendor?.businessName || 'N/A'}</p>
+                  {service.vendor?.location && (
+                    <p><strong>Location:</strong> {service.vendor.location}</p>
+                  )}
+                  {service.vendor?.yearsOfExperience && (
+                    <p><strong>Experience:</strong> {service.vendor.yearsOfExperience} years</p>
+                  )}
+                  {service.vendor?.phone && (
+                    <p><strong>Contact:</strong> {service.vendor.phone}</p>
+                  )}
+                  {service.vendor?.email && (
+                    <p><strong>Email:</strong> {service.vendor.email}</p>
+                  )}
+                  {service.vendor?.availability && (
+                    <p><strong>Availability:</strong> {service.vendor.availability}</p>
+                  )}
                   <div className="vendor-rating">
-                    <span>{service.vendor?.averageRating || 0} stars</span>
+                    <span>{service.vendor?.averageRating || '0.0'} ⭐</span>
                     <span>({service.vendor?.totalReviews || 0} reviews)</span>
+                    {service.vendor?.isVerified && (
+                      <span className="verified-badge" title="Verified Vendor">✓ Verified</span>
+                    )}
                   </div>
                 </div>
               </div>

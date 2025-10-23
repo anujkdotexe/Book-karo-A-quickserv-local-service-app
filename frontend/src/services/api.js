@@ -26,9 +26,17 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Session expired - show user-friendly message
+      // Session expired or unauthorized - clear all user data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('cart');
+      
+      // Dispatch logout event for other contexts
+      try {
+        window.dispatchEvent(new CustomEvent('user-logout'));
+      } catch (e) {
+        // Ignore if event dispatch fails
+      }
       
       // Try to show toast notification if available
       try {

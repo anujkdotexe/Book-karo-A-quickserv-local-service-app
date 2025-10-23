@@ -98,8 +98,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear all auth-related data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // Clear cart data (prevent data leakage between accounts)
+    localStorage.removeItem('cart');
+    
+    // Clear service filters (optional, but good for privacy)
+    localStorage.removeItem('serviceFilters');
+    localStorage.removeItem('serviceSort');
+    
+    // Dispatch custom event for other contexts to listen to
+    window.dispatchEvent(new CustomEvent('user-logout'));
+    
     setToken(null);
     setUser(null);
   };
