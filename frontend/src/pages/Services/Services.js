@@ -276,7 +276,7 @@ const Services = () => {
     // Sanitize text inputs (including city)
     if (name === 'location') {
       // Allow only letters, numbers, spaces, commas, and hyphens for location
-      sanitizedValue = value.replace(/[^a-zA-Z0-9\s,\-]/g, '');
+      sanitizedValue = value.replace(/[^a-zA-Z0-9\s]/g, '');
       // Limit location length
       if (sanitizedValue.length > 100) {
         sanitizedValue = sanitizedValue.substring(0, 100);

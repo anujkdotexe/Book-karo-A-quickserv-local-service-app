@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useModal } from '../../components/Modal/Modal';
 import './VendorBookings.css';
 
 const VendorBookings = () => {
@@ -8,6 +9,7 @@ const VendorBookings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('ALL');
+  const modal = useModal();
 
   useEffect(() => {
     loadBookings();
@@ -21,7 +23,7 @@ const VendorBookings = () => {
       setBookings(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load bookings');
+      modal.error(err.response?.data?.message || 'Failed to load bookings');
       setBookings([]);
     } finally {
       setLoading(false);
@@ -29,12 +31,33 @@ const VendorBookings = () => {
   };
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
-    try {
-      await vendorAPI.updateBookingStatus(bookingId, newStatus);
-      loadBookings();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update booking status');
-    }
+    const statusActions = {
+      'CONFIRMED': { action: 'accept', color: 'success' },
+      'CANCELLED': { action: 'reject', color: 'danger' },
+      'COMPLETED': { action: 'complete', color: 'primary' }
+    };
+    
+    const { action } = statusActions[newStatus] || {};
+    
+    modal.confirm(
+      `Are you sure you want to ${action} this booking?`,
+      {
+        title: 'Confirm Status Change',
+        confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+        onConfirm: async () => {
+          try {
+            setLoading(true);
+            await vendorAPI.updateBookingStatus(bookingId, newStatus);
+            modal.success('Booking status updated successfully');
+            await loadBookings();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to update booking status');
+          } finally {
+            setLoading(false);
+          }
+        }
+      }
+    );
   };
 
   const getStatusColor = (status) => {

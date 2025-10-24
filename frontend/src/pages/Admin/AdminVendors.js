@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminAPI } from '../../services/adminAPI';
+import { useModal } from '../../components/Modal/Modal';
 import './AdminVendors.css';
 
 const AdminVendors = () => {
@@ -10,6 +11,7 @@ const AdminVendors = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
+  const modal = useModal();
 
   const loadVendors = useCallback(async () => {
     try {
@@ -19,12 +21,12 @@ const AdminVendors = () => {
       setTotalPages(data.totalPages || 0);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load vendors');
+      modal.error(err.response?.data?.message || 'Failed to load vendors');
       setVendors([]);
     } finally {
       setLoading(false);
     }
-  }, [currentPage]);
+  }, [currentPage, modal]);
 
   const loadPendingVendors = useCallback(async () => {
     try {
@@ -33,12 +35,12 @@ const AdminVendors = () => {
       setPendingVendors(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load pending vendors');
+      modal.error(err.response?.data?.message || 'Failed to load pending vendors');
       setPendingVendors([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [modal]);
 
   useEffect(() => {
     if (activeTab === 'pending') {
@@ -49,44 +51,74 @@ const AdminVendors = () => {
   }, [activeTab, currentPage, loadVendors, loadPendingVendors]);
 
   const handleApprove = async (vendorId) => {
-    try {
-      await adminAPI.approveVendor(vendorId);
-      if (activeTab === 'pending') {
-        loadPendingVendors();
-      } else {
-        loadVendors();
+    modal.confirm(
+      'Are you sure you want to approve this vendor?',
+      {
+        title: 'Approve Vendor',
+        confirmText: 'Approve',
+        onConfirm: async () => {
+          try {
+            await adminAPI.approveVendor(vendorId);
+            modal.success('Vendor approved successfully');
+            if (activeTab === 'pending') {
+              loadPendingVendors();
+            } else {
+              loadVendors();
+            }
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to approve vendor');
+          }
+        }
       }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to approve vendor');
-    }
+    );
   };
 
   const handleReject = async (vendorId) => {
     const reason = window.prompt('Please provide a reason for rejection:');
     if (!reason) return;
     
-    try {
-      await adminAPI.rejectVendor(vendorId, reason);
-      if (activeTab === 'pending') {
-        loadPendingVendors();
-      } else {
-        loadVendors();
+    modal.confirm(
+      `Are you sure you want to reject this vendor?\n\nReason: ${reason}`,
+      {
+        title: 'Reject Vendor',
+        confirmText: 'Reject',
+        onConfirm: async () => {
+          try {
+            await adminAPI.rejectVendor(vendorId, reason);
+            modal.success('Vendor rejected successfully');
+            if (activeTab === 'pending') {
+              loadPendingVendors();
+            } else {
+              loadVendors();
+            }
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to reject vendor');
+          }
+        }
       }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to reject vendor');
-    }
+    );
   };
 
   const handleSuspend = async (vendorId) => {
     const reason = window.prompt('Please provide a reason for suspension:');
     if (!reason) return;
     
-    try {
-      await adminAPI.suspendVendor(vendorId, reason);
-      loadVendors();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to suspend vendor');
-    }
+    modal.confirm(
+      `Are you sure you want to suspend this vendor?\n\nReason: ${reason}`,
+      {
+        title: 'Suspend Vendor',
+        confirmText: 'Suspend',
+        onConfirm: async () => {
+          try {
+            await adminAPI.suspendVendor(vendorId, reason);
+            modal.success('Vendor suspended successfully');
+            loadVendors();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to suspend vendor');
+          }
+        }
+      }
+    );
   };
 
   const displayVendors = activeTab === 'pending' ? pendingVendors : vendors;

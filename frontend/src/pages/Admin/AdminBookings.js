@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/adminAPI';
 import { useToast } from '../../components/Toast/Toast';
+import { useModal } from '../../components/Modal/Modal';
 import '../Vendor/VendorBookings.css';
 
 const AdminBookings = () => {
   const toast = useToast();
+  const modal = useModal();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -31,27 +33,43 @@ const AdminBookings = () => {
 
   const handleCancelBooking = async (bookingId) => {
     const reason = prompt('Enter cancellation reason (optional):');
-    if (reason === null) return; // User cancelled the prompt
+    if (reason === null) return;
     
-    try {
-      await adminAPI.cancelBooking(bookingId, reason);
-      toast.success('Booking cancelled successfully');
-      loadBookings();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to cancel booking');
-    }
+    modal.confirm(
+      `Are you sure you want to cancel this booking?${reason ? '\n\nReason: ' + reason : ''}`,
+      {
+        title: 'Cancel Booking',
+        confirmText: 'Cancel Booking',
+        onConfirm: async () => {
+          try {
+            await adminAPI.cancelBooking(bookingId, reason);
+            modal.success('Booking cancelled successfully');
+            loadBookings();
+          } catch (error) {
+            modal.error(error.response?.data?.message || 'Failed to cancel booking');
+          }
+        }
+      }
+    );
   };
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
-    if (!window.confirm(`Change booking status to ${newStatus}?`)) return;
-    
-    try {
-      await adminAPI.updateBookingStatus(bookingId, newStatus);
-      toast.success('Booking status updated successfully');
-      loadBookings();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update status');
-    }
+    modal.confirm(
+      `Are you sure you want to change the booking status to ${newStatus}?`,
+      {
+        title: 'Update Booking Status',
+        confirmText: 'Update Status',
+        onConfirm: async () => {
+          try {
+            await adminAPI.updateBookingStatus(bookingId, newStatus);
+            modal.success('Booking status updated successfully');
+            loadBookings();
+          } catch (error) {
+            modal.error(error.response?.data?.message || 'Failed to update status');
+          }
+        }
+      }
+    );
   };
 
   const getStatusColor = (status) => {

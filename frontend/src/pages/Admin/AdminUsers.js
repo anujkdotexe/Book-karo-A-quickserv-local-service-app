@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/adminAPI';
+import { useModal } from '../../components/Modal/Modal';
 import './AdminUsers.css';
 
 const AdminUsers = () => {
@@ -9,6 +10,7 @@ const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const modal = useModal();
 
   useEffect(() => {
     loadUsers();
@@ -22,7 +24,7 @@ const AdminUsers = () => {
       setTotalPages(data.totalPages);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load users');
+      modal.error(err.response?.data?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -40,39 +42,70 @@ const AdminUsers = () => {
       setUsers(data);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Search failed');
+      modal.error(err.response?.data?.message || 'Search failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleRoleChange = async (userId, newRole) => {
-    try {
-      await adminAPI.updateUserRole(userId, newRole);
-      loadUsers();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update role');
-    }
+    modal.confirm(
+      `Are you sure you want to change this user's role to ${newRole}?`,
+      {
+        title: 'Change User Role',
+        confirmText: 'Change Role',
+        onConfirm: async () => {
+          try {
+            await adminAPI.updateUserRole(userId, newRole);
+            modal.success('User role updated successfully');
+            loadUsers();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to update role');
+          }
+        }
+      }
+    );
   };
 
   const handleToggleStatus = async (userId) => {
-    try {
-      await adminAPI.toggleUserStatus(userId);
-      loadUsers();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to toggle status');
-    }
+    const user = users.find(u => u.id === userId);
+    const newStatus = !user?.enabled;
+    
+    modal.confirm(
+      `Are you sure you want to ${newStatus ? 'activate' : 'suspend'} this user?`,
+      {
+        title: 'Toggle User Status',
+        confirmText: newStatus ? 'Activate' : 'Suspend',
+        onConfirm: async () => {
+          try {
+            await adminAPI.toggleUserStatus(userId);
+            modal.success(`User ${newStatus ? 'activated' : 'suspended'} successfully`);
+            loadUsers();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to toggle status');
+          }
+        }
+      }
+    );
   };
 
   const handleDelete = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      try {
-        await adminAPI.deleteUser(userId);
-        loadUsers();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Failed to delete user');
+    modal.confirm(
+      'Are you sure you want to delete this user? This action cannot be undone.',
+      {
+        title: 'Delete User',
+        confirmText: 'Delete',
+        onConfirm: async () => {
+          try {
+            await adminAPI.deleteUser(userId);
+            modal.success('User deleted successfully');
+            loadUsers();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to delete user');
+          }
+        }
       }
-    }
+    );
   };
 
   if (loading && users.length === 0) {

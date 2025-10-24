@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/adminAPI';
+import { useModal } from '../../components/Modal/Modal';
 import './AdminServices.css';
 
 const AdminServices = () => {
@@ -10,6 +11,7 @@ const AdminServices = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
+  const modal = useModal();
 
   useEffect(() => {
     if (activeTab === 'pending') {
@@ -27,7 +29,7 @@ const AdminServices = () => {
       setTotalPages(data.totalPages || 0);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load services');
+      modal.error(err.response?.data?.message || 'Failed to load services');
       setServices([]);
     } finally {
       setLoading(false);
@@ -41,7 +43,7 @@ const AdminServices = () => {
       setPendingServices(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load pending services');
+      modal.error(err.response?.data?.message || 'Failed to load pending services');
       setPendingServices([]);
     } finally {
       setLoading(false);
@@ -49,52 +51,93 @@ const AdminServices = () => {
   };
 
   const handleApprove = async (serviceId) => {
-    try {
-      await adminAPI.approveService(serviceId);
-      if (activeTab === 'pending') {
-        loadPendingServices();
-      } else {
-        loadServices();
+    modal.confirm(
+      'Are you sure you want to approve this service?',
+      {
+        title: 'Approve Service',
+        confirmText: 'Approve',
+        onConfirm: async () => {
+          try {
+            await adminAPI.approveService(serviceId);
+            modal.success('Service approved successfully');
+            if (activeTab === 'pending') {
+              loadPendingServices();
+            } else {
+              loadServices();
+            }
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to approve service');
+          }
+        }
       }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to approve service');
-    }
+    );
   };
 
   const handleReject = async (serviceId) => {
     const reason = window.prompt('Please provide a reason for rejection:');
     if (!reason) return;
     
-    try {
-      await adminAPI.rejectService(serviceId, reason);
-      if (activeTab === 'pending') {
-        loadPendingServices();
-      } else {
-        loadServices();
+    modal.confirm(
+      `Are you sure you want to reject this service?\n\nReason: ${reason}`,
+      {
+        title: 'Reject Service',
+        confirmText: 'Reject',
+        onConfirm: async () => {
+          try {
+            await adminAPI.rejectService(serviceId, reason);
+            modal.success('Service rejected successfully');
+            if (activeTab === 'pending') {
+              loadPendingServices();
+            } else {
+              loadServices();
+            }
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to reject service');
+          }
+        }
       }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to reject service');
-    }
+    );
   };
 
   const handleToggleFeatured = async (serviceId) => {
-    try {
-      await adminAPI.toggleServiceFeatured(serviceId);
-      loadServices();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to toggle featured status');
-    }
+    const service = services.find(s => s.id === serviceId);
+    const newFeatured = !service?.featured;
+    
+    modal.confirm(
+      `Are you sure you want to ${newFeatured ? 'feature' : 'unfeature'} this service?`,
+      {
+        title: 'Toggle Featured Status',
+        confirmText: newFeatured ? 'Feature' : 'Unfeature',
+        onConfirm: async () => {
+          try {
+            await adminAPI.toggleServiceFeatured(serviceId);
+            modal.success(`Service ${newFeatured ? 'featured' : 'unfeatured'} successfully`);
+            loadServices();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to toggle featured status');
+          }
+        }
+      }
+    );
   };
 
   const handleDelete = async (serviceId) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
-      try {
-        await adminAPI.deleteService(serviceId);
-        loadServices();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Failed to delete service');
+    modal.confirm(
+      'Are you sure you want to delete this service? This action cannot be undone.',
+      {
+        title: 'Delete Service',
+        confirmText: 'Delete',
+        onConfirm: async () => {
+          try {
+            await adminAPI.deleteService(serviceId);
+            modal.success('Service deleted successfully');
+            loadServices();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to delete service');
+          }
+        }
       }
-    }
+    );
   };
 
   const displayServices = activeTab === 'pending' ? pendingServices : services;

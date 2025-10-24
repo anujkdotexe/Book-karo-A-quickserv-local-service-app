@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Vendor Controller - Vendor-specific operations
@@ -56,9 +57,14 @@ public class VendorController {
     @PutMapping("/bookings/{id}/status")
     public ResponseEntity<ApiResponse<BookingDto>> updateBookingStatus(
             @PathVariable Long id,
-            @RequestParam String status,
+            @RequestBody Map<String, String> request,
             Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String status = request.get("status");
+        if (status == null || status.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Status is required"));
+        }
         BookingDto booking = vendorService.updateBookingStatus(userDetails.getId(), id, status);
         return ResponseEntity.ok(ApiResponse.success("Booking status updated successfully", booking));
     }

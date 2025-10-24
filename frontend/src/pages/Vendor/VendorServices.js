@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useModal } from '../../components/Modal/Modal';
 import './VendorServices.css';
 
 const VendorServices = () => {
@@ -17,6 +18,7 @@ const VendorServices = () => {
     durationMinutes: '',
     isAvailable: true
   });
+  const modal = useModal();
 
   useEffect(() => {
     loadServices();
@@ -29,7 +31,7 @@ const VendorServices = () => {
       setServices(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load services');
+      modal.error(err.response?.data?.message || 'Failed to load services');
       setServices([]);
     } finally {
       setLoading(false);
@@ -71,34 +73,57 @@ const VendorServices = () => {
     try {
       if (editingService) {
         await vendorAPI.updateService(editingService.id, formData);
+        modal.success('Service updated successfully');
       } else {
         await vendorAPI.createService(formData);
+        modal.success('Service created successfully');
       }
       handleCloseModal();
       loadServices();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save service');
+      modal.error(err.response?.data?.message || 'Failed to save service');
     }
   };
 
   const handleToggleAvailability = async (serviceId) => {
-    try {
-      await vendorAPI.toggleServiceAvailability(serviceId);
-      loadServices();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to toggle service');
-    }
+    const service = services.find(s => s.id === serviceId);
+    const newStatus = !service?.isAvailable;
+    
+    modal.confirm(
+      `Are you sure you want to ${newStatus ? 'enable' : 'disable'} this service?`,
+      {
+        title: 'Toggle Service Availability',
+        confirmText: newStatus ? 'Enable' : 'Disable',
+        onConfirm: async () => {
+          try {
+            await vendorAPI.toggleServiceAvailability(serviceId);
+            modal.success(`Service ${newStatus ? 'enabled' : 'disabled'} successfully`);
+            loadServices();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to toggle service');
+          }
+        }
+      }
+    );
   };
 
   const handleDelete = async (serviceId) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
-      try {
-        await vendorAPI.deleteService(serviceId);
-        loadServices();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Failed to delete service');
+    modal.confirm(
+      'Are you sure you want to delete this service? This action cannot be undone.',
+      {
+        title: 'Delete Service',
+        confirmText: 'Delete',
+        onConfirm: async () => {
+          try {
+            await vendorAPI.deleteService(serviceId);
+            modal.success('Service deleted successfully');
+            loadServices();
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to delete service');
+          }
+        }
       }
-    }
+    );
   };
 
   if (loading) {
