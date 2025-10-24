@@ -14,12 +14,14 @@ const Addresses = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     addressType: 'HOME',
-    addressLine1: '',
-    addressLine2: '',
+    houseNumber: '',
+    buildingName: '',
+    street: '',
+    area: '',
+    landmark: '',
     city: '',
     state: '',
     postalCode: '',
-    landmark: '',
     isDefault: false,
   });
 
@@ -52,11 +54,25 @@ const Addresses = () => {
   const validateForm = () => {
     const errors = {};
     
-    // AddressLine1 validation
-    if (!formData.addressLine1 || formData.addressLine1.trim().length === 0) {
-      errors.addressLine1 = 'Address line 1 is required';
-    } else if (formData.addressLine1.trim().length < 10) {
-      errors.addressLine1 = 'Address must be at least 10 characters';
+    // House Number validation
+    if (!formData.houseNumber || formData.houseNumber.trim().length === 0) {
+      errors.houseNumber = 'House/Flat number is required';
+    } else if (formData.houseNumber.trim().length < 1) {
+      errors.houseNumber = 'House number must be at least 1 character';
+    }
+    
+    // Building Name validation
+    if (!formData.buildingName || formData.buildingName.trim().length === 0) {
+      errors.buildingName = 'Building/Society name is required';
+    } else if (formData.buildingName.trim().length < 3) {
+      errors.buildingName = 'Building name must be at least 3 characters';
+    }
+    
+    // Area validation
+    if (!formData.area || formData.area.trim().length === 0) {
+      errors.area = 'Area/Locality is required';
+    } else if (formData.area.trim().length < 3) {
+      errors.area = 'Area must be at least 3 characters';
     }
     
     // City validation
@@ -73,11 +89,11 @@ const Addresses = () => {
       errors.state = 'State name must be at least 2 characters';
     }
     
-    // Postal code validation
+    // Enhanced pincode validation - exactly 6 digits for India
     if (!formData.postalCode || formData.postalCode.trim().length === 0) {
-      errors.postalCode = 'Postal code is required';
-    } else if (!/^\d{5,6}$/.test(formData.postalCode)) {
-      errors.postalCode = 'Postal code must be 5-6 digits';
+      errors.postalCode = 'Pincode is required';
+    } else if (!/^\d{6}$/.test(formData.postalCode)) {
+      errors.postalCode = 'Pincode must be exactly 6 digits';
     }
     
     setFieldErrors(errors);
@@ -118,14 +134,17 @@ const Addresses = () => {
 
   const handleEdit = (address) => {
     setEditingAddress(address);
+    // Map old structure to new if needed, or use new structure directly
     setFormData({
       addressType: address.addressType,
-      addressLine1: address.addressLine1,
-      addressLine2: address.addressLine2 || '',
+      houseNumber: address.houseNumber || address.addressLine1?.split(',')[0] || '',
+      buildingName: address.buildingName || '',
+      street: address.street || address.addressLine2 || '',
+      area: address.area || '',
+      landmark: address.landmark || '',
       city: address.city,
       state: address.state,
       postalCode: address.postalCode,
-      landmark: address.landmark || '',
       isDefault: address.isDefault,
     });
     setShowForm(true);
@@ -165,12 +184,14 @@ const Addresses = () => {
   const resetForm = () => {
     setFormData({
       addressType: 'HOME',
-      addressLine1: '',
-      addressLine2: '',
+      houseNumber: '',
+      buildingName: '',
+      street: '',
+      area: '',
+      landmark: '',
       city: '',
       state: '',
       postalCode: '',
-      landmark: '',
       isDefault: false,
     });
   };
@@ -221,33 +242,83 @@ const Addresses = () => {
               </div>
 
               <div className="form-group">
-                <label>Address Line 1 *</label>
+                <label>House/Flat Number *</label>
                 <input
                   type="text"
-                  name="addressLine1"
-                  value={formData.addressLine1}
+                  name="houseNumber"
+                  value={formData.houseNumber}
                   onChange={handleInputChange}
-                  placeholder="House/Flat No., Building Name"
+                  placeholder="A-101, House #45"
                   required
-                  aria-invalid={!!fieldErrors.addressLine1}
-                  aria-describedby={fieldErrors.addressLine1 ? 'addressLine1-error' : undefined}
+                  aria-invalid={!!fieldErrors.houseNumber}
+                  aria-describedby={fieldErrors.houseNumber ? 'houseNumber-error' : undefined}
                 />
-                {fieldErrors.addressLine1 && (
-                  <span className="field-error" id="addressLine1-error" role="alert">
-                    {fieldErrors.addressLine1}
+                {fieldErrors.houseNumber && (
+                  <span className="field-error" id="houseNumber-error" role="alert">
+                    {fieldErrors.houseNumber}
                   </span>
                 )}
               </div>
 
               <div className="form-group">
-                <label>Address Line 2</label>
+                <label>Building/Society Name *</label>
                 <input
                   type="text"
-                  name="addressLine2"
-                  value={formData.addressLine2}
+                  name="buildingName"
+                  value={formData.buildingName}
                   onChange={handleInputChange}
-                  placeholder="Street, Area"
+                  placeholder="Sunshine Apartments, Green Villa"
+                  required
+                  aria-invalid={!!fieldErrors.buildingName}
+                  aria-describedby={fieldErrors.buildingName ? 'buildingName-error' : undefined}
                 />
+                {fieldErrors.buildingName && (
+                  <span className="field-error" id="buildingName-error" role="alert">
+                    {fieldErrors.buildingName}
+                  </span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Street/Road Name</label>
+                <input
+                  type="text"
+                  name="street"
+                  value={formData.street}
+                  onChange={handleInputChange}
+                  placeholder="MG Road, Park Street"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Area/Locality *</label>
+                <input
+                  type="text"
+                  name="area"
+                  value={formData.area}
+                  onChange={handleInputChange}
+                  placeholder="Andheri West, Koramangala"
+                  required
+                  aria-invalid={!!fieldErrors.area}
+                  aria-describedby={fieldErrors.area ? 'area-error' : undefined}
+                />
+                {fieldErrors.area && (
+                  <span className="field-error" id="area-error" role="alert">
+                    {fieldErrors.area}
+                  </span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Landmark</label>
+                <input
+                  type="text"
+                  name="landmark"
+                  value={formData.landmark}
+                  onChange={handleInputChange}
+                  placeholder="Near Metro Station, Opposite Mall"
+                />
+                <small style={{ color: '#666', fontSize: '0.85rem' }}>Optional but helps delivery</small>
               </div>
 
               <div className="form-row">
@@ -258,6 +329,7 @@ const Addresses = () => {
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
+                    placeholder="Mumbai"
                     required
                     aria-invalid={!!fieldErrors.city}
                     aria-describedby={fieldErrors.city ? 'city-error' : undefined}
@@ -276,6 +348,7 @@ const Addresses = () => {
                     name="state"
                     value={formData.state}
                     onChange={handleInputChange}
+                    placeholder="Maharashtra"
                     required
                     aria-invalid={!!fieldErrors.state}
                     aria-describedby={fieldErrors.state ? 'state-error' : undefined}
@@ -288,12 +361,14 @@ const Addresses = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Postal Code *</label>
+                  <label>Pincode *</label>
                   <input
                     type="text"
                     name="postalCode"
                     value={formData.postalCode}
                     onChange={handleInputChange}
+                    placeholder="400001"
+                    maxLength="6"
                     required
                     aria-invalid={!!fieldErrors.postalCode}
                     aria-describedby={fieldErrors.postalCode ? 'postalCode-error' : undefined}
@@ -402,15 +477,25 @@ const Addresses = () => {
 
                 <div className="address-details">
                   <p className="address-line">
-                    {address.addressLine1 || 'Address not specified'}
-                    {address.addressLine2 && `, ${address.addressLine2}`}
+                    {address.houseNumber && `${address.houseNumber}, `}
+                    {address.buildingName || address.addressLine1 || 'Building not specified'}
                   </p>
+                  {(address.street || address.addressLine2) && (
+                    <p className="address-line">
+                      {address.street || address.addressLine2}
+                    </p>
+                  )}
                   <p className="address-line">
+                    {address.area && `${address.area}, `}
                     {address.city || 'City'}, {address.state || 'State'} - {address.postalCode || 'PIN'}
                   </p>
                   {address.landmark && (
                     <p className="address-landmark">
-                      Landmark: {address.landmark}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }}>
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                      </svg>
+                      {address.landmark}
                     </p>
                   )}
                 </div>

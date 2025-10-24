@@ -33,6 +33,33 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [profileCompletion, setProfileCompletion] = useState({ percentage: 0, missing: [] });
+
+  // Calculate profile completeness
+  const calculateProfileCompletion = (data) => {
+    const requiredFields = [
+      { key: 'firstName', label: 'First Name' },
+      { key: 'lastName', label: 'Last Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone Number' },
+      { key: 'address', label: 'Address' },
+      { key: 'city', label: 'City' },
+      { key: 'state', label: 'State' },
+      { key: 'postalCode', label: 'Pincode' },
+    ];
+
+    const completed = requiredFields.filter(field => 
+      data[field.key] && data[field.key].toString().trim().length > 0
+    );
+
+    const missing = requiredFields
+      .filter(field => !data[field.key] || data[field.key].toString().trim().length === 0)
+      .map(field => field.label);
+
+    const percentage = Math.round((completed.length / requiredFields.length) * 100);
+
+    return { percentage, missing };
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -55,6 +82,11 @@ const Profile = () => {
       setFormData(profileData);
       setOriginalData(profileData);
       setLastUpdated(userData.updatedAt || userData.createdAt);
+      
+      // Calculate profile completion
+      const completion = calculateProfileCompletion({ ...userData, ...profileData });
+      setProfileCompletion(completion);
+      
       setLoading(false);
     } catch (err) {
       setError('Failed to load profile');
@@ -135,9 +167,9 @@ const Profile = () => {
       errors.state = 'State name must be at least 2 characters';
     }
     
-    // Postal Code validation (if provided)
-    if (formData.postalCode && !/^\d{5,6}$/.test(formData.postalCode.trim())) {
-      errors.postalCode = 'Postal code must be 5-6 digits';
+    // Postal Code validation (India - exactly 6 digits)
+    if (formData.postalCode && !/^\d{6}$/.test(formData.postalCode.trim())) {
+      errors.postalCode = 'Pincode must be exactly 6 digits';
     }
     
     setFieldErrors(errors);
@@ -309,6 +341,24 @@ const Profile = () => {
                 <p className="last-updated">
                   Last updated: {formatLastUpdated(lastUpdated)}
                 </p>
+              )}
+              {profileCompletion.percentage < 100 && (
+                <div className="profile-completion">
+                  <div className="completion-bar">
+                    <div 
+                      className="completion-fill" 
+                      style={{ width: `${profileCompletion.percentage}%` }}
+                    />
+                  </div>
+                  <p className="completion-text">
+                    Profile {profileCompletion.percentage}% complete
+                  </p>
+                  {profileCompletion.missing.length > 0 && (
+                    <p className="missing-fields">
+                      Missing: {profileCompletion.missing.join(', ')}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
             <div className="header-actions">

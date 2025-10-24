@@ -749,6 +749,78 @@ modal.confirm('Are you sure you want to cancel this booking?', {
 
 ---
 
-**Last Updated**: October 22, 2025  
-**Version**: 1.0  
+## Color Theme Reference
+
+### Official Color Palette
+
+#### Primary Colors
+
+| Color Name | Hex Code | RGB | Usage |
+|------------|----------|-----|-------|
+| **Deep Navy Blue** | `#1e3a8a` | rgb(30, 58, 138) | Headers, primary text, navbar background |
+| **Bright Royal Blue** | `#2563eb` | rgb(37, 99, 235) | Primary buttons, CTAs, links, active states |
+| **White** | `#ffffff` | rgb(255, 255, 255) | Modal backgrounds, card backgrounds, text on dark |
+| **Light Gray** | `#f3f4f6` | rgb(243, 244, 246) | Secondary buttons, disabled states, subtle backgrounds |
+
+#### Supporting Colors
+
+| Color Name | Hex Code | RGB | Usage |
+|------------|----------|-----|-------|
+| **Border Gray** | `#e5e7eb` | rgb(229, 231, 235) | Card borders, dividers, input borders |
+| **Text Primary** | `#1f2937` | rgb(31, 41, 55) | Body text, form labels |
+| **Text Secondary** | `#6b7280` | rgb(107, 114, 128) | Supporting text, metadata, timestamps |
+
+#### Semantic Colors
+
+| Color Name | Hex Code | RGB | Usage |
+|------------|----------|-----|-------|
+| **Success Green** | `#10b981` | rgb(16, 185, 129) | Success messages, completed status |
+| **Error Red** | `#ef4444` | rgb(239, 68, 68) | Error messages, cancelled status, destructive actions |
+| **Warning Orange** | `#f59e0b` | rgb(245, 158, 11) | Warning messages, pending status |
+| **Info Blue** | `#3b82f6` | rgb(59, 130, 246) | Information messages, confirmed status |
+
+### CSS Variables Implementation
+
+Add these to your `:root` or global stylesheet:
+
+```css
+:root {
+  /* Brand Colors */
+  --navy-blue: #1e3a8a;
+  --royal-blue: #2563eb;
+  --white: #ffffff;
+  --light-gray: #f3f4f6;
+  
+  /* Supporting Colors */
+  --border-color: #e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  
+  /* Semantic Colors */
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  
+  /* Hover States */
+  --navy-blue-hover: #1e3a8a;
+  --royal-blue-hover: #1d4ed8;
+  --light-gray-hover: #e5e7eb;
+}
+```
+
+### Accessibility - Contrast Ratios
+
+All color combinations meet WCAG 2.1 AA standards:
+
+- **Deep Navy (#1e3a8a) on White (#ffffff)**: 10.45:1 ✓ AAA
+- **Royal Blue (#2563eb) on White (#ffffff)**: 4.86:1 ✓ AA
+- **Text Primary (#1f2937) on White (#ffffff)**: 13.86:1 ✓ AAA
+- **White (#ffffff) on Royal Blue (#2563eb)**: 4.86:1 ✓ AA
+- **White (#ffffff) on Deep Navy (#1e3a8a)**: 10.45:1 ✓ AAA
+
+---
+
+**Last Updated**: October 24, 2025  
+**Version**: 1.1  
 **Maintained by**: BOOK-KARO Design & Development Team

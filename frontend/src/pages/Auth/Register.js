@@ -10,6 +10,7 @@ const Register = () => {
     firstName: '',
     lastName: '',
     phone: '',
+    countryCode: '+91',
     address: '',
     city: '',
     state: '',
@@ -19,19 +20,156 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
+  const [validFields, setValidFields] = useState({});
+  const [emailSuggestions, setEmailSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // Common email domains for autocomplete
+  const commonDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com', 'icloud.com'];
+
+  // Calculate password strength
+  const calculatePasswordStrength = (password) => {
+    if (!password) return { score: 0, label: '', color: '' };
+    
+    let score = 0;
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password),
+    };
+    
+    // Score calculation
+    if (checks.length) score += 20;
+    if (password.length >= 12) score += 10;
+    if (checks.uppercase) score += 20;
+    if (checks.lowercase) score += 20;
+    if (checks.number) score += 15;
+    if (checks.special) score += 15;
+    
+    // Determine strength label and color
+    if (score < 40) return { score, label: 'Weak', color: '#ef4444' };
+    if (score < 60) return { score, label: 'Fair', color: '#f59e0b' };
+    if (score < 80) return { score, label: 'Good', color: '#3b82f6' };
+    return { score, label: 'Strong', color: '#10b981' };
+  };
+
+  // Real-time field validation
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'email':
+        if (!value) return null;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false;
+        const validTLDs = ['com', 'in', 'org', 'net', 'edu', 'gov', 'co.in'];
+        const domain = value.split('@')[1];
+        const tld = domain?.split('.').slice(-2).join('.') || domain?.split('.').pop();
+        return validTLDs.includes(tld);
+      
+      case 'phone':
+        if (!value) return null;
+        const phoneDigits = value.replace(/\D/g, '');
+        if (formData.countryCode === '+91') {
+          return /^[6-9]\d{9}$/.test(phoneDigits);
+        }
+        return phoneDigits.length >= 10;
+      
+      case 'firstName':
+      case 'lastName':
+        return value && value.trim().length >= 2;
+      
+      case 'city':
+      case 'state':
+        if (!value) return null;
+        return value.trim().length >= 2;
+      
+      case 'postalCode':
+        if (!value) return null;
+        return /^\d{6}$/.test(value);
+      
+      default:
+        return null;
+    }
+  };
+
+  // Phone number auto-formatting
+  const formatPhoneNumber = (value, countryCode) => {
+    const digits = value.replace(/\D/g, '');
+    
+    if (countryCode === '+91') {
+      // India: Format as XXXXX-XXXXX
+      if (digits.length <= 5) return digits;
+      return `${digits.slice(0, 5)}-${digits.slice(5, 10)}`;
+    } else if (countryCode === '+1') {
+      // USA: Format as XXX-XXX-XXXX
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+    }
+    
+    return value; // No formatting for other countries
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    let processedValue = value;
+    
+    // Apply phone formatting
+    if (name === 'phone') {
+      processedValue = formatPhoneNumber(value, formData.countryCode);
+    }
+    
+    // Email autocomplete suggestions
+    if (name === 'email') {
+      if (value.includes('@') && !value.includes('.', value.indexOf('@'))) {
+        const [username, partialDomain] = value.split('@');
+        if (partialDomain) {
+          const matches = commonDomains
+            .filter(domain => domain.toLowerCase().startsWith(partialDomain.toLowerCase()))
+            .map(domain => `${username}@${domain}`);
+          setEmailSuggestions(matches);
+          setShowSuggestions(matches.length > 0);
+        } else {
+          setEmailSuggestions(commonDomains.map(domain => `${username}@${domain}`));
+          setShowSuggestions(true);
+        }
+      } else {
+        setShowSuggestions(false);
+      }
+    }
+    
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: processedValue,
     });
     setError('');
+    
     // Clear field error when user starts typing
     setFieldErrors({ ...fieldErrors, [name]: '' });
+    
+    // Real-time validation
+    const isValid = validateField(name, processedValue);
+    if (isValid !== null) {
+      setValidFields({ ...validFields, [name]: isValid });
+    }
+    
+    // Update password strength
+    if (name === 'password') {
+      setPasswordStrength(calculatePasswordStrength(processedValue));
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setFormData({ ...formData, email: suggestion });
+    setShowSuggestions(false);
+    // Trigger validation for the selected email
+    const isValid = validateField('email', suggestion);
+    setValidFields({ ...validFields, email: isValid });
   };
 
   const validateForm = () => {
@@ -51,27 +189,66 @@ const Register = () => {
       errors.lastName = 'Last name must be at least 2 characters';
     }
     
-    // Email validation
+    // Enhanced email validation with typo detection
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'Please enter a valid email address';
+    } else {
+      // Check for valid TLD
+      const validTLDs = ['com', 'in', 'org', 'net', 'edu', 'gov', 'co.in'];
+      const domain = formData.email.split('@')[1];
+      const tld = domain?.split('.').slice(-2).join('.') || domain?.split('.').pop();
+      if (!validTLDs.includes(tld)) {
+        errors.email = 'Please use a valid email domain (e.g., .com, .in, .org)';
+      }
+      
+      // Common typo detection
+      const typos = {
+        'gmial.com': 'gmail.com',
+        'gmai.com': 'gmail.com',
+        'gmil.com': 'gmail.com',
+        'yahooo.com': 'yahoo.com',
+        'yaho.com': 'yahoo.com',
+        'hotmial.com': 'hotmail.com'
+      };
+      if (typos[domain]) {
+        errors.email = `Did you mean ${formData.email.replace(domain, typos[domain])}?`;
+      }
     }
     
-    // Password validation
+    // Enhanced password validation with special character requirement
     if (!formData.password) {
       errors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      errors.password = 'Password must contain uppercase, lowercase, and number';
+    } else if (formData.password.length > 64) {
+      errors.password = 'Password must not exceed 64 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*()_+\-=\[\]{}|;:,.<>?])/.test(formData.password)) {
+      errors.password = 'Password must contain: uppercase, lowercase, number, and special character (@#$%^&*...)';
     }
     
-    // Phone validation
+    // Enhanced phone validation - exactly 10 digits for Indian numbers
     if (!formData.phone) {
       errors.phone = 'Phone number is required';
-    } else if (!/^\+?[1-9]\d{9,14}$/.test(formData.phone.replace(/[\s()-]/g, ''))) {
-      errors.phone = 'Please enter a valid phone number';
+    } else {
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      if (formData.countryCode === '+91') {
+        // India: Exactly 10 digits, starts with 6-9
+        if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+          errors.phone = 'Enter a valid 10-digit mobile number starting with 6-9';
+        }
+      } else if (formData.countryCode === '+1') {
+        // USA: Exactly 10 digits
+        if (!/^\d{10}$/.test(phoneDigits)) {
+          errors.phone = 'Enter a valid 10-digit phone number';
+        }
+      } else {
+        // Other countries: 10-15 digits
+        if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+          errors.phone = 'Phone number must be 10-15 digits';
+        }
+      }
     }
     
     // Address fields are optional but validated if provided
@@ -83,8 +260,17 @@ const Register = () => {
       errors.state = 'State name must be at least 2 characters';
     }
     
-    if (formData.postalCode && !/^\d{5,6}$/.test(formData.postalCode)) {
-      errors.postalCode = 'Postal code must be 5-6 digits';
+    // Enhanced pincode validation - exactly 6 digits for India
+    if (formData.postalCode) {
+      if (formData.countryCode === '+91') {
+        if (!/^\d{6}$/.test(formData.postalCode)) {
+          errors.postalCode = 'Pincode must be exactly 6 digits';
+        }
+      } else {
+        if (!/^\d{5,6}$/.test(formData.postalCode)) {
+          errors.postalCode = 'Postal code must be 5-6 digits';
+        }
+      }
     }
     
     setFieldErrors(errors);
@@ -116,8 +302,29 @@ const Register = () => {
     <div className="auth-page">
       <div className="auth-container fade-in">
         <div className="auth-card">
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join Book-Karo today</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h1 className="auth-title" style={{ marginBottom: '4px' }}>Create Account</h1>
+              <p className="auth-subtitle">Join Book-Karo today</p>
+            </div>
+            <Link 
+              to="/login" 
+              className="auth-link" 
+              style={{ 
+                fontSize: '14px', 
+                fontWeight: '600',
+                color: 'var(--royal-blue)',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                padding: '8px 16px',
+                border: '2px solid var(--royal-blue)',
+                borderRadius: '8px',
+                transition: 'all 0.2s'
+              }}
+            >
+              Already have account?
+            </Link>
+          </div>
 
           {error && <div className="alert alert-error">{error}</div>}
 
@@ -166,17 +373,50 @@ const Register = () => {
 
             <div className="form-group">
               <label htmlFor="email">Email Address *</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                required
-                aria-invalid={!!fieldErrors.email}
-                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-              />
+              <div className="email-autocomplete-wrapper">
+                <div className="input-with-validation">
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    onFocus={() => {
+                      if (emailSuggestions.length > 0 && formData.email.includes('@')) {
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    onBlur={() => {
+                      // Delay hiding to allow clicking on suggestions
+                      setTimeout(() => setShowSuggestions(false), 200);
+                    }}
+                    placeholder="you@example.com"
+                    required
+                    aria-invalid={!!fieldErrors.email}
+                    aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                    autoComplete="off"
+                  />
+                  {validFields.email === true && (
+                    <span className="validation-check">✓</span>
+                  )}
+                  {validFields.email === false && (
+                    <span className="validation-error">✗</span>
+                  )}
+                </div>
+                {showSuggestions && emailSuggestions.length > 0 && (
+                  <ul className="email-suggestions">
+                    {emailSuggestions.map((suggestion, index) => (
+                      <li
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="suggestion-item"
+                      >
+                        {suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               {fieldErrors.email && (
                 <span className="field-error" id="email-error" role="alert">
                   {fieldErrors.email}
@@ -224,28 +464,71 @@ const Register = () => {
                   {fieldErrors.password}
                 </span>
               )}
-              {!fieldErrors.password && (
-                <small>Must contain uppercase, lowercase, and number</small>
+              {!fieldErrors.password && formData.password && (
+                <div className="password-strength-indicator">
+                  <div className="strength-bar">
+                    <div 
+                      className="strength-fill" 
+                      style={{ 
+                        width: `${passwordStrength.score}%`, 
+                        backgroundColor: passwordStrength.color 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="strength-label" style={{ color: passwordStrength.color }}>
+                    {passwordStrength.label}
+                  </div>
+                </div>
+              )}
+              {!fieldErrors.password && !formData.password && (
+                <small>Must contain uppercase, lowercase, number, and special character (@#$%^&*...)</small>
               )}
             </div>
 
             <div className="form-group">
               <label htmlFor="phone">Phone Number *</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+1234567890"
-                required
-                aria-invalid={!!fieldErrors.phone}
-                aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}
-              />
+              <div className="phone-input-group">
+                <select 
+                  name="countryCode" 
+                  value={formData.countryCode}
+                  onChange={handleChange}
+                  className="country-code-select"
+                  aria-label="Country code"
+                >
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+61">🇦🇺 +61</option>
+                  <option value="+971">🇦🇪 +971</option>
+                </select>
+                <div className="input-with-validation" style={{ flex: 1 }}>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder={formData.countryCode === '+91' ? '98765-43210' : '123-456-7890'}
+                    maxLength={formData.countryCode === '+91' ? 11 : 12}
+                    required
+                    aria-invalid={!!fieldErrors.phone}
+                    aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}
+                  />
+                  {validFields.phone === true && (
+                    <span className="validation-check">✓</span>
+                  )}
+                  {validFields.phone === false && (
+                    <span className="validation-error">✗</span>
+                  )}
+                </div>
+              </div>
               {fieldErrors.phone && (
                 <span className="field-error" id="phone-error" role="alert">
                   {fieldErrors.phone}
                 </span>
+              )}
+              {!fieldErrors.phone && formData.countryCode === '+91' && !formData.phone && (
+                <small>Enter 10-digit mobile number starting with 6-9 (auto-formats as XXXXX-XXXXX)</small>
               )}
             </div>
 
@@ -320,17 +603,18 @@ const Register = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-auth-primary" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+            <div className="form-actions-sticky" style={{ marginTop: '24px' }}>
+              <button type="submit" className="btn btn-auth-primary" disabled={loading} style={{ width: '100%' }}>
+                {loading ? 'Creating account...' : 'Create Account'}
+              </button>
+              <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: '#6b7280' }}>
+                Already have an account?{' '}
+                <Link to="/login" className="auth-link" style={{ color: 'var(--royal-blue)', fontWeight: '600' }}>
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </form>
-
-          <p className="auth-footer">
-            Already have an account?{' '}
-            <Link to="/login" className="auth-link">
-              Sign in
-            </Link>
-          </p>
         </div>
       </div>
     </div>

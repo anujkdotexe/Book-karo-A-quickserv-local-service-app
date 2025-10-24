@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingAPI, reviewAPI, refundAPI } from '../../services/api';
 import { useModal } from '../../components/Modal/Modal';
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import './BookingDetail.css';
 
 const BookingDetail = () => {
@@ -165,6 +166,13 @@ const BookingDetail = () => {
   return (
     <div className="booking-detail-page">
       <div className="container">
+        <Breadcrumb 
+          customItems={[
+            { label: 'My Bookings', path: '/bookings' },
+            { label: `Booking #${booking.id}` }
+          ]} 
+        />
+        
         <button className="btn btn-outline back-button" onClick={() => navigate('/bookings')}>
           Back to Bookings
         </button>
@@ -282,6 +290,24 @@ const BookingDetail = () => {
                             <option value="2">2 - Below Average</option>
                             <option value="1">1 - Poor</option>
                           </select>
+                          
+                          {/* Star Rating Preview */}
+                          <div className="star-rating-preview" style={{ marginTop: '8px', fontSize: '1.5rem' }}>
+                            {[...Array(5)].map((_, index) => (
+                              <span 
+                                key={index} 
+                                style={{ 
+                                  color: index < parseInt(reviewData.rating) ? '#fbbf24' : '#e5e7eb',
+                                  marginRight: '4px'
+                                }}
+                              >
+                                ⭐
+                              </span>
+                            ))}
+                            <span style={{ fontSize: '0.9rem', marginLeft: '8px', color: '#666' }}>
+                              ({reviewData.rating}/5)
+                            </span>
+                          </div>
                         </div>
 
                         <div className="form-group">

@@ -157,6 +157,69 @@
   border-color: #ef4444;
 }
 
+/* Card Type Indicator */
+.card-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.card-input-wrapper input {
+  flex: 1;
+  padding-right: 120px;
+}
+
+.card-type-icon {
+  position: absolute;
+  right: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  animation: fadeIn 0.3s ease;
+}
+
+.card-visa {
+  background: linear-gradient(135deg, #1a1f71 0%, #0066b2 100%);
+  color: white;
+}
+
+.card-mastercard {
+  background: linear-gradient(135deg, #eb001b 0%, #f79e1b 100%);
+  color: white;
+}
+
+.card-amex {
+  background: linear-gradient(135deg, #006fcf 0%, #00a4e0 100%);
+  color: white;
+}
+
+.card-discover {
+  background: linear-gradient(135deg, #ff6000 0%, #f68121 100%);
+  color: white;
+}
+
+.card-jcb {
+  background: linear-gradient(135deg, #0e4c96 0%, #1c6ec5 100%);
+  color: white;
+}
+
+.card-diners {
+  background: linear-gradient(135deg, #0079be 0%, #00a3e0 100%);
+  color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

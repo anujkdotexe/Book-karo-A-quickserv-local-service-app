@@ -5,6 +5,7 @@ import './App.css';
 // Components
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import Home from './pages/Home/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
@@ -57,26 +58,27 @@ import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
  */
 function App() {
   return (
-    <ModalProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Router>
-              <div className="app">
-                <Navbar />
-                <main className="main-content">
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/help" element={<HelpCenter />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/terms" element={<TermsOfService />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
+    <ErrorBoundary>
+      <ModalProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Router>
+                <div className="app">
+                  <Navbar />
+                  <main className="main-content">
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/help" element={<HelpCenter />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/terms" element={<TermsOfService />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
 
                   {/* Protected Routes */}
                 <Route path="/profile" element={
@@ -205,6 +207,7 @@ function App() {
       </AuthProvider>
     </ToastProvider>
     </ModalProvider>
+    </ErrorBoundary>
   );
 }
 

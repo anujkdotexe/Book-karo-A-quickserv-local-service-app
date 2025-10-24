@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { serviceAPI, favoriteAPI } from '../../services/api';
 import { useModal } from '../../components/Modal/Modal';
 import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import './Services.css';
 
 // Utility function to sanitize input (prevent XSS)
@@ -392,6 +393,8 @@ const Services = () => {
       </div>
 
       <div className="container">
+        <Breadcrumb customItems={[{ label: 'Services' }]} />
+        
         {/* ARIA Live Region for Search Results Announcement */}
         <div aria-live="polite" aria-atomic="true" className="sr-only">
           {!loading && !error && services.length > 0 && (

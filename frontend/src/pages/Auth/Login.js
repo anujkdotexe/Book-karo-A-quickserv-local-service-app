@@ -7,6 +7,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    rememberMe: false,
   });
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
@@ -17,11 +18,19 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Load remembered email on component mount
+  React.useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setFormData(prev => ({ ...prev, email: rememberedEmail, rememberMe: true }));
+    }
+  }, []);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     });
     // Clear errors when user starts typing
     setError('');
@@ -31,19 +40,42 @@ const Login = () => {
   const validateForm = () => {
     const errors = {};
     
-    // Email validation
+    // Email validation with domain check and typo detection
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'Please enter a valid email address';
+    } else {
+      // Check for valid TLD
+      const validTLDs = ['com', 'in', 'org', 'net', 'edu', 'gov', 'co.in'];
+      const domain = formData.email.split('@')[1];
+      const tld = domain?.split('.').slice(-2).join('.') || domain?.split('.').pop();
+      if (!validTLDs.includes(tld)) {
+        errors.email = 'Please use a valid email domain (e.g., .com, .in, .org)';
+      }
+      
+      // Common typo detection
+      const typos = {
+        'gmial.com': 'gmail.com',
+        'gmai.com': 'gmail.com',
+        'gmil.com': 'gmail.com',
+        'yahooo.com': 'yahoo.com',
+        'yaho.com': 'yahoo.com',
+        'hotmial.com': 'hotmail.com'
+      };
+      if (typos[domain]) {
+        errors.email = `Did you mean ${formData.email.replace(domain, typos[domain])}?`;
+      }
     }
     
-    // Password validation
+    // Enhanced password validation
     if (!formData.password) {
       errors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
     }
+    // Note: For login, we don't enforce pattern check as user may have old password
+    // Password pattern is only enforced during registration
     
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -66,6 +98,13 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
+      // Handle "Remember Me" functionality
+      if (formData.rememberMe) {
+        localStorage.setItem('rememberedEmail', formData.email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+      
       setSuccessMessage('Login successful! Redirecting...');
       
       // Get user data from localStorage (just set by login function)
@@ -82,9 +121,36 @@ const Login = () => {
         }
       }, 1000);
     } else {
-      // Show the raw backend error message for clarity
+      // Enhanced error handling for specific cases
       const errorMsg = result.message || 'Login failed';
-      setError(errorMsg);
+      
+      // Check if email doesn't exist
+      if (errorMsg.toLowerCase().includes('no account found') || 
+          errorMsg.toLowerCase().includes('user not found') ||
+          errorMsg.toLowerCase().includes('email not registered')) {
+        setError(
+          <div>
+            <p>No account found with this email.</p>
+            <p style={{ marginTop: '8px' }}>
+              <Link to="/register" style={{ color: 'var(--royal-blue)', textDecoration: 'underline' }}>
+                Create a new account
+              </Link>
+            </p>
+          </div>
+        );
+      } else if (errorMsg.toLowerCase().includes('incorrect password') || 
+                 errorMsg.toLowerCase().includes('invalid password')) {
+        setError(
+          <div>
+            <p>Incorrect password. Please try again.</p>
+            <p style={{ marginTop: '8px', fontSize: '0.9em', color: '#666' }}>
+              Password must contain uppercase, lowercase, number, and special character
+            </p>
+          </div>
+        );
+      } else {
+        setError(errorMsg);
+      }
     }
     setLoading(false);
   };
@@ -200,12 +266,29 @@ const Login = () => {
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <label htmlFor="remember" style={{ display: 'flex', alignItems: 'center', fontSize: '14px', color: '#374151', cursor: 'pointer' }}>
-                <input type="checkbox" id="remember" style={{ marginRight: '8px' }} />
+            <div className="form-group-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <label htmlFor="rememberMe" style={{ display: 'flex', alignItems: 'center', fontSize: '14px', color: '#374151', cursor: 'pointer', userSelect: 'none' }}>
+                <input 
+                  type="checkbox" 
+                  id="rememberMe" 
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                  style={{ marginRight: '8px', width: '16px', height: '16px', cursor: 'pointer' }} 
+                />
                 Remember me
               </label>
-              <Link to="/forgot-password" className="auth-link" style={{ fontSize: '14px' }}>
+              <Link 
+                to="/forgot-password" 
+                className="forgot-password-link" 
+                style={{ 
+                  fontSize: '15px', 
+                  fontWeight: '600',
+                  color: 'var(--royal-blue)',
+                  textDecoration: 'none',
+                  transition: 'color 0.2s'
+                }}
+              >
                 Forgot password?
               </Link>
             </div>
@@ -215,114 +298,45 @@ const Login = () => {
             </button>
           </form>
 
-          <div style={{ marginTop: '24px', padding: '20px', background: '#f0f9ff', borderRadius: '12px', border: '2px solid #2563eb' }}>
-            <h3 style={{ fontSize: '16px', marginBottom: '16px', color: '#1e3a8a', fontWeight: '700', textAlign: 'center' }}>
-              Test Accounts - Quick Login
-            </h3>
-            
-            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column', marginBottom: '20px' }}>
-              <button
-                onClick={() => handleQuickLogin('user@bookkaro.com', 'password123')}
-                disabled={loading}
-                style={{
-                  padding: '10px 16px',
-                  background: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  transition: 'all 0.2s',
-                  opacity: loading ? '0.6' : '1'
-                }}
-                onMouseEnter={(e) => !loading && (e.target.style.background = '#1d4ed8')}
-                onMouseLeave={(e) => !loading && (e.target.style.background = '#2563eb')}
-              >
-                Login as User
-              </button>
-              <button
-                onClick={() => handleQuickLogin('mumbai@bookkaro.com', 'vendor123')}
-                disabled={loading}
-                style={{
-                  padding: '10px 16px',
-                  background: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  transition: 'all 0.2s',
-                  opacity: loading ? '0.6' : '1'
-                }}
-                onMouseEnter={(e) => !loading && (e.target.style.background = '#1d4ed8')}
-                onMouseLeave={(e) => !loading && (e.target.style.background = '#2563eb')}
-              >
-                Login as Vendor (Mumbai - Default)
-              </button>
-              <button
-                onClick={() => handleQuickLogin('admin@bookkaro.com', 'admin123')}
-                disabled={loading}
-                style={{
-                  padding: '10px 16px',
-                  background: '#2563eb',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  transition: 'all 0.2s',
-                  opacity: loading ? '0.6' : '1'
-                }}
-                onMouseEnter={(e) => !loading && (e.target.style.background = '#1d4ed8')}
-                onMouseLeave={(e) => !loading && (e.target.style.background = '#2563eb')}
-              >
-                Login as Admin
-              </button>
-            </div>
-
-            <div style={{ background: 'white', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <h4 style={{ fontSize: '14px', marginBottom: '12px', color: '#1e3a8a', fontWeight: '600' }}>
-                Regional Vendor Credentials:
-              </h4>
-              <div style={{ fontSize: '13px', lineHeight: '1.8', color: '#374151', fontFamily: 'monospace' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Mumbai:</strong> mumbai@bookkaro.com</span>
-                  <span style={{ color: '#059669' }}>vendor123</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Pune:</strong> pune@bookkaro.com</span>
-                  <span style={{ color: '#059669' }}>vendor123</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Delhi:</strong> delhi@bookkaro.com</span>
-                  <span style={{ color: '#059669' }}>vendor123</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Bangalore:</strong> bangalore@bookkaro.com</span>
-                  <span style={{ color: '#059669' }}>vendor123</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '4px' }}>
-                  <span><strong>Thane:</strong> thane@bookkaro.com</span>
-                  <span style={{ color: '#059669' }}>vendor123</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
-                  <span><strong>Navi Mumbai:</strong> navimumbai@bookkaro.com</span>
-                  <span style={{ color: '#059669' }}>vendor123</span>
-                </div>
+          {/* Development Mode Only: Test Accounts */}
+          {process.env.NODE_ENV === 'development' && (
+            <details style={{ marginTop: '24px', padding: '16px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#6b7280', userSelect: 'none' }}>
+                🔧 Development: Quick Login
+              </summary>
+              <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                <button
+                  onClick={() => handleQuickLogin('user@bookkaro.com', 'User@123')}
+                  disabled={loading}
+                  className="btn btn-outline"
+                  style={{ fontSize: '13px', padding: '8px 12px' }}
+                >
+                  👤 User Account
+                </button>
+                <button
+                  onClick={() => handleQuickLogin('mumbai@bookkaro.com', 'Vendor@123')}
+                  disabled={loading}
+                  className="btn btn-outline"
+                  style={{ fontSize: '13px', padding: '8px 12px' }}
+                >
+                  🏪 Vendor (Mumbai)
+                </button>
+                <button
+                  onClick={() => handleQuickLogin('admin@bookkaro.com', 'Admin@123')}
+                  disabled={loading}
+                  className="btn btn-outline"
+                  style={{ fontSize: '13px', padding: '8px 12px' }}
+                >
+                  ⚙️ Admin Account
+                </button>
               </div>
-              <p style={{ fontSize: '11px', marginTop: '12px', color: '#6b7280', fontStyle: 'italic' }}>
-                All vendor passwords: vendor123
-              </p>
-            </div>
-          </div>
+            </details>
+          )}
 
-          <p className="auth-footer">
+          <p className="auth-footer" style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#6b7280' }}>
             Don't have an account?{' '}
-            <Link to="/register" className="auth-link">
-              Sign up now
+            <Link to="/register" className="auth-link" style={{ color: 'var(--royal-blue)', fontWeight: '600', textDecoration: 'none' }}>
+              Create account
             </Link>
           </p>
         </div>

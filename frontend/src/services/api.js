@@ -25,6 +25,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Network error handling
+    if (!error.response) {
+      // Network error - no response from server
+      const networkError = new Error('Network error. Please check your internet connection and try again.');
+      networkError.isNetworkError = true;
+      networkError.retry = () => {
+        // Return the original request config for retry
+        return api.request(error.config);
+      };
+      return Promise.reject(networkError);
+    }
+    
     if (error.response?.status === 401) {
       // Session expired or unauthorized - clear all user data
       localStorage.removeItem('token');
@@ -53,6 +65,16 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }, 1500);
     }
+    
+    // Add user-friendly error messages
+    if (error.response?.status === 500) {
+      error.userMessage = 'Server error. Our team has been notified. Please try again later.';
+    } else if (error.response?.status === 404) {
+      error.userMessage = 'The requested resource was not found.';
+    } else if (error.response?.status === 403) {
+      error.userMessage = 'You do not have permission to perform this action.';
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -87,6 +109,7 @@ export const serviceAPI = {
   getServiceById: (id) => api.get(`/services/${id}`),
   getVendorInfo: (id) => api.get(`/services/${id}/vendor`),
   getCities: () => api.get('/services/cities'),
+  getCategories: () => api.get('/services/categories'),
 };
 
 export const bookingAPI = {
@@ -95,10 +118,13 @@ export const bookingAPI = {
     params: { status: status || undefined }
   }),
   getBookingById: (id) => api.get(`/bookings/${id}`),
+  updateBookingStatus: (id, status) => api.put(`/bookings/${id}/status`, { status }),
+  cancelBooking: (id) => api.put(`/bookings/${id}/cancel`),
 };
 
 export const reviewAPI = {
-  submitReview: (data) => api.post('/reviews', data),
+  createReview: (data) => api.post('/reviews', data),
+  submitReview: (data) => api.post('/reviews', data), // Keep for backward compatibility
   getServiceReviews: (serviceId, page, size) =>
     api.get(`/reviews/service/${serviceId}`, {
       params: { page, size },

@@ -4,6 +4,7 @@ import { serviceAPI, reviewAPI, favoriteAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useModal } from '../../components/Modal/Modal';
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import './ServiceDetail.css';
 
 const ServiceDetail = () => {
@@ -123,6 +124,45 @@ const ServiceDetail = () => {
     };
   }, [id, fetchServiceDetails, fetchReviews, checkFavoriteStatus]);
 
+  // Generate time slots based on vendor availability
+  const getTimeSlots = () => {
+    const slots = [];
+    
+    // Get vendor's available hours from service data
+    // Format: "HH:mm" e.g., "09:00"
+    const fromTime = service?.availableFromTime || "09:00";
+    const toTime = service?.availableToTime || "18:00";
+    
+    // Parse start and end hours
+    const [startHour, startMin] = fromTime.split(':').map(Number);
+    const [endHour, endMin] = toTime.split(':').map(Number);
+    
+    // Convert to minutes for easier calculation
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    
+    // Generate slots every 30 minutes
+    for (let time = startMinutes; time <= endMinutes; time += 30) {
+      const hour = Math.floor(time / 60);
+      const min = time % 60;
+      
+      // Don't add slot if it goes beyond end time
+      if (time > endMinutes) break;
+      
+      const timeString = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+      slots.push(timeString);
+    }
+    
+    return slots;
+  };
+
+  // Get tomorrow's date in YYYY-MM-DD format
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
   const handleBookingChange = (e) => {
     const { name, value } = e.target;
     setBookingData({
@@ -214,12 +254,6 @@ const ServiceDetail = () => {
     }
   };
 
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  };
-
   if (loading) {
     return (
       <div className="loading-container">
@@ -244,6 +278,13 @@ const ServiceDetail = () => {
   return (
     <div className="service-detail-page">
       <div className="container">
+        <Breadcrumb 
+          customItems={[
+            { label: 'Services', path: '/services' },
+            { label: service.serviceName }
+          ]} 
+        />
+        
         <button className="btn btn-outline back-button" onClick={() => navigate('/services')}>
           Back to Services
         </button>
@@ -413,7 +454,7 @@ const ServiceDetail = () => {
                       
                       <form onSubmit={handleBookingSubmit}>
                         <div className="form-group">
-                          <label htmlFor="bookingDate">Booking Date</label>
+                          <label htmlFor="bookingDate">Booking Date *</label>
                           <input
                             type="date"
                             id="bookingDate"
@@ -422,19 +463,54 @@ const ServiceDetail = () => {
                             onChange={handleBookingChange}
                             min={getTomorrowDate()}
                             required
+                            aria-required="true"
                           />
+                          <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '4px' }}>
+                            ⓘ Bookings must be made at least 1 day in advance
+                          </small>
                         </div>
 
                         <div className="form-group">
-                          <label htmlFor="bookingTime">Booking Time</label>
-                          <input
-                            type="time"
+                          <label htmlFor="bookingTime">
+                            Booking Time * 
+                            {service?.availableFromTime && service?.availableToTime && (
+                              <span style={{ fontWeight: 'normal', color: '#666', marginLeft: '8px' }}>
+                                ({service.availableFromTime} - {service.availableToTime})
+                              </span>
+                            )}
+                          </label>
+                          <select
                             id="bookingTime"
                             name="bookingTime"
                             value={bookingData.bookingTime}
                             onChange={handleBookingChange}
                             required
-                          />
+                            aria-required="true"
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '1rem'
+                            }}
+                          >
+                            <option value="">Select a time slot</option>
+                            {getTimeSlots().map(slot => {
+                              const hour = parseInt(slot.split(':')[0]);
+                              const isPM = hour >= 12;
+                              const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                              return (
+                                <option key={slot} value={slot}>
+                                  {displayHour}:{slot.split(':')[1]} {isPM ? 'PM' : 'AM'}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '4px' }}>
+                            ⓘ {service?.availableFromTime && service?.availableToTime 
+                              ? `Available: ${service.availableFromTime} to ${service.availableToTime} (30-min intervals)`
+                              : 'Available slots: 9:00 AM to 6:00 PM (30-minute intervals)'}
+                          </small>
                         </div>
 
                         <div className="form-group">

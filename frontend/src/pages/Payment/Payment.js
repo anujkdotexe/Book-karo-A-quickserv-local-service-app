@@ -19,12 +19,34 @@ const Payment = () => {
   const [errors, setErrors] = useState({});
   const [processing, setProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [cardType, setCardType] = useState('');
 
   useEffect(() => {
     if (!bookingData) {
       navigate('/services');
     }
   }, [bookingData, navigate]);
+
+  // Detect card type based on card number
+  const detectCardType = (number) => {
+    const cleaned = number.replace(/\s/g, '');
+    
+    if (/^4/.test(cleaned)) {
+      return 'visa';
+    } else if (/^5[1-5]/.test(cleaned)) {
+      return 'mastercard';
+    } else if (/^3[47]/.test(cleaned)) {
+      return 'amex';
+    } else if (/^6(?:011|5)/.test(cleaned)) {
+      return 'discover';
+    } else if (/^35/.test(cleaned)) {
+      return 'jcb';
+    } else if (/^3(?:0[0-5]|[68])/.test(cleaned)) {
+      return 'diners';
+    }
+    
+    return '';
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,6 +55,9 @@ const Payment = () => {
     if (name === 'cardNumber') {
       formattedValue = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
       formattedValue = formattedValue.slice(0, 19);
+      // Detect card type
+      const type = detectCardType(formattedValue);
+      setCardType(type);
     } else if (name === 'cvv') {
       formattedValue = value.replace(/\D/g, '').slice(0, 3);
     } else if (name === 'expiryMonth' || name === 'expiryYear') {
@@ -72,6 +97,16 @@ const Payment = () => {
       newErrors.expiryYear = 'Year is required';
     } else if (parseInt(paymentData.expiryYear) < new Date().getFullYear()) {
       newErrors.expiryYear = 'Card expired';
+    } else {
+      // Check if card expired this month
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+      
+      if (parseInt(paymentData.expiryYear) === currentYear && 
+          parseInt(paymentData.expiryMonth) < currentMonth) {
+        newErrors.expiryMonth = 'Card has expired';
+      }
     }
 
     if (!paymentData.cvv) {
@@ -192,15 +227,27 @@ const Payment = () => {
         <form onSubmit={handleSubmit} className="payment-form">
           <div className="form-group">
             <label htmlFor="cardNumber">Card Number</label>
-            <input
-              type="text"
-              id="cardNumber"
-              name="cardNumber"
-              value={paymentData.cardNumber}
-              onChange={handleChange}
-              placeholder="1234 5678 9012 3456"
-              className={errors.cardNumber ? 'error' : ''}
-            />
+            <div className="card-input-wrapper">
+              <input
+                type="text"
+                id="cardNumber"
+                name="cardNumber"
+                value={paymentData.cardNumber}
+                onChange={handleChange}
+                placeholder="1234 5678 9012 3456"
+                className={errors.cardNumber ? 'error' : ''}
+              />
+              {cardType && (
+                <span className={`card-type-icon card-${cardType}`}>
+                  {cardType === 'visa' && '💳 Visa'}
+                  {cardType === 'mastercard' && '💳 Mastercard'}
+                  {cardType === 'amex' && '💳 Amex'}
+                  {cardType === 'discover' && '💳 Discover'}
+                  {cardType === 'jcb' && '💳 JCB'}
+                  {cardType === 'diners' && '💳 Diners'}
+                </span>
+              )}
+            </div>
             {errors.cardNumber && <span className="error-message">{errors.cardNumber}</span>}
           </div>
 
@@ -248,7 +295,12 @@ const Payment = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="cvv">CVV</label>
+              <label htmlFor="cvv">
+                CVV
+                <span className="cvv-help" title="3 digits on the back of your card">
+                  ⓘ
+                </span>
+              </label>
               <input
                 type="text"
                 id="cvv"
@@ -257,7 +309,11 @@ const Payment = () => {
                 onChange={handleChange}
                 placeholder="123"
                 className={errors.cvv ? 'error' : ''}
+                aria-describedby="cvv-help-text"
               />
+              <small id="cvv-help-text" style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '4px' }}>
+                3 digits on back of card
+              </small>
               {errors.cvv && <span className="error-message">{errors.cvv}</span>}
             </div>
           </div>

@@ -82,7 +82,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
+    <nav className="navbar" role="navigation" aria-label="Main navigation">
+      {/* Skip to Main Content Link for Accessibility */}
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
+      
       <div className="navbar-container container">
         {/* Hamburger Menu (Mobile) */}
         <button 
@@ -90,6 +95,7 @@ const Navbar = () => {
           onClick={() => setShowMobileMenu(!showMobileMenu)}
           aria-label="Toggle mobile menu"
           aria-expanded={showMobileMenu}
+          aria-controls="mobile-menu"
         >
           <span></span>
           <span></span>
@@ -97,7 +103,7 @@ const Navbar = () => {
         </button>
 
         {/* Logo (Center on Mobile, Left on Desktop) */}
-        <Link to={getLogoDestination()} className="navbar-brand">
+        <Link to={getLogoDestination()} className="navbar-brand" aria-label="Book-Karo Home">
           <span className="brand-name">BOOK-KARO</span>
         </Link>
 
@@ -105,14 +111,14 @@ const Navbar = () => {
         <div className="mobile-right-icons">
           {isAuthenticated && (
             <>
-              <Link to="/cart" className="mobile-icon-link" aria-label="View cart">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <Link to="/cart" className="mobile-icon-link" aria-label={`View cart (${getCartCount()} items)`}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <circle cx="9" cy="21" r="1"></circle>
                   <circle cx="20" cy="21" r="1"></circle>
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                 </svg>
                 {getCartCount() > 0 && (
-                  <span className="cart-badge-mobile">{getCartCount()}</span>
+                  <span className="cart-badge-mobile" aria-label={`${getCartCount()} items in cart`}>{getCartCount()}</span>
                 )}
               </Link>
               
@@ -120,8 +126,10 @@ const Navbar = () => {
                 className="mobile-profile-icon"
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 aria-label="Open profile menu"
+                aria-expanded={showProfileMenu}
+                aria-haspopup="true"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -132,7 +140,7 @@ const Navbar = () => {
 
         {/* Mobile Dropdown Menu */}
         {showMobileMenu && (
-          <div className="mobile-menu" ref={mobileMenuRef}>
+          <div className="mobile-menu" ref={mobileMenuRef} id="mobile-menu">
             <div className="mobile-menu-content">
               {isAuthenticated && (
                 <form className="mobile-search" onSubmit={handleSearch}>
