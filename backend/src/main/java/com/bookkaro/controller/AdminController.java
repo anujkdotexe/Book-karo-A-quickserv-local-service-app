@@ -152,13 +152,18 @@ public class AdminController {
     }
 
     /**
-     * Approve vendor
+     * Approve vendor (with optional reason/note)
      * PUT /api/v1/admin/vendors/{id}/approve
+     * Request body (optional): { "reason": "All documents verified and complete" }
      */
     @PutMapping("/vendors/{id}/approve")
-    public ResponseEntity<ApiResponse<Vendor>> approveVendor(@PathVariable Long id) {
-        Vendor vendor = adminService.approveVendor(id);
-        return ResponseEntity.ok(ApiResponse.success("Vendor approved successfully", vendor));
+    public ResponseEntity<ApiResponse<VendorDto>> approveVendor(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> request) {
+        String reason = request != null ? request.get("reason") : null;
+        Vendor vendor = adminService.approveVendor(id, reason);
+        VendorDto vendorDto = VendorDto.fromEntity(vendor);
+        return ResponseEntity.ok(ApiResponse.success("Vendor approved successfully", vendorDto));
     }
 
     /**
@@ -166,12 +171,13 @@ public class AdminController {
      * PUT /api/v1/admin/vendors/{id}/reject
      */
     @PutMapping("/vendors/{id}/reject")
-    public ResponseEntity<ApiResponse<Vendor>> rejectVendor(
+    public ResponseEntity<ApiResponse<VendorDto>> rejectVendor(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
         String reason = request.get("reason");
         Vendor vendor = adminService.rejectVendor(id, reason);
-        return ResponseEntity.ok(ApiResponse.success("Vendor rejected successfully", vendor));
+        VendorDto vendorDto = VendorDto.fromEntity(vendor);
+        return ResponseEntity.ok(ApiResponse.success("Vendor rejected successfully", vendorDto));
     }
 
     /**
@@ -179,12 +185,13 @@ public class AdminController {
      * PUT /api/v1/admin/vendors/{id}/suspend
      */
     @PutMapping("/vendors/{id}/suspend")
-    public ResponseEntity<ApiResponse<Vendor>> suspendVendor(
+    public ResponseEntity<ApiResponse<VendorDto>> suspendVendor(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
         String reason = request.get("reason");
         Vendor vendor = adminService.suspendVendor(id, reason);
-        return ResponseEntity.ok(ApiResponse.success("Vendor suspended successfully", vendor));
+        VendorDto vendorDto = VendorDto.fromEntity(vendor);
+        return ResponseEntity.ok(ApiResponse.success("Vendor suspended successfully", vendorDto));
     }
 
     // ==================== SERVICE MANAGEMENT ====================
@@ -218,12 +225,16 @@ public class AdminController {
     }
 
     /**
-     * Approve service
+     * Approve service (with optional reason/note)
      * PUT /api/v1/admin/services/{id}/approve
+     * Request body (optional): { "reason": "Quality service with proper documentation" }
      */
     @PutMapping("/services/{id}/approve")
-    public ResponseEntity<ApiResponse<ServiceDto>> approveService(@PathVariable Long id) {
-        Service service = adminService.approveService(id);
+    public ResponseEntity<ApiResponse<ServiceDto>> approveService(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> request) {
+        String reason = request != null ? request.get("reason") : null;
+        Service service = adminService.approveService(id, reason);
         return ResponseEntity.ok(ApiResponse.success("Service approved successfully", ServiceDto.fromEntity(service)));
     }
 

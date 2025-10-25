@@ -12,9 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/payments")
@@ -73,43 +71,11 @@ public class PaymentController {
             @PathVariable Long bookingId,
             Authentication authentication) {
         
+        User user = getUserFromAuth(authentication);
+        
         try {
-            PaymentResponse payment = paymentService.getPaymentByBookingId(bookingId);
+            PaymentResponse payment = paymentService.getPaymentByBookingId(bookingId, user);
             return ResponseEntity.ok(ApiResponse.success("Payment details retrieved successfully", payment));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error(e.getMessage()));
-        }
-    }
-
-    /**
-     * Get wallet balance
-     * GET /payments/wallet/balance
-     */
-    @GetMapping("/wallet/balance")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getWalletBalance(
-            Authentication authentication) {
-        
-        User user = getUserFromAuth(authentication);
-        Map<String, Object> wallet = paymentService.getWalletBalance(user);
-        
-        return ResponseEntity.ok(ApiResponse.success("Wallet balance retrieved successfully", wallet));
-    }
-
-    /**
-     * Add money to wallet
-     * POST /payments/wallet/add?amount=1000
-     */
-    @PostMapping("/wallet/add")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> addMoneyToWallet(
-            @RequestParam BigDecimal amount,
-            Authentication authentication) {
-        
-        User user = getUserFromAuth(authentication);
-        
-        try {
-            Map<String, Object> result = paymentService.addMoneyToWallet(user, amount);
-            return ResponseEntity.ok(ApiResponse.success("Money added to wallet successfully", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage()));

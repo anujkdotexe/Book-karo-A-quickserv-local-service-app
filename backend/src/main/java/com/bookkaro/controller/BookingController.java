@@ -46,8 +46,23 @@ public class BookingController {
         Service service = serviceRepository.findByIdWithVendor(request.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
+        // Validate service is available and approved
+        if (!service.getIsAvailable()) {
+            throw new RuntimeException("Service is not available for booking");
+        }
+        
+        if (service.getApprovalStatus() != Service.ApprovalStatus.APPROVED) {
+            throw new RuntimeException("Service is not approved for booking");
+        }
+
         // Parse booking time (supports formats like "10:00 AM", "14:30", "2:30 PM")
         LocalTime bookingTime = parseBookingTime(request.getBookingTime());
+
+        // Validate booking date and time are in the future
+        LocalDateTime bookingDateTime = LocalDateTime.of(request.getBookingDate(), bookingTime);
+        if (bookingDateTime.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Cannot book in the past. Please select a future date and time");
+        }
 
         // Validate booking time against service availability
         if (service.getAvailableFromTime() != null && service.getAvailableToTime() != null) {
@@ -403,6 +418,72 @@ public class BookingController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(ApiResponse.success("Vendor bookings retrieved successfully", bookingDtos));
+    }
+
+    /**
+     * Repeat/Clone a previous booking with new date/time
+     * POST /bookings/{id}/repeat
+     */
+    @PostMapping("/{id}/repeat")
+    public ResponseEntity<ApiResponse<BookingDto>> repeatBooking(
+            @PathVariable Long id,
+            @Valid @RequestBody RepeatBookingRequest request,
+            Authentication authentication) {
+        
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Get original booking
+        Booking originalBooking = bookingRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new RuntimeException("Original booking not found"));
+
+        // Verify user owns the original booking
+        if (!originalBooking.getUser().getId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Access denied: You can only repeat your own bookings"));
+        }
+
+        // Validate the service is still available
+        Service service = originalBooking.getService();
+        if (!service.getIsAvailable() || service.getApprovalStatus() != Service.ApprovalStatus.APPROVED) {
+            throw new RuntimeException("Service is no longer available for booking");
+        }
+
+        // Parse and validate new booking time
+        LocalTime bookingTime = parseBookingTime(request.getBookingTime());
+        LocalDateTime newBookingDateTime = LocalDateTime.of(request.getBookingDate(), bookingTime);
+        
+        if (newBookingDateTime.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Cannot book in the past. Please select a future date and time");
+        }
+
+        // Validate against service availability hours
+        if (service.getAvailableFromTime() != null && service.getAvailableToTime() != null) {
+            if (bookingTime.isBefore(service.getAvailableFromTime()) || 
+                bookingTime.isAfter(service.getAvailableToTime())) {
+                throw new RuntimeException(String.format(
+                    "Booking time must be between %s and %s", 
+                    service.getAvailableFromTime(), service.getAvailableToTime()
+                ));
+            }
+        }
+
+        // Clone the booking with new date/time
+        Booking newBooking = Booking.builder()
+                .user(user)
+                .service(service)
+                .bookingDate(request.getBookingDate())
+                .bookingTime(bookingTime)
+                .notes(request.getNotes() != null ? request.getNotes() : originalBooking.getNotes())
+                .totalAmount(service.getPrice()) // Use current price
+                .status(BookingStatus.PENDING)
+                .build();
+
+        newBooking = bookingRepository.save(newBooking);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Booking repeated successfully. Please proceed to payment.", convertToDto(newBooking)));
     }
 
     private BookingDto convertToDto(Booking booking) {

@@ -32,25 +32,34 @@ const AdminBookings = () => {
   };
 
   const handleCancelBooking = async (bookingId) => {
-    const reason = prompt('Enter cancellation reason (optional):');
-    if (reason === null) return;
-    
-    modal.confirm(
-      `Are you sure you want to cancel this booking?${reason ? '\n\nReason: ' + reason : ''}`,
-      {
-        title: 'Cancel Booking',
-        confirmText: 'Cancel Booking',
-        onConfirm: async () => {
-          try {
-            await adminAPI.cancelBooking(bookingId, reason);
-            modal.success('Booking cancelled successfully');
-            loadBookings();
-          } catch (error) {
-            modal.error(error.response?.data?.message || 'Failed to cancel booking');
+    modal.prompt('Please provide a reason for cancelling this booking (optional):', {
+      title: 'Cancel Booking',
+      placeholder: 'Enter cancellation reason (e.g., customer request, vendor unavailable, etc.)...',
+      minLength: 0,
+      maxLength: 300,
+      required: false,
+      confirmText: 'Cancel Booking',
+      cancelText: 'Go Back',
+      onConfirm: async (reason) => {
+        modal.confirm(
+          `Are you sure you want to cancel this booking?${reason ? '\n\nReason: ' + reason : ''}`,
+          {
+            title: 'Confirm Cancellation',
+            confirmText: 'Yes, Cancel Booking',
+            cancelText: 'No, Go Back',
+            onConfirm: async () => {
+              try {
+                await adminAPI.cancelBooking(bookingId, reason || 'Admin cancellation');
+                modal.success('Booking cancelled successfully');
+                loadBookings();
+              } catch (error) {
+                modal.error(error.response?.data?.message || 'Failed to cancel booking');
+              }
+            }
           }
-        }
+        );
       }
-    );
+    });
   };
 
   const handleStatusUpdate = async (bookingId, newStatus) => {

@@ -57,12 +57,4 @@ public class AddressController {
         AddressDto address = addressService.setDefaultAddress(authentication.getName(), id);
         return ResponseEntity.ok(ApiResponse.success("Default address updated successfully", address));
     }
-
-    @PutMapping("/{id}/default")
-    public ResponseEntity<ApiResponse<AddressDto>> setDefaultAddressAlt(
-            @PathVariable Long id,
-            Authentication authentication) {
-        AddressDto address = addressService.setDefaultAddress(authentication.getName(), id);
-        return ResponseEntity.ok(ApiResponse.success("Default address updated successfully", address));
-    }
 }

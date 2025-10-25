@@ -35,7 +35,7 @@ public class VendorDto {
     private Boolean isActive;
     private Boolean isVerified;
     private String approvalStatus;
-    private String rejectionReason;
+    private String approvalReason; // Admin feedback for approval/rejection/suspension
     private String description;
     private Long userId; // Reference to associated User
     private LocalDateTime createdAt;
@@ -70,7 +70,7 @@ public class VendorDto {
                 .isActive(vendor.getIsActive())
                 .isVerified(vendor.getIsVerified())
                 .approvalStatus(vendor.getApprovalStatus() != null ? vendor.getApprovalStatus().name() : null)
-                .rejectionReason(vendor.getRejectionReason())
+                .approvalReason(vendor.getApprovalReason())
                 .description(vendor.getDescription())
                 .userId(vendor.getUser() != null ? vendor.getUser().getId() : null)
                 .createdAt(vendor.getCreatedAt())

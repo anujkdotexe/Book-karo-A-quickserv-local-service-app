@@ -74,29 +74,37 @@ const AdminServices = () => {
   };
 
   const handleReject = async (serviceId) => {
-    const reason = window.prompt('Please provide a reason for rejection:');
-    if (!reason) return;
-    
-    modal.confirm(
-      `Are you sure you want to reject this service?\n\nReason: ${reason}`,
-      {
-        title: 'Reject Service',
-        confirmText: 'Reject',
-        onConfirm: async () => {
-          try {
-            await adminAPI.rejectService(serviceId, reason);
-            modal.success('Service rejected successfully');
-            if (activeTab === 'pending') {
-              loadPendingServices();
-            } else {
-              loadServices();
+    modal.prompt('Please provide a detailed reason for rejecting this service:', {
+      title: 'Reject Service',
+      placeholder: 'Enter rejection reason (e.g., inappropriate content, duplicate listing, pricing issues, etc.)...',
+      minLength: 10,
+      maxLength: 500,
+      confirmText: 'Reject Service',
+      cancelText: 'Cancel',
+      onConfirm: async (reason) => {
+        modal.confirm(
+          `Are you sure you want to reject this service?\n\nReason: ${reason}`,
+          {
+            title: 'Confirm Rejection',
+            confirmText: 'Yes, Reject',
+            cancelText: 'No, Cancel',
+            onConfirm: async () => {
+              try {
+                await adminAPI.rejectService(serviceId, reason);
+                modal.success('Service rejected successfully');
+                if (activeTab === 'pending') {
+                  loadPendingServices();
+                } else {
+                  loadServices();
+                }
+              } catch (err) {
+                modal.error(err.response?.data?.message || 'Failed to reject service');
+              }
             }
-          } catch (err) {
-            modal.error(err.response?.data?.message || 'Failed to reject service');
           }
-        }
+        );
       }
-    );
+    });
   };
 
   const handleToggleFeatured = async (serviceId) => {

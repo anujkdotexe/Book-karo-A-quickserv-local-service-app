@@ -102,8 +102,8 @@ public class Vendor {
     @Builder.Default
     private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
-    @Column(name = "rejection_reason", columnDefinition = "TEXT")
-    private String rejectionReason;
+    @Column(name = "approval_reason", columnDefinition = "TEXT")
+    private String approvalReason; // Admin feedback for approval/rejection/suspension
 
     @Column(columnDefinition = "TEXT")
     private String description;

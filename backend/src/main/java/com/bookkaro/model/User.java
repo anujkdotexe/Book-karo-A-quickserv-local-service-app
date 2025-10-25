@@ -6,6 +6,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * User Entity - Represents users in the bookkaro platform
@@ -57,9 +59,12 @@ public class User {
     @Column
     private Double longitude;
 
+    // Multi-role support - users can have multiple roles (e.g., USER + VENDOR)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private UserRole role = UserRole.USER;
+    private Set<UserRole> roles = new HashSet<>();
 
     @Column(name = "is_active")
     private Boolean isActive = true;
@@ -72,7 +77,8 @@ public class User {
     private LocalDateTime resetTokenExpiry;
 
     // Link to Vendor (for VENDOR role users)
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // Changed from CascadeType.ALL to prevent accidental deletion of vendor data
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Vendor vendor;
 
     @CreatedDate
@@ -154,8 +160,58 @@ public class User {
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
 
-    public UserRole getRole() { return role; }
-    public void setRole(UserRole role) { this.role = role; }
+    // Multi-role support methods
+    public Set<UserRole> getRoles() { return roles; }
+    public void setRoles(Set<UserRole> roles) { this.roles = roles; }
+    
+    // Backward compatibility - get primary role (first role or USER as default)
+    public UserRole getRole() { 
+        if (roles == null || roles.isEmpty()) {
+            return UserRole.USER;
+        }
+        // Return ADMIN if present, then VENDOR, then USER
+        if (roles.contains(UserRole.ADMIN)) return UserRole.ADMIN;
+        if (roles.contains(UserRole.VENDOR)) return UserRole.VENDOR;
+        return UserRole.USER;
+    }
+    
+    // Backward compatibility - set role (adds to roles set)
+    public void setRole(UserRole role) {
+        if (this.roles == null) {
+            this.roles = new HashSet<>();
+        }
+        this.roles.add(role);
+    }
+    
+    // Helper methods for role checking
+    public boolean hasRole(UserRole role) {
+        return roles != null && roles.contains(role);
+    }
+    
+    public boolean isAdmin() {
+        return hasRole(UserRole.ADMIN);
+    }
+    
+    public boolean isVendor() {
+        return hasRole(UserRole.VENDOR);
+    }
+    
+    public boolean isUser() {
+        return hasRole(UserRole.USER);
+    }
+    
+    public void addRole(UserRole role) {
+        if (this.roles == null) {
+            this.roles = new HashSet<>();
+        }
+        this.roles.add(role);
+    }
+    
+    public void removeRole(UserRole role) {
+        if (this.roles != null) {
+            this.roles.remove(role);
+        }
+    }
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }

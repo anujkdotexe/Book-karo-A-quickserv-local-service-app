@@ -41,7 +41,7 @@ const Register = () => {
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
       number: /\d/.test(password),
-      special: /[@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password),
+      special: /[@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password),
     };
     
     // Score calculation
@@ -65,10 +65,11 @@ const Register = () => {
       case 'email':
         if (!value) return null;
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return false;
-        const validTLDs = ['com', 'in', 'org', 'net', 'edu', 'gov', 'co.in'];
+        const validDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com', 'icloud.com', 'bookkaro.com', 'reddit.com', 'protonmail.com', 'aol.com'];
+        const validTLDs = ['com', 'in', 'org', 'net', 'edu', 'gov', 'co.in', 'io', 'co', 'uk', 'ca', 'au','.in'];
         const domain = value.split('@')[1];
         const tld = domain?.split('.').slice(-2).join('.') || domain?.split('.').pop();
-        return validTLDs.includes(tld);
+        return validDomains.includes(domain) || validTLDs.includes(tld);
       
       case 'phone':
         if (!value) return null;
@@ -195,12 +196,14 @@ const Register = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'Please enter a valid email address';
     } else {
-      // Check for valid TLD
-      const validTLDs = ['com', 'in', 'org', 'net', 'edu', 'gov', 'co.in'];
+      // Check for valid domains or TLDs
+      const validDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com', 'icloud.com', 'bookkaro.com', 'reddit.com', 'protonmail.com', 'aol.com'];
+      const validTLDs = ['com', 'in', 'org', 'net', 'edu', 'gov', 'co.in', 'io', 'co', 'uk', 'ca', 'au'];
       const domain = formData.email.split('@')[1];
       const tld = domain?.split('.').slice(-2).join('.') || domain?.split('.').pop();
-      if (!validTLDs.includes(tld)) {
-        errors.email = 'Please use a valid email domain (e.g., .com, .in, .org)';
+      
+      if (!validDomains.includes(domain) && !validTLDs.includes(tld)) {
+        errors.email = 'Please use a valid email domain';
       }
       
       // Common typo detection
@@ -224,7 +227,7 @@ const Register = () => {
       errors.password = 'Password must be at least 8 characters';
     } else if (formData.password.length > 64) {
       errors.password = 'Password must not exceed 64 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*()_+\-=\[\]{}|;:,.<>?])/.test(formData.password)) {
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*()_+\-=[\]{}|;:,.<>?])/.test(formData.password)) {
       errors.password = 'Password must contain: uppercase, lowercase, number, and special character (@#$%^&*...)';
     }
     

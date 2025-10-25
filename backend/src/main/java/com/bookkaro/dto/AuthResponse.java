@@ -1,5 +1,7 @@
 package com.bookkaro.dto;
 
+import java.util.Set;
+
 public class AuthResponse {
     private String token;
     private String type = "Bearer";
@@ -7,7 +9,8 @@ public class AuthResponse {
     private String email;
     private String firstName;
     private String lastName;
-    private String role;
+    private String role; // Primary role for backward compatibility
+    private Set<String> roles; // All roles for multi-role support
 
     public AuthResponse() {}
 
@@ -31,4 +34,7 @@ public class AuthResponse {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    
+    public Set<String> getRoles() { return roles; }
+    public void setRoles(Set<String> roles) { this.roles = roles; }
 }

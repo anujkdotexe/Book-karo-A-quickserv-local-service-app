@@ -74,51 +74,67 @@ const AdminVendors = () => {
   };
 
   const handleReject = async (vendorId) => {
-    const reason = window.prompt('Please provide a reason for rejection:');
-    if (!reason) return;
-    
-    modal.confirm(
-      `Are you sure you want to reject this vendor?\n\nReason: ${reason}`,
-      {
-        title: 'Reject Vendor',
-        confirmText: 'Reject',
-        onConfirm: async () => {
-          try {
-            await adminAPI.rejectVendor(vendorId, reason);
-            modal.success('Vendor rejected successfully');
-            if (activeTab === 'pending') {
-              loadPendingVendors();
-            } else {
-              loadVendors();
+    modal.prompt('Please provide a detailed reason for rejecting this vendor application:', {
+      title: 'Reject Vendor',
+      placeholder: 'Enter rejection reason (e.g., incomplete documents, invalid information, etc.)...',
+      minLength: 10,
+      maxLength: 500,
+      confirmText: 'Reject Vendor',
+      cancelText: 'Cancel',
+      onConfirm: async (reason) => {
+        modal.confirm(
+          `Are you sure you want to reject this vendor?\n\nReason: ${reason}`,
+          {
+            title: 'Confirm Rejection',
+            confirmText: 'Yes, Reject',
+            cancelText: 'No, Cancel',
+            onConfirm: async () => {
+              try {
+                await adminAPI.rejectVendor(vendorId, reason);
+                modal.success('Vendor rejected successfully');
+                if (activeTab === 'pending') {
+                  loadPendingVendors();
+                } else {
+                  loadVendors();
+                }
+              } catch (err) {
+                modal.error(err.response?.data?.message || 'Failed to reject vendor');
+              }
             }
-          } catch (err) {
-            modal.error(err.response?.data?.message || 'Failed to reject vendor');
           }
-        }
+        );
       }
-    );
+    });
   };
 
   const handleSuspend = async (vendorId) => {
-    const reason = window.prompt('Please provide a reason for suspension:');
-    if (!reason) return;
-    
-    modal.confirm(
-      `Are you sure you want to suspend this vendor?\n\nReason: ${reason}`,
-      {
-        title: 'Suspend Vendor',
-        confirmText: 'Suspend',
-        onConfirm: async () => {
-          try {
-            await adminAPI.suspendVendor(vendorId, reason);
-            modal.success('Vendor suspended successfully');
-            loadVendors();
-          } catch (err) {
-            modal.error(err.response?.data?.message || 'Failed to suspend vendor');
+    modal.prompt('Please provide a detailed reason for suspending this vendor:', {
+      title: 'Suspend Vendor',
+      placeholder: 'Enter suspension reason (e.g., policy violation, quality issues, customer complaints, etc.)...',
+      minLength: 10,
+      maxLength: 500,
+      confirmText: 'Suspend Vendor',
+      cancelText: 'Cancel',
+      onConfirm: async (reason) => {
+        modal.confirm(
+          `Are you sure you want to suspend this vendor?\n\nReason: ${reason}\n\nThe vendor will be unable to accept new bookings.`,
+          {
+            title: 'Confirm Suspension',
+            confirmText: 'Yes, Suspend',
+            cancelText: 'No, Cancel',
+            onConfirm: async () => {
+              try {
+                await adminAPI.suspendVendor(vendorId, reason);
+                modal.success('Vendor suspended successfully');
+                loadVendors();
+              } catch (err) {
+                modal.error(err.response?.data?.message || 'Failed to suspend vendor');
+              }
+            }
           }
-        }
+        );
       }
-    );
+    });
   };
 
   const displayVendors = activeTab === 'pending' ? pendingVendors : vendors;

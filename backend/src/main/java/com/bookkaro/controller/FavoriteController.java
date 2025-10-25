@@ -48,13 +48,4 @@ public class FavoriteController {
         return ResponseEntity.ok(ApiResponse.success("Favorite status retrieved", 
             Map.of("isFavorite", isFavorite)));
     }
-
-    @GetMapping("/check/{serviceId}")
-    public ResponseEntity<ApiResponse<Map<String, Boolean>>> checkFavoriteAlt(
-            @PathVariable Long serviceId,
-            Authentication authentication) {
-        boolean isFavorite = favoriteService.isFavorite(authentication.getName(), serviceId);
-        return ResponseEntity.ok(ApiResponse.success("Favorite status retrieved", 
-            Map.of("isFavorite", isFavorite)));
-    }
 }

@@ -80,10 +80,10 @@ public class Service {
     @Column(name = "approval_status")
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private ApprovalStatus approvalStatus = ApprovalStatus.APPROVED;
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
-    @Column(name = "rejection_reason", columnDefinition = "TEXT")
-    private String rejectionReason;
+    @Column(name = "approval_reason", columnDefinition = "TEXT")
+    private String approvalReason; // Admin feedback for approval/rejection
 
     @Column(name = "average_rating", precision = 3, scale = 2)
     @Builder.Default

@@ -51,7 +51,7 @@ public class AuthService {
         user.setCity(request.getCity() != null ? request.getCity() : "");
         user.setState(request.getState() != null ? request.getState() : "");
         user.setPostalCode(request.getPostalCode() != null ? request.getPostalCode() : "");
-        user.setRole(User.UserRole.USER);
+        user.addRole(User.UserRole.USER); // Set default USER role
         user.setIsActive(true);
 
         User savedUser = userRepository.save(user);
@@ -67,6 +67,9 @@ public class AuthService {
         authResponse.setFirstName(savedUser.getFirstName());
         authResponse.setLastName(savedUser.getLastName());
         authResponse.setRole(savedUser.getRole().name());
+        authResponse.setRoles(savedUser.getRoles().stream()
+                .map(Enum::name)
+                .collect(java.util.stream.Collectors.toSet()));
 
         return ApiResponse.success("Registration successful", authResponse);
     }
@@ -114,7 +117,11 @@ public class AuthService {
                 authResponse.setEmail(user.getEmail());
                 authResponse.setFirstName(user.getFirstName());
                 authResponse.setLastName(user.getLastName());
-                authResponse.setRole(user.getRole().name());
+                authResponse.setRole(user.getRole().name()); // Primary role
+                // Add all roles for multi-role support
+                authResponse.setRoles(user.getRoles().stream()
+                        .map(Enum::name)
+                        .collect(java.util.stream.Collectors.toSet()));
             }
 
             logger.info("Login successful for: {}", request.getEmail());

@@ -62,9 +62,17 @@ public class RefundController {
      */
     @GetMapping("/booking/{bookingId}")
     public ResponseEntity<ApiResponse<RefundResponseDto>> getRefundByBooking(
-            @PathVariable Long bookingId) {
+            @PathVariable Long bookingId,
+            Authentication authentication) {
         
+        String userEmail = authentication.getName();
         RefundResponseDto refund = refundService.getRefundByBooking(bookingId);
+        
+        // Verify user owns this refund/booking
+        if (!refund.getCustomerEmail().equals(userEmail)) {
+            return ResponseEntity.status(403)
+                    .body(ApiResponse.error("Access denied"));
+        }
         
         return ResponseEntity.ok(ApiResponse.success("Refund details retrieved", refund));
     }

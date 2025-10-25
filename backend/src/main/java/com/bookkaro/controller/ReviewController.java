@@ -129,7 +129,8 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ApiResponse.error("You can only update your own reviews"));
         }
-
+        
+        // Don't allow changing the booking - only rating and comment can be updated
         review.setRating(request.getRating());
         review.setComment(request.getComment());
 

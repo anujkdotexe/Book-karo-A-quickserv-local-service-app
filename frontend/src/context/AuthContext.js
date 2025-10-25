@@ -48,9 +48,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login({ email, password });
 
-      const { token, id, email: userEmail, firstName, lastName, role } = response.data.data;
+      const { token, id, email: userEmail, firstName, lastName, role, roles } = response.data.data;
 
-      const userData = { id, email: userEmail, firstName, lastName, role };
+      const userData = { 
+        id, 
+        email: userEmail, 
+        firstName, 
+        lastName, 
+        role, // Primary role for backward compatibility
+        roles: roles || [role] // All roles for multi-role support
+      };
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -58,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       setToken(token);
       setUser(userData);
 
-      return { success: true };
+      return { success: true, userData };
     } catch (error) {
       return {
         success: false,
@@ -70,9 +77,16 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      const { token, id, email, firstName, lastName, role } = response.data.data;
+      const { token, id, email, firstName, lastName, role, roles } = response.data.data;
 
-      const user = { id, email, firstName, lastName, role };
+      const user = { 
+        id, 
+        email, 
+        firstName, 
+        lastName, 
+        role,
+        roles: roles || [role]
+      };
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));

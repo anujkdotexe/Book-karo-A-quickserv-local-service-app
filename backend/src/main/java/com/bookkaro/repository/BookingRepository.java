@@ -131,4 +131,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findTop10ByOrderByCreatedAtDesc();
     
     List<Booking> findTop10ByServiceIdInOrderByCreatedAtDesc(List<Long> serviceIds);
+    
+    // Revenue calculation
+    @Query("SELECT SUM(b.totalAmount) FROM Booking b WHERE b.status = :status")
+    java.math.BigDecimal sumTotalAmountByStatus(@Param("status") BookingStatus status);
+    
+    @Query("SELECT SUM(b.totalAmount) FROM Booking b WHERE b.status = :status AND b.createdAt >= :startDate")
+    java.math.BigDecimal sumTotalAmountByStatusAndCreatedAtAfter(@Param("status") BookingStatus status, @Param("startDate") java.time.LocalDateTime startDate);
 }

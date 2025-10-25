@@ -74,6 +74,11 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
     long countByIsVerifiedTrue();
 
     /**
+     * Count pending approval vendors
+     */
+    long countByApprovalStatus(Vendor.ApprovalStatus status);
+
+    /**
      * Check if vendor code exists
      */
     boolean existsByVendorCode(String vendorCode);

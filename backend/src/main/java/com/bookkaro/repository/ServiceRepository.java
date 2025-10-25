@@ -88,6 +88,8 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     
     // Analytics methods
     Long countByIsAvailableTrue();
+    
+    long countByApprovalStatus(Service.ApprovalStatus status);
 }
 
 

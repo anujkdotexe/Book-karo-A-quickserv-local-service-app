@@ -219,8 +219,45 @@ public class VendorService {
             throw new RuntimeException("Unauthorized: Booking does not belong to your services");
         }
         
-        Booking.BookingStatus status = Booking.BookingStatus.valueOf(newStatus);
-        booking.setStatus(status);
+        Booking.BookingStatus currentStatus = booking.getStatus();
+        Booking.BookingStatus newBookingStatus;
+        
+        try {
+            newBookingStatus = Booking.BookingStatus.valueOf(newStatus);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid booking status: " + newStatus);
+        }
+        
+        // Validate status transitions
+        if (currentStatus == Booking.BookingStatus.CANCELLED) {
+            throw new RuntimeException("Cannot update a cancelled booking");
+        }
+        
+        if (currentStatus == Booking.BookingStatus.COMPLETED) {
+            throw new RuntimeException("Cannot update a completed booking");
+        }
+        
+        // Vendors can only set: CONFIRMED, COMPLETED, CANCELLED
+        if (newBookingStatus != Booking.BookingStatus.CONFIRMED && 
+            newBookingStatus != Booking.BookingStatus.COMPLETED && 
+            newBookingStatus != Booking.BookingStatus.CANCELLED) {
+            throw new RuntimeException("Invalid status transition. Vendors can only set: CONFIRMED, COMPLETED, or CANCELLED");
+        }
+        
+        // PENDING -> CONFIRMED/CANCELLED
+        // CONFIRMED -> COMPLETED
+        if (currentStatus == Booking.BookingStatus.PENDING) {
+            if (newBookingStatus != Booking.BookingStatus.CONFIRMED && 
+                newBookingStatus != Booking.BookingStatus.CANCELLED) {
+                throw new RuntimeException("Pending bookings can only be confirmed or cancelled");
+            }
+        } else if (currentStatus == Booking.BookingStatus.CONFIRMED) {
+            if (newBookingStatus != Booking.BookingStatus.COMPLETED) {
+                throw new RuntimeException("Confirmed bookings can only be marked as completed");
+            }
+        }
+        
+        booking.setStatus(newBookingStatus);
         Booking savedBooking = bookingRepository.save(booking);
         return convertToDto(savedBooking);
     }
@@ -243,7 +280,7 @@ public class VendorService {
         Vendor vendor = getVendorByUserId(userId);
         service.setVendor(vendor);
         service.setApprovalStatus(com.bookkaro.model.Service.ApprovalStatus.PENDING);
-        service.setIsAvailable(true);
+        service.setIsAvailable(false);
         return serviceRepository.save(service);
     }
 
@@ -284,6 +321,17 @@ public class VendorService {
         // Verify service belongs to vendor
         if (!service.getVendor().getId().equals(vendor.getId())) {
             throw new RuntimeException("Unauthorized: Service does not belong to you");
+        }
+        
+        // Check for active bookings using service ID
+        List<Booking> allBookings = bookingRepository.findByServiceIdIn(List.of(service.getId()));
+        List<Booking> activeBookings = allBookings.stream()
+            .filter(b -> b.getStatus() == Booking.BookingStatus.CONFIRMED || 
+                        b.getStatus() == Booking.BookingStatus.PENDING)
+            .collect(Collectors.toList());
+        
+        if (!activeBookings.isEmpty()) {
+            throw new RuntimeException("Cannot delete service with " + activeBookings.size() + " active booking(s). Cancel bookings first.");
         }
         
         serviceRepository.delete(service);

@@ -150,6 +150,38 @@ public class ServiceController {
         return ResponseEntity.ok(ApiResponse.success("Cities retrieved successfully", cities));
     }
 
+    /**
+     * Autocomplete/suggestions for search box
+     * GET /services/autocomplete?q=plumb
+     */
+    @GetMapping("/autocomplete")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<String>>> autocomplete(
+            @RequestParam(value = "q", required = true) String query,
+            @RequestParam(defaultValue = "10") @Min(value = 1) int limit
+    ) {
+        if (query == null || query.trim().length() < 2) {
+            return ResponseEntity.ok(ApiResponse.success("Query too short", List.of()));
+        }
+        
+        String searchTerm = query.trim().toLowerCase();
+        Pageable pageable = PageRequest.of(0, limit);
+        
+        // Search in service names and descriptions
+        Page<Service> services = serviceRepository.findByServiceNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndIsAvailableTrue(
+                searchTerm, searchTerm, pageable
+        );
+        
+        // Get unique service names as suggestions
+        List<String> suggestions = services.stream()
+                .map(Service::getServiceName)
+                .distinct()
+                .limit(limit)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(ApiResponse.success("Autocomplete suggestions retrieved", suggestions));
+    }
+
     private ServiceDto convertToDto(Service service) {
         return ServiceDto.fromEntity(service);
     }

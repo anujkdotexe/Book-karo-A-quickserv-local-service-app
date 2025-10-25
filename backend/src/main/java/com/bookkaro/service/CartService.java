@@ -42,6 +42,20 @@ public class CartService {
         Service service = serviceRepository.findById(request.getServiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
         
+        // Validate service is available and approved
+        if (!service.getIsAvailable()) {
+            throw new RuntimeException("Service is not available");
+        }
+        
+        if (service.getApprovalStatus() != Service.ApprovalStatus.APPROVED) {
+            throw new RuntimeException("Service is not approved for booking");
+        }
+        
+        // Validate quantity
+        if (request.getQuantity() <= 0) {
+            throw new RuntimeException("Quantity must be greater than 0");
+        }
+        
         // Check if item already exists in cart
         CartItem cartItem = cartItemRepository.findByUserAndService_Id(user, service.getId())
                 .orElse(null);

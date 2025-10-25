@@ -82,7 +82,6 @@ public class MockPaymentGateway {
             case CREDIT_CARD -> "CC";
             case DEBIT_CARD -> "DC";
             case NET_BANKING -> "NB";
-            case WALLET -> "WLT";
             case CASH_ON_DELIVERY -> "COD";
         };
         
@@ -116,11 +115,6 @@ public class MockPaymentGateway {
                 "Invalid bank credentials",
                 "Insufficient funds",
                 "Bank service unavailable"
-            };
-            case WALLET -> new String[]{
-                "Insufficient wallet balance",
-                "Wallet authentication failed",
-                "Wallet service unavailable"
             };
             case CASH_ON_DELIVERY -> new String[]{
                 "COD not available for this location"

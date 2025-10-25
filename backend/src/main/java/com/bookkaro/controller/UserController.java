@@ -171,17 +171,15 @@ public class UserController {
     }
     
     @PostMapping("/addresses")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<ApiResponse<AddressDto>> addAddress(
             @Valid @RequestBody AddressRequest request,
             Authentication authentication) {
         User user = getUserFromAuth(authentication);
         
-        // If this is default, unset other default addresses
+        // If this is default, unset other default addresses with efficient query
         if (request.getIsDefault()) {
-            addressRepository.findByUserId(user.getId()).forEach(addr -> {
-                addr.setIsDefault(false);
-                addressRepository.save(addr);
-            });
+            addressRepository.unsetAllDefaultForUser(user.getId());
         }
         
         Address address = Address.builder()
@@ -201,6 +199,7 @@ public class UserController {
     }
     
     @PutMapping("/addresses/{id}")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<ApiResponse<AddressDto>> updateAddress(
             @PathVariable Long id,
             @Valid @RequestBody AddressRequest request,
@@ -215,14 +214,9 @@ public class UserController {
                     .body(ApiResponse.error("You can only update your own addresses"));
         }
         
-        // If this is default, unset other default addresses
+        // If this is default, unset other default addresses with efficient query
         if (request.getIsDefault() && !address.getIsDefault()) {
-            addressRepository.findByUserId(user.getId()).forEach(addr -> {
-                if (!addr.getId().equals(id)) {
-                    addr.setIsDefault(false);
-                    addressRepository.save(addr);
-                }
-            });
+            addressRepository.unsetDefaultForUser(user.getId(), id);
         }
         
         address.setAddressType(request.getAddressType());

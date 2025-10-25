@@ -36,6 +36,14 @@ public class Wallet {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    // Wallet security fields for fraud prevention
+    @Column(name = "daily_topup_total", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal dailyTopupTotal = BigDecimal.ZERO;
+    
+    @Column(name = "last_topup_date")
+    private LocalDateTime lastTopupDate;
 
     @PrePersist
     protected void onCreate() {
@@ -46,6 +54,25 @@ public class Wallet {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Reset daily top-up total if it's a new day
+     */
+    public void resetDailyTopupIfNeeded() {
+        if (lastTopupDate == null || !lastTopupDate.toLocalDate().equals(LocalDateTime.now().toLocalDate())) {
+            dailyTopupTotal = BigDecimal.ZERO;
+            lastTopupDate = LocalDateTime.now();
+        }
+    }
+    
+    /**
+     * Track top-up amount for daily limit enforcement
+     */
+    public void recordTopup(BigDecimal amount) {
+        resetDailyTopupIfNeeded();
+        dailyTopupTotal = dailyTopupTotal.add(amount);
+        lastTopupDate = LocalDateTime.now();
     }
 
     public void credit(BigDecimal amount) {

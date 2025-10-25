@@ -70,8 +70,7 @@ public class Payment {
         CREDIT_CARD,
         DEBIT_CARD,
         NET_BANKING,
-        WALLET,
-        CASH_ON_DELIVERY
+        CASH_ON_DELIVERY  // Simulated payments only
     }
 
     public enum PaymentStatus {

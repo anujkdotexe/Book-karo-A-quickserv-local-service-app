@@ -85,8 +85,28 @@ export const ModalProvider = ({ children }) => {
     });
   }, [showModal]);
 
+  const prompt = useCallback((message, options = {}) => {
+    showModal({
+      type: 'prompt',
+      title: options.title || 'Input Required',
+      message,
+      placeholder: options.placeholder || 'Enter text...',
+      defaultValue: options.defaultValue || '',
+      inputType: options.inputType || 'text',
+      maxLength: options.maxLength,
+      minLength: options.minLength,
+      required: options.required !== false,
+      onConfirm: options.onConfirm,
+      onCancel: options.onCancel,
+      confirmText: options.confirmText || 'Submit',
+      cancelText: options.cancelText || 'Cancel',
+      showCancel: true,
+      validation: options.validation,
+    });
+  }, [showModal]);
+
   return (
-    <ModalContext.Provider value={{ showModal, hideModal, success, error, info, warning, confirm }}>
+    <ModalContext.Provider value={{ showModal, hideModal, success, error, info, warning, confirm, prompt }}>
       {children}
       {modal && (
         <ModalDialog
@@ -109,7 +129,27 @@ const ModalDialog = ({
   showCancel = false,
   autoDismiss,
   onClose,
+  placeholder = '',
+  defaultValue = '',
+  inputType = 'text',
+  maxLength,
+  minLength,
+  required = true,
+  validation,
 }) => {
+  const [inputValue, setInputValue] = React.useState(defaultValue);
+  const [inputError, setInputError] = React.useState('');
+  const inputRef = React.useRef(null);
+
+  // Focus input on mount for prompt modals
+  React.useEffect(() => {
+    if (type === 'prompt' && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current.focus();
+      }, 100);
+    }
+  }, [type]);
+
   // Auto-dismiss effect
   React.useEffect(() => {
     if (autoDismiss && typeof autoDismiss === 'number') {
@@ -121,9 +161,52 @@ const ModalDialog = ({
     }
   }, [autoDismiss, onClose]);
 
+  const validateInput = () => {
+    if (type !== 'prompt') return true;
+
+    // Check required
+    if (required && !inputValue.trim()) {
+      setInputError('This field is required');
+      return false;
+    }
+
+    // Check min length
+    if (minLength && inputValue.trim().length < minLength) {
+      setInputError(`Please enter at least ${minLength} characters`);
+      return false;
+    }
+
+    // Check max length
+    if (maxLength && inputValue.length > maxLength) {
+      setInputError(`Maximum ${maxLength} characters allowed`);
+      return false;
+    }
+
+    // Custom validation
+    if (validation && typeof validation === 'function') {
+      const validationResult = validation(inputValue);
+      if (validationResult !== true) {
+        setInputError(validationResult || 'Invalid input');
+        return false;
+      }
+    }
+
+    setInputError('');
+    return true;
+  };
+
   const handleConfirm = () => {
-    if (onConfirm) {
-      onConfirm();
+    if (type === 'prompt') {
+      if (!validateInput()) {
+        return;
+      }
+      if (onConfirm) {
+        onConfirm(inputValue.trim());
+      }
+    } else {
+      if (onConfirm) {
+        onConfirm();
+      }
     }
     onClose();
   };
@@ -138,6 +221,13 @@ const ModalDialog = ({
   const handleBackdropClick = (e) => {
     if (e.target.classList.contains('modal-backdrop')) {
       handleCancel();
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && type === 'prompt') {
+      e.preventDefault();
+      handleConfirm();
     }
   };
 
@@ -174,6 +264,13 @@ const ModalDialog = ({
             <path d="M12 9v6" />
           </svg>
         );
+      case 'prompt':
+        return (
+          <svg className="modal-icon modal-icon-prompt" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+        );
       default:
         return (
           <svg className="modal-icon modal-icon-info" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -197,6 +294,39 @@ const ModalDialog = ({
             {getIcon()}
           </div>
           <p className="modal-message">{message}</p>
+          
+          {type === 'prompt' && (
+            <div className="modal-input-group">
+              <textarea
+                ref={inputRef}
+                className={`modal-input ${inputError ? 'modal-input-error' : ''}`}
+                placeholder={placeholder}
+                value={inputValue}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  setInputError('');
+                }}
+                onKeyDown={handleKeyDown}
+                maxLength={maxLength}
+                rows={inputType === 'textarea' ? 4 : 3}
+              />
+              {maxLength && (
+                <div className="modal-input-counter">
+                  {inputValue.length} / {maxLength}
+                </div>
+              )}
+              {inputError && (
+                <div className="modal-input-error-message">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                  {inputError}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <div className="modal-footer">
@@ -211,7 +341,7 @@ const ModalDialog = ({
           <button
             className="modal-btn modal-btn-primary"
             onClick={handleConfirm}
-            autoFocus
+            autoFocus={type !== 'prompt'}
           >
             {confirmText}
           </button>

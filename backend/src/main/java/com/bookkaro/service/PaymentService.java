@@ -5,10 +5,8 @@ import com.bookkaro.dto.PaymentResponse;
 import com.bookkaro.model.Booking;
 import com.bookkaro.model.Payment;
 import com.bookkaro.model.User;
-import com.bookkaro.model.Wallet;
 import com.bookkaro.repository.BookingRepository;
 import com.bookkaro.repository.PaymentRepository;
-import com.bookkaro.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +25,6 @@ import java.util.stream.Collectors;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final WalletRepository walletRepository;
     private final BookingRepository bookingRepository;
     private final MockPaymentGateway mockPaymentGateway;
 
@@ -45,6 +42,15 @@ public class PaymentService {
             throw new RuntimeException("Unauthorized to pay for this booking");
         }
         
+        // Validate booking status - only pending/confirmed bookings can be paid
+        if (booking.getStatus() == Booking.BookingStatus.CANCELLED) {
+            throw new RuntimeException("Cannot pay for a cancelled booking");
+        }
+        
+        if (booking.getStatus() == Booking.BookingStatus.COMPLETED) {
+            throw new RuntimeException("Booking already completed");
+        }
+        
         // Check if payment already exists
         if (paymentRepository.findByBookingId(booking.getId()).isPresent()) {
             throw new RuntimeException("Payment already processed for this booking");
@@ -53,6 +59,11 @@ public class PaymentService {
         // Validate amount matches booking total
         if (request.getAmount().compareTo(booking.getTotalAmount()) != 0) {
             throw new RuntimeException("Payment amount does not match booking total");
+        }
+        
+        // Validate amount is positive
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Payment amount must be greater than zero");
         }
 
         // Create payment record
@@ -66,15 +77,13 @@ public class PaymentService {
         
         payment = paymentRepository.save(payment);
 
-        // Process payment based on method
+        // Process payment based on method - all simulated
         Map<String, Object> gatewayResponse;
         
-        if (request.getMethod() == Payment.PaymentMethod.WALLET) {
-            gatewayResponse = processWalletPayment(user, request.getAmount());
-        } else if (request.getMethod() == Payment.PaymentMethod.CASH_ON_DELIVERY) {
+        if (request.getMethod() == Payment.PaymentMethod.CASH_ON_DELIVERY) {
             gatewayResponse = processCODPayment();
         } else {
-            // Process through payment gateway (UPI, Card, Net Banking)
+            // Process through simulated payment gateway (UPI, Card, Net Banking)
             Map<String, String> paymentDetails = buildPaymentDetails(request);
             gatewayResponse = mockPaymentGateway.processPayment(request.getMethod(), paymentDetails);
         }
@@ -104,42 +113,6 @@ public class PaymentService {
         return convertToResponse(payment, (String) gatewayResponse.get("message"));
     }
 
-    @Transactional
-    public Map<String, Object> getWalletBalance(User user) {
-        Wallet wallet = walletRepository.findByUser(user)
-                .orElseGet(() -> createWallet(user));
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("balance", wallet.getBalance());
-        response.put("isActive", wallet.getIsActive());
-        response.put("lastUpdated", wallet.getUpdatedAt());
-        
-        return response;
-    }
-
-    @Transactional
-    public Map<String, Object> addMoneyToWallet(User user, BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Amount must be greater than zero");
-        }
-        
-        Wallet wallet = walletRepository.findByUser(user)
-                .orElseGet(() -> createWallet(user));
-        
-        wallet.credit(amount);
-        wallet = walletRepository.save(wallet);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Money added successfully");
-        response.put("newBalance", wallet.getBalance());
-        response.put("addedAmount", amount);
-        
-        log.info("Added {} to wallet for user {}", amount, user.getEmail());
-        
-        return response;
-    }
-
     public List<PaymentResponse> getUserPayments(User user) {
         List<Payment> payments = paymentRepository.findByUserOrderByCreatedAtDesc(user);
         return payments.stream()
@@ -147,46 +120,19 @@ public class PaymentService {
                 .collect(Collectors.toList());
     }
 
-    public PaymentResponse getPaymentByBookingId(Long bookingId) {
+    public PaymentResponse getPaymentByBookingId(Long bookingId, User requestingUser) {
         Payment payment = paymentRepository.findByBookingId(bookingId)
                 .orElseThrow(() -> new RuntimeException("Payment not found for booking"));
+        
+        // Verify user owns this payment/booking
+        if (!payment.getUser().getId().equals(requestingUser.getId())) {
+            throw new RuntimeException("Access denied: You can only view your own payments");
+        }
+        
         return convertToResponse(payment, null);
     }
 
     // Private helper methods
-
-    private Wallet createWallet(User user) {
-        Wallet wallet = Wallet.builder()
-                .user(user)
-                .balance(BigDecimal.ZERO)
-                .isActive(true)
-                .build();
-        return walletRepository.save(wallet);
-    }
-
-    private Map<String, Object> processWalletPayment(User user, BigDecimal amount) {
-        Map<String, Object> response = new HashMap<>();
-        
-        Wallet wallet = walletRepository.findByUser(user)
-                .orElseGet(() -> createWallet(user));
-        
-        if (wallet.debit(amount)) {
-            walletRepository.save(wallet);
-            
-            response.put("success", true);
-            response.put("transactionId", "WLT" + System.currentTimeMillis());
-            response.put("status", "SUCCESS");
-            response.put("message", "Payment successful via wallet");
-            response.put("gatewayResponse", "Wallet payment completed");
-        } else {
-            response.put("success", false);
-            response.put("status", "FAILED");
-            response.put("message", "Insufficient wallet balance");
-            response.put("gatewayResponse", "Wallet balance: " + wallet.getBalance());
-        }
-        
-        return response;
-    }
 
     private Map<String, Object> processCODPayment() {
         Map<String, Object> response = new HashMap<>();
@@ -215,7 +161,6 @@ public class PaymentService {
             case NET_BANKING:
                 details.put("bankCode", request.getBankCode());
                 break;
-            case WALLET:
             case CASH_ON_DELIVERY:
                 // No additional details needed
                 break;
@@ -267,7 +212,6 @@ public class PaymentService {
                     throw new RuntimeException("Bank code is required for net banking payment");
                 }
                 break;
-            case WALLET:
             case CASH_ON_DELIVERY:
                 // No additional validation needed
                 break;

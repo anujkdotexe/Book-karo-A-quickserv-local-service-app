@@ -12,8 +12,12 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const searchRef = useRef(null);
+  const suggestionsTimeoutRef = useRef(null);
 
   const isActive = (path) => location.pathname === path;
 
@@ -32,16 +36,19 @@ const Navbar = () => {
           setShowMobileMenu(false);
         }
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
     };
 
-    if (showProfileMenu || showMobileMenu) {
+    if (showProfileMenu || showMobileMenu || showSuggestions) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showProfileMenu, showMobileMenu]);
+  }, [showProfileMenu, showMobileMenu, showSuggestions]);
 
   const handleLogout = () => {
     logout();
@@ -67,6 +74,66 @@ const Navbar = () => {
     // Case-insensitive search by converting to lowercase
     navigate(`/services?search=${encodeURIComponent(sanitizedQuery.toLowerCase())}`);
     setSearchQuery('');
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
+
+  // Fetch autocomplete suggestions
+  const fetchSuggestions = async (query) => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/services/autocomplete?q=${encodeURIComponent(query)}&limit=8`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+          setSuggestions(data.data);
+          setShowSuggestions(data.data.length > 0);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Handle search input change with debouncing
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    
+    // Clear previous timeout
+    if (suggestionsTimeoutRef.current) {
+      clearTimeout(suggestionsTimeoutRef.current);
+    }
+    
+    // Debounce API calls by 300ms
+    suggestionsTimeoutRef.current = setTimeout(() => {
+      fetchSuggestions(value);
+    }, 300);
+  };
+
+  // Handle suggestion click
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    navigate(`/services?search=${encodeURIComponent(suggestion.toLowerCase())}`);
+    setSearchQuery('');
+    setSuggestions([]);
   };
 
   // Get logo destination based on role
@@ -347,22 +414,44 @@ const Navbar = () => {
 
         {/* Desktop Search */}
         {isAuthenticated && (
-          <form className="navbar-search desktop-only" onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder="Search services..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
-              aria-label="Search services"
-            />
-            <button type="submit" className="search-button" aria-label="Search for services">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-            </button>
-          </form>
+          <div className="navbar-search-container desktop-only" ref={searchRef}>
+            <form className="navbar-search" onSubmit={handleSearch}>
+              <input
+                type="text"
+                placeholder="Search services..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="search-input"
+                aria-label="Search services"
+                autoComplete="off"
+              />
+              <button type="submit" className="search-button" aria-label="Search for services">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+              </button>
+            </form>
+            
+            {/* Autocomplete Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="search-suggestions">
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="suggestion-item"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="suggestion-icon">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span>{suggestion}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Desktop Menu */}
