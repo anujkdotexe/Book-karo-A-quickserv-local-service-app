@@ -37,8 +37,17 @@ public class FAQ {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @PrePersist
     protected void onCreate() {

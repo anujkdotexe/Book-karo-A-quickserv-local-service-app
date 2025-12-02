@@ -14,6 +14,7 @@ import ResetPassword from './pages/Auth/ResetPassword';
 import Profile from './pages/Profile/Profile';
 import Services from './pages/Services/Services';
 import ServiceDetail from './pages/Services/ServiceDetail';
+import CategoryBrowse from './pages/Services/CategoryBrowse';
 import Bookings from './pages/Bookings/Bookings';
 import BookingDetail from './pages/Bookings/BookingDetail';
 import Addresses from './pages/Addresses/Addresses';
@@ -26,14 +27,17 @@ import PrivacyPolicy from './pages/Support/PrivacyPolicy';
 import Cart from './pages/Cart/Cart';
 import CartCheckout from './pages/Cart/CartCheckout';
 import Payment from './pages/Payment/Payment';
+import CartPayment from './pages/Payment/CartPayment';
 import RefundRequest from './pages/RefundRequest';
-import AdminRefunds from './pages/AdminRefunds';
+import AdminRefunds from './pages/Admin/AdminRefunds';
 
 // Vendor Pages
 import VendorDashboard from './pages/Vendor/VendorDashboard';
 import VendorServices from './pages/Vendor/VendorServices';
 import VendorBookings from './pages/Vendor/VendorBookings';
 import VendorAnalytics from './pages/Vendor/VendorAnalytics';
+import VendorAvailability from './pages/Vendor/VendorAvailability';
+import VendorReviews from './pages/Vendor/VendorReviews';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -41,6 +45,14 @@ import AdminUsers from './pages/Admin/AdminUsers';
 import AdminVendors from './pages/Admin/AdminVendors';
 import AdminServices from './pages/Admin/AdminServices';
 import AdminBookings from './pages/Admin/AdminBookings';
+import AdminCoupons from './pages/Admin/AdminCoupons';
+import AdminAnnouncements from './pages/Admin/AdminAnnouncements';
+import AdminBanners from './pages/Admin/AdminBanners';
+import AdminFAQs from './pages/Admin/AdminFAQs';
+import PlatformAnalytics from './pages/Admin/PlatformAnalytics';
+import AdminAuditLogs from './pages/Admin/AdminAuditLogs';
+import ContentManagement from './pages/Admin/ContentManagement';
+import FunctionalityManagement from './pages/Admin/FunctionalityManagement';
 
 // Error Pages
 import Forbidden from './pages/Forbidden/Forbidden';
@@ -87,12 +99,12 @@ function App() {
                 </ProtectedRoute>
               } />
               <Route path="/addresses" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <Addresses />
                 </ProtectedRoute>
               } />
               <Route path="/favorites" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <Favorites />
                 </ProtectedRoute>
               } />
@@ -101,34 +113,44 @@ function App() {
                   <Services />
                 </ProtectedRoute>
               } />
+              <Route path="/categories" element={
+                <ProtectedRoute>
+                  <CategoryBrowse />
+                </ProtectedRoute>
+              } />
               <Route path="/services/:id" element={
                 <ProtectedRoute>
                   <ServiceDetail />
                 </ProtectedRoute>
               } />
               <Route path="/bookings" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <Bookings />
                 </ProtectedRoute>
               } />
               <Route path="/bookings/:id" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <BookingDetail />
                 </ProtectedRoute>
               } />
               <Route path="/cart" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <Cart />
                 </ProtectedRoute>
               } />
               <Route path="/cart/checkout" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <CartCheckout />
                 </ProtectedRoute>
               } />
               <Route path="/payment" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <Payment />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment/cart" element={
+                <ProtectedRoute allowedRoles={['USER']}>
+                  <CartPayment />
                 </ProtectedRoute>
               } />
 
@@ -153,11 +175,26 @@ function App() {
                   <VendorAnalytics />
                 </ProtectedRoute>
               } />
+              <Route path="/vendor/availability" element={
+                <ProtectedRoute allowedRoles={['VENDOR']}>
+                  <VendorAvailability />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendor/reviews" element={
+                <ProtectedRoute allowedRoles={['VENDOR']}>
+                  <VendorReviews />
+                </ProtectedRoute>
+              } />
 
               {/* Admin Routes (ADMIN role only) */}
               <Route path="/admin/dashboard" element={
                 <ProtectedRoute allowedRoles={['ADMIN']}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/analytics" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <PlatformAnalytics />
                 </ProtectedRoute>
               } />
               <Route path="/admin/users" element={
@@ -180,15 +217,50 @@ function App() {
                   <AdminBookings />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/content" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <ContentManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/functionality-management" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <FunctionalityManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/coupons" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminCoupons />
+                </ProtectedRoute>
+              } />
               <Route path="/admin/refunds" element={
                 <ProtectedRoute allowedRoles={['ADMIN']}>
                   <AdminRefunds />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/announcements" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminAnnouncements />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/banners" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminBanners />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/faqs" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminFAQs />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/audit-logs" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminAuditLogs />
+                </ProtectedRoute>
+              } />
 
               {/* Refund Routes */}
               <Route path="/refunds/request/:bookingId" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['USER']}>
                   <RefundRequest />
                 </ProtectedRoute>
               } />

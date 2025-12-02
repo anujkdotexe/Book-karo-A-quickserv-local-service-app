@@ -13,45 +13,18 @@ const ServiceDetail = () => {
   const { user } = useAuth();
   const { addToCart, isInCart } = useCart();
   const modal = useModal();
+  
   const [service, setService] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showBookingForm, setShowBookingForm] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [bookingData, setBookingData] = useState({
-    bookingDate: '',
-    bookingTime: '',
-    notes: ''
-  });
-  const [bookingError, setBookingError] = useState('');
-  const [bookingSuccess, setBookingSuccess] = useState('');
-  const [notesError, setNotesError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  // Track unsaved changes in booking form
-  useEffect(() => {
-    const hasData = showBookingForm && (
-      bookingData.bookingDate || 
-      bookingData.bookingTime || 
-      bookingData.notes
-    );
-    setHasUnsavedChanges(hasData);
-  }, [showBookingForm, bookingData]);
-
-  // Warn on page leave with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = 'You have unsaved booking details. Are you sure you want to leave?';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+  
+  // Review section state
+  const [reviewFilter, setReviewFilter] = useState('ALL');
+  const [reviewSort, setReviewSort] = useState('RECENT');
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [helpfulReviews, setHelpfulReviews] = useState({});
 
   const checkFavoriteStatus = useCallback(async () => {
     if (!user) {
@@ -62,7 +35,6 @@ const ServiceDetail = () => {
       const response = await favoriteAPI.checkFavorite(id);
       setIsFavorite(response.data.data === true);
     } catch (err) {
-      // Not favorite or error occurred
       setIsFavorite(false);
     }
   }, [id, user]);
@@ -86,7 +58,6 @@ const ServiceDetail = () => {
       }
     } catch (err) {
       modal.error('Failed to update favorites. Please try again.');
-      setError('Failed to update favorites');
     }
   };
 
@@ -94,136 +65,78 @@ const ServiceDetail = () => {
     try {
       const response = await serviceAPI.getServiceById(id);
       setService(response.data.data);
-      setLoading(false);
+      setError('');
     } catch (err) {
-      setError('Failed to load service details');
+      console.error('Error fetching service details:', err);
+      setError(err.response?.data?.message || 'Failed to load service details');
+    } finally {
       setLoading(false);
     }
   }, [id]);
 
-  const fetchReviews = useCallback(async () => {
+  const fetchReviews = useCallback(async (filterRating = null) => {
     try {
-      const response = await reviewAPI.getServiceReviews(id);
-      setReviews(response.data.data || []);
+      const response = await reviewAPI.getServiceReviews(id, filterRating);
+      const reviewsData = response.data?.data || [];
+      setReviews(reviewsData);
     } catch (err) {
-      // Failed to load reviews - not critical, show empty reviews list
+      console.error('❌ Error fetching reviews:', err);
+      console.error('❌ Error response:', err.response);
+      console.error('❌ Error message:', err.message);
+      setReviews([]);
     }
   }, [id]);
 
   useEffect(() => {
-    // Reset favorite status when service changes
     setIsFavorite(false);
     
-    fetchServiceDetails();
-    fetchReviews();
-    checkFavoriteStatus();
+    const loadData = async () => {
+      await fetchServiceDetails();
+      await fetchReviews();
+      await checkFavoriteStatus();
+    };
     
-    // Cleanup on unmount
+    loadData();
+    
     return () => {
       setIsFavorite(false);
     };
   }, [id, fetchServiceDetails, fetchReviews, checkFavoriteStatus]);
 
-  // Generate time slots based on vendor availability
-  const getTimeSlots = () => {
-    const slots = [];
-    
-    // Get vendor's available hours from service data
-    // Format: "HH:mm" e.g., "09:00"
-    const fromTime = service?.availableFromTime || "09:00";
-    const toTime = service?.availableToTime || "18:00";
-    
-    // Parse start and end hours
-    const [startHour, startMin] = fromTime.split(':').map(Number);
-    const [endHour, endMin] = toTime.split(':').map(Number);
-    
-    // Convert to minutes for easier calculation
-    const startMinutes = startHour * 60 + startMin;
-    const endMinutes = endHour * 60 + endMin;
-    
-    // Generate slots every 30 minutes
-    for (let time = startMinutes; time <= endMinutes; time += 30) {
-      const hour = Math.floor(time / 60);
-      const min = time % 60;
-      
-      // Don't add slot if it goes beyond end time
-      if (time > endMinutes) break;
-      
-      const timeString = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-      slots.push(timeString);
-    }
-    
-    return slots;
-  };
-
-  // Get tomorrow's date in YYYY-MM-DD format
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  };
-
-  const handleBookingChange = (e) => {
-    const { name, value } = e.target;
-    setBookingData({
-      ...bookingData,
-      [name]: value
-    });
-    
-    // Validate notes field in real-time
-    if (name === 'notes') {
-      if (value.length > 500) {
-        setNotesError('Notes must be 500 characters or less');
-      } else {
-        setNotesError('');
-      }
-    }
-  };
-
-  const handleBookingSubmit = async (e) => {
-    e.preventDefault();
-    setBookingError('');
-    setBookingSuccess('');
-
-    // Validate notes length before submission
-    if (bookingData.notes.length > 500) {
-      setNotesError('Notes must be 500 characters or less');
-      return;
-    }
-
+  const handleBookNow = async () => {
     if (!user) {
+      modal.warning('Please login to book services');
       navigate('/login');
       return;
     }
 
-    // Prevent double submission
-    if (submitting) return;
-    setSubmitting(true);
+    if (isInCart(parseInt(id))) {
+      navigate('/cart');
+      return;
+    }
 
-    try {
-      // Navigate to payment page with booking data
-      navigate('/payment', {
-        state: {
-          bookingData: {
-            serviceId: parseInt(id),
-            bookingDate: bookingData.bookingDate,
-            bookingTime: bookingData.bookingTime,
-            notes: bookingData.notes
-          },
-          serviceName: service.name,
-          servicePrice: service.price
-        }
+    const result = await addToCart({
+      id: parseInt(id),
+      name: service.serviceName,
+      description: service.description,
+      price: service.price,
+      category: service.category,
+      city: service.city,
+      state: service.state,
+      vendor: service.vendor
+    });
+
+    if (result.success) {
+      // Show success message and navigate to cart
+      modal.success('Service added to cart successfully!', {
+        onConfirm: () => navigate('/cart')
       });
-      
-      setHasUnsavedChanges(false);
-    } catch (err) {
-      setBookingError('Failed to proceed to payment');
-    } finally {
-      setTimeout(() => setSubmitting(false), 1000);
+    } else {
+      modal.error(result.message);
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       modal.warning('Please login to add services to cart');
       navigate('/login');
@@ -236,7 +149,7 @@ const ServiceDetail = () => {
       return;
     }
 
-    const result = addToCart({
+    const result = await addToCart({
       id: parseInt(id),
       name: service.serviceName,
       description: service.description,
@@ -248,9 +161,71 @@ const ServiceDetail = () => {
     });
 
     if (result.success) {
-      modal.success('Service added to cart successfully');
+      modal.success('Service added to cart successfully! You can continue shopping or proceed to checkout.');
     } else {
       modal.error(result.message);
+    }
+  };
+
+  // Calculate rating distribution
+  const getRatingDistribution = () => {
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach(review => {
+      const rating = Math.round(review.rating || 0);
+      if (rating >= 1 && rating <= 5) {
+        distribution[rating]++;
+      }
+    });
+    return distribution;
+  };
+
+  // Sort reviews (filtering now done by backend)
+  const getFilteredAndSortedReviews = () => {
+    let filtered = [...reviews];
+
+    switch (reviewSort) {
+      case 'RECENT':
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'TOP':
+        filtered.sort((a, b) => (helpfulReviews[b.id] || 0) - (helpfulReviews[a.id] || 0));
+        break;
+      case 'HIGH_TO_LOW':
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      case 'LOW_TO_HIGH':
+        filtered.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  };
+
+  const handleHelpfulVote = async (reviewId) => {
+    if (!user) {
+      modal.warning('Please login to mark reviews as helpful');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const response = await reviewAPI.markHelpful(reviewId);
+      const newCount = response.data.data;
+      setHelpfulReviews(prev => ({
+        ...prev,
+        [reviewId]: newCount
+      }));
+      modal.success('Thank you for your feedback!');
+    } catch (err) {
+      console.error('Error marking review as helpful:', err);
+      if (err.response?.status === 401) {
+        modal.warning('Please login to mark reviews as helpful');
+        navigate('/login');
+      } else {
+        modal.error('Failed to submit feedback. Please try again.');
+      }
     }
   };
 
@@ -348,35 +323,194 @@ const ServiceDetail = () => {
                 <div className="location-info">
                   <p><strong>Address:</strong> {service.address}</p>
                   <p><strong>City:</strong> {service.city}, {service.state}</p>
-                  <p><strong>Postal Code:</strong> {service.postalCode}</p>
+                  <p><strong>PIN Code:</strong> {service.postalCode}</p>
                 </div>
               </section>
 
-              {reviews.length > 0 && (
+              {service.isAvailable && (
                 <section className="service-section">
-                  <h3>Customer Reviews ({reviews.length})</h3>
-                  <div className="reviews-list">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="review-card">
-                        <div className="review-header">
-                          <div className="review-user">{review.userName || 'Anonymous'}</div>
-                          <div className="review-rating">
-                            {'⭐'.repeat(Math.round(review.rating || 0))} ({review.rating || 0}/5)
-                          </div>
-                        </div>
-                        <p className="review-comment">{review.comment || 'No comment provided'}</p>
-                        <div className="review-date">
-                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-IN', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          }) : 'Date not available'}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="action-buttons-row">
+                    <button 
+                      className="btn btn-primary btn-action"
+                      onClick={handleBookNow}
+                    >
+                      Book Now
+                    </button>
+                    <button
+                      className={`btn btn-outline btn-action ${isInCart(parseInt(id)) ? 'in-cart' : ''}`}
+                      onClick={handleAddToCart}
+                      disabled={isInCart(parseInt(id))}
+                    >
+                      {isInCart(parseInt(id)) ? (
+                        <>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                          In Cart
+                        </>
+                      ) : (
+                        <>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                          </svg>
+                          Add to Cart
+                        </>
+                      )}
+                    </button>
                   </div>
                 </section>
               )}
+
+              <section className="service-section reviews-section">
+                  {/* Review Header with Sort */}
+                  <div className="review-header-controls">
+                    <h3>Customer Reviews</h3>
+                    <div className="review-sort">
+                      <label>Sort by:</label>
+                      <select value={reviewSort} onChange={(e) => setReviewSort(e.target.value)}>
+                        <option value="RECENT">Most Recent</option>
+                        <option value="TOP">Top Reviews</option>
+                        <option value="HIGH_TO_LOW">Highest to Lowest</option>
+                        <option value="LOW_TO_HIGH">Lowest to Highest</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Rating Summary */}
+                  <div className="rating-summary">
+                    <div className="rating-overview">
+                      <div className="average-rating">
+                        <div className="rating-number">{service.averageRating ? parseFloat(service.averageRating).toFixed(1) : '0.0'}</div>
+                        <div className="rating-stars-large">
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <svg key={star} width="24" height="24" viewBox="0 0 24 24" fill={star <= Math.round(service.averageRating || 0) ? '#2563eb' : '#e5e7eb'} stroke="none">
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                          ))}
+                        </div>
+                        <div className="rating-count">{reviews.length} ratings</div>
+                      </div>
+                      
+                      <div className="rating-distribution">
+                        {[5, 4, 3, 2, 1].map(star => {
+                          const distribution = getRatingDistribution();
+                          const count = distribution[star] || 0;
+                          const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                          return (
+                            <div 
+                              key={star} 
+                              className={`rating-bar-row ${reviewFilter === star.toString() ? 'active' : ''}`}
+                              onClick={() => {
+                                const newFilter = reviewFilter === star.toString() ? 'ALL' : star.toString();
+                                setReviewFilter(newFilter);
+                                fetchReviews(newFilter === 'ALL' ? null : parseInt(newFilter));
+                              }}
+                            >
+                              <span className="star-label">{star} star</span>
+                              <div className="rating-bar-container">
+                                <div className="rating-bar" style={{ width: `${percentage}%` }}></div>
+                              </div>
+                              <span className="rating-count-text">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Filter Badge */}
+                  {reviewFilter !== 'ALL' && (
+                    <div className="review-filter-info">
+                      <span className="filter-badge">
+                        Showing {reviewFilter}-star reviews
+                        <button onClick={() => { setReviewFilter('ALL'); fetchReviews(null); }} className="clear-filter">✕</button>
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Reviews List */}
+                  <div className="reviews-list">
+                    {(() => {
+                      const filteredReviews = getFilteredAndSortedReviews();
+                      
+                      if (reviews.length === 0) {
+                        return (
+                          <div className="no-reviews-message">
+                            <p>No reviews yet. Be the first to review this service!</p>
+                          </div>
+                        );
+                      }
+                      
+                      return filteredReviews
+                        .slice(0, showAllReviews ? undefined : 5)
+                        .map((review) => (
+                        <div key={review.id} className="review-card">
+                          <div className="review-header">
+                            <div className="review-user-info">
+                              <div className="review-user-avatar">
+                                {(review.userName || 'A').charAt(0).toUpperCase()}
+                              </div>
+                              <div className="review-user">{review.userName || 'Anonymous'}</div>
+                            </div>
+                            <div className="review-rating-stars">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <svg key={star} width="16" height="16" viewBox="0 0 24 24" fill={star <= Math.round(review.rating || 0) ? '#2563eb' : '#e5e7eb'} stroke="none">
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                              ))}
+                              <span className="rating-text">{review.rating?.toFixed(1) || '0.0'} out of 5</span>
+                            </div>
+                          </div>
+                          
+                          <div className="review-date">
+                            {review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-IN', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            }) : 'Date not available'}
+                          </div>
+                          
+                          <p className="review-comment">{review.comment || 'No comment provided'}</p>
+                          
+                          <div className="review-footer">
+                            <button 
+                              className="helpful-btn"
+                              onClick={() => handleHelpfulVote(review.id)}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                              </svg>
+                              Helpful ({helpfulReviews[review.id] || review.helpfulCount || 0})
+                            </button>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+
+                  {/* Load More Button */}
+                  {getFilteredAndSortedReviews().length > 5 && (
+                    <div className="review-load-more">
+                      {!showAllReviews ? (
+                        <button 
+                          className="btn btn-outline btn-load-more"
+                          onClick={() => setShowAllReviews(true)}
+                        >
+                          View All {getFilteredAndSortedReviews().length} Reviews
+                        </button>
+                      ) : (
+                        <button 
+                          className="btn btn-outline btn-load-more"
+                          onClick={() => setShowAllReviews(false)}
+                        >
+                          Show Less
+                        </button>
+                      )}
+                    </div>
+                  )}
+              </section>
             </div>
 
             <div className="service-sidebar">
@@ -411,155 +545,6 @@ const ServiceDetail = () => {
                   </div>
                 </div>
               </div>
-
-              {service.isAvailable && (
-                <div className="booking-card">
-                  {!showBookingForm ? (
-                    <>
-                      <button 
-                        className="btn btn-primary btn-block btn-large"
-                        onClick={() => setShowBookingForm(true)}
-                      >
-                        Book Now
-                      </button>
-                      <button
-                        className={`btn btn-outline btn-block ${isInCart(parseInt(id)) ? 'in-cart' : ''}`}
-                        onClick={handleAddToCart}
-                        disabled={isInCart(parseInt(id))}
-                      >
-                        {isInCart(parseInt(id)) ? (
-                          <>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            In Cart
-                          </>
-                        ) : (
-                          <>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="9" cy="21" r="1"></circle>
-                              <circle cx="20" cy="21" r="1"></circle>
-                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                            </svg>
-                            Add to Cart
-                          </>
-                        )}
-                      </button>
-                    </>
-                  ) : (
-                    <div className="booking-form-container">
-                      <h3>Book Service</h3>
-                      {bookingError && <div className="error-message">{bookingError}</div>}
-                      {bookingSuccess && <div className="success-message">{bookingSuccess}</div>}
-                      
-                      <form onSubmit={handleBookingSubmit}>
-                        <div className="form-group">
-                          <label htmlFor="bookingDate">Booking Date *</label>
-                          <input
-                            type="date"
-                            id="bookingDate"
-                            name="bookingDate"
-                            value={bookingData.bookingDate}
-                            onChange={handleBookingChange}
-                            min={getTomorrowDate()}
-                            required
-                            aria-required="true"
-                          />
-                          <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '4px' }}>
-                            ⓘ Bookings must be made at least 1 day in advance
-                          </small>
-                        </div>
-
-                        <div className="form-group">
-                          <label htmlFor="bookingTime">
-                            Booking Time * 
-                            {service?.availableFromTime && service?.availableToTime && (
-                              <span style={{ fontWeight: 'normal', color: '#666', marginLeft: '8px' }}>
-                                ({service.availableFromTime} - {service.availableToTime})
-                              </span>
-                            )}
-                          </label>
-                          <select
-                            id="bookingTime"
-                            name="bookingTime"
-                            value={bookingData.bookingTime}
-                            onChange={handleBookingChange}
-                            required
-                            aria-required="true"
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '1rem'
-                            }}
-                          >
-                            <option value="">Select a time slot</option>
-                            {getTimeSlots().map(slot => {
-                              const hour = parseInt(slot.split(':')[0]);
-                              const isPM = hour >= 12;
-                              const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
-                              return (
-                                <option key={slot} value={slot}>
-                                  {displayHour}:{slot.split(':')[1]} {isPM ? 'PM' : 'AM'}
-                                </option>
-                              );
-                            })}
-                          </select>
-                          <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '4px' }}>
-                            ⓘ {service?.availableFromTime && service?.availableToTime 
-                              ? `Available: ${service.availableFromTime} to ${service.availableToTime} (30-min intervals)`
-                              : 'Available slots: 9:00 AM to 6:00 PM (30-minute intervals)'}
-                          </small>
-                        </div>
-
-                        <div className="form-group">
-                          <label htmlFor="notes">Additional Notes (Optional)</label>
-                          <textarea
-                            id="notes"
-                            name="notes"
-                            value={bookingData.notes}
-                            onChange={handleBookingChange}
-                            rows="3"
-                            placeholder="Any special requirements or instructions"
-                            maxLength="500"
-                            aria-invalid={!!notesError}
-                            aria-describedby={notesError ? 'notes-error' : 'notes-counter'}
-                          />
-                          <div className="form-group-footer">
-                            <span className="character-counter" id="notes-counter">
-                              {bookingData.notes.length}/500 characters
-                            </span>
-                            {notesError && (
-                              <span className="field-error" id="notes-error" role="alert">
-                                {notesError}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="form-actions">
-                          <button 
-                            type="submit" 
-                            className="btn btn-primary btn-block"
-                            disabled={submitting || !!notesError}
-                          >
-                            {submitting ? 'Booking...' : 'Confirm Booking'}
-                          </button>
-                          <button 
-                            type="button" 
-                            className="btn btn-outline btn-block"
-                            onClick={() => setShowBookingForm(false)}
-                            disabled={submitting}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>

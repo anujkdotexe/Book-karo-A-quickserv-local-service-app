@@ -1,14 +1,41 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { bookingAPI } from '../../services/api';
-import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import './Bookings.css';
 
 const Bookings = () => {
+  const location = useLocation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState(location.state?.filter || 'ALL'); // URL filter support
+  const [statusCounts, setStatusCounts] = useState({
+    ALL: 0,
+    PENDING: 0,
+    CONFIRMED: 0,
+    COMPLETED: 0,
+    CANCELLED: 0
+  });
+
+  const loadStatusCounts = async () => {
+    try {
+      const statuses = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
+      const counts = {};
+      
+      for (const status of statuses) {
+        const statusFilter = status === 'ALL' ? null : status;
+        const response = await bookingAPI.getUserBookings(statusFilter);
+        const bookingsData = response.data.data || [];
+        counts[status] = bookingsData.length;
+      }
+      
+      setStatusCounts(counts);
+    } catch (err) {
+      console.error('Failed to load status counts:', err);
+    }
+  };
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -23,9 +50,9 @@ const Bookings = () => {
         new Map(bookingsData.map(b => [b.id, b])).values()
       );
       setBookings(uniqueBookings);
-      setLoading(false);
     } catch (err) {
-      setError('Failed to load bookings');
+      setError(err.response?.data?.message || 'Failed to load your bookings. Please check your connection and try again.');
+    } finally {
       setLoading(false);
     }
   }, [statusFilter]);
@@ -33,6 +60,10 @@ const Bookings = () => {
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  useEffect(() => {
+    loadStatusCounts();
+  }, []);
 
   const getStatusLabel = (status) => {
     const labels = {
@@ -57,40 +88,43 @@ const Bookings = () => {
             className={`filter-btn ${statusFilter === 'ALL' ? 'active' : ''}`}
             onClick={() => setStatusFilter('ALL')}
           >
-            All
+            All ({statusCounts.ALL})
           </button>
           <button
             className={`filter-btn ${statusFilter === 'PENDING' ? 'active' : ''}`}
             onClick={() => setStatusFilter('PENDING')}
           >
-            Pending
+            Pending ({statusCounts.PENDING})
           </button>
           <button
             className={`filter-btn ${statusFilter === 'CONFIRMED' ? 'active' : ''}`}
             onClick={() => setStatusFilter('CONFIRMED')}
           >
-            Confirmed
+            Confirmed ({statusCounts.CONFIRMED})
           </button>
           <button
             className={`filter-btn ${statusFilter === 'COMPLETED' ? 'active' : ''}`}
             onClick={() => setStatusFilter('COMPLETED')}
           >
-            Completed
+            Completed ({statusCounts.COMPLETED})
           </button>
           <button
             className={`filter-btn ${statusFilter === 'CANCELLED' ? 'active' : ''}`}
             onClick={() => setStatusFilter('CANCELLED')}
           >
-            Cancelled
+            Cancelled ({statusCounts.CANCELLED})
           </button>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-
         {loading ? (
-          <div className="bookings-grid">
-            <SkeletonLoader type="booking" count={6} />
-          </div>
+          <LoadingSpinner message="Loading bookings..." size="thick" fullScreen />
+        ) : error && bookings.length === 0 ? (
+          <ErrorModal
+            title="Failed to Load Bookings"
+            message={error}
+            onRefresh={fetchBookings}
+            onClose={() => setError('')}
+          />
         ) : bookings.length > 0 ? (
           <div className="bookings-grid">
             {bookings.map((booking) => (

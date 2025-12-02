@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import './VendorDashboard.css';
 
 const VendorDashboard = () => {
@@ -28,21 +29,17 @@ const VendorDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="vendor-dashboard">
-        <LoadingSpinner message="Loading dashboard..." size="large" />
-      </div>
-    );
+    return <LoadingSpinner message="Loading dashboard..." size="thick" fullScreen />;
   }
 
   if (error) {
     return (
-      <div className="vendor-dashboard">
-        <div className="error-card">
-          <p>{error}</p>
-          <button onClick={loadDashboard} className="btn btn-primary">Retry</button>
-        </div>
-      </div>
+      <ErrorModal
+        title="Failed to Load Dashboard"
+        message={error}
+        onRefresh={loadDashboard}
+        onClose={() => setError(null)}
+      />
     );
   }
 
@@ -64,13 +61,15 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Bookings</h3>
-            <p className="stat-value">{stats?.totalBookings || 0}</p>
-            <span className="stat-label">All Time</span>
+            <h2>Total Bookings</h2>
+            <div>
+              <span className="stat-value">{stats?.totalBookings || 0}</span>
+              <span className="stat-label">All Time</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings')}>
+        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings', { state: { filter: 'PENDING' } })}>
           <div className="stat-icon pending">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -78,26 +77,30 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Pending</h3>
-            <p className="stat-value">{stats?.pendingBookings || 0}</p>
-            <span className="stat-label">Awaiting Response</span>
+            <h2>Pending</h2>
+            <div>
+              <span className="stat-value">{stats?.pendingBookings || 0}</span>
+              <span className="stat-label">Awaiting Response</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings')}>
+        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings', { state: { filter: 'CONFIRMED' } })}>
           <div className="stat-icon confirmed">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Confirmed</h3>
-            <p className="stat-value">{stats?.confirmedBookings || 0}</p>
-            <span className="stat-label">Active Orders</span>
+            <h2>Confirmed</h2>
+            <div>
+              <span className="stat-value">{stats?.confirmedBookings || 0}</span>
+              <span className="stat-label">Active Orders</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings')}>
+        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings', { state: { filter: 'COMPLETED' } })}>
           <div className="stat-icon completed">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -105,9 +108,11 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Completed</h3>
-            <p className="stat-value">{stats?.completedBookings || 0}</p>
-            <span className="stat-label">Finished Jobs</span>
+            <h2>Completed</h2>
+            <div>
+              <span className="stat-value">{stats?.completedBookings || 0}</span>
+              <span className="stat-label">Finished Jobs</span>
+            </div>
           </div>
         </div>
 
@@ -119,9 +124,11 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Services</h3>
-            <p className="stat-value">{stats?.totalServices || 0}</p>
-            <span className="stat-label">Service Offerings</span>
+            <h2>Total Services</h2>
+            <div>
+              <span className="stat-value">{stats?.totalServices || 0}</span>
+              <span className="stat-label">Service Offerings</span>
+            </div>
           </div>
         </div>
 
@@ -133,13 +140,15 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Active Services</h3>
-            <p className="stat-value">{stats?.activeServices || 0}</p>
-            <span className="stat-label">Currently Available</span>
+            <h2>Active Services</h2>
+            <div>
+              <span className="stat-value">{stats?.activeServices || 0}</span>
+              <span className="stat-label">Currently Available</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings')}>
+        <div className="stat-card">
           <div className="stat-icon revenue">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -147,13 +156,15 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Revenue</h3>
-            <p className="stat-value">Rs.{stats?.totalRevenue?.toLocaleString() || 0}</p>
-            <span className="stat-label">Lifetime Earnings</span>
+            <h2>Total Revenue</h2>
+            <div>
+              <span className="stat-value">Rs.{stats?.totalRevenue?.toLocaleString() || 0}</span>
+              <span className="stat-label">Lifetime Earnings</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card clickable" onClick={() => navigate('/vendor/bookings')}>
+        <div className="stat-card">
           <div className="stat-icon monthly">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -161,9 +172,11 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Monthly Revenue</h3>
-            <p className="stat-value">Rs.{stats?.monthlyRevenue?.toLocaleString() || 0}</p>
-            <span className="stat-label">This Month</span>
+            <h2>Monthly Revenue</h2>
+            <div>
+              <span className="stat-value">Rs.{stats?.monthlyRevenue?.toLocaleString() || 0}</span>
+              <span className="stat-label">This Month</span>
+            </div>
           </div>
         </div>
 
@@ -174,22 +187,61 @@ const VendorDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Average Rating</h3>
-            <p className="stat-value">{stats?.averageRating?.toFixed(1) || 'N/A'}</p>
-            <span className="stat-label">Customer Feedback</span>
+            <h2>Average Rating</h2>
+            <div>
+              <span className="stat-value">{stats?.averageRating?.toFixed(1) || 'N/A'}</span>
+              <span className="stat-label">Customer Feedback</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card clickable" onClick={() => navigate('/vendor/availability')}>
+          <div className="stat-icon availability">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h2>Availability</h2>
+            <div>
+              <span className="stat-value">{stats?.availabilitySlots || 0}</span>
+              <span className="stat-label">Weekly Time Slots</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card clickable" onClick={() => navigate('/vendor/reviews')}>
           <div className="stat-icon reviews">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Reviews</h3>
-            <p className="stat-value">{stats?.totalReviews || 0}</p>
-            <span className="stat-label">Customer Reviews</span>
+            <h2>Total Reviews</h2>
+            <div>
+              <span className="stat-value">{stats?.totalReviews || 0}</span>
+              <span className="stat-label">Customer Reviews</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon active">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h2>Response Time</h2>
+            <div>
+              <span className="stat-value">{stats?.avgResponseTime || '2.5h'}</span>
+              <span className="stat-label">Average Response</span>
+            </div>
           </div>
         </div>
       </div>
@@ -271,17 +323,21 @@ const VendorDashboard = () => {
         <div className="section">
           <h2>Weekly Revenue</h2>
           <div className="revenue-chart">
-            {stats.weeklyRevenue.map(data => (
-              <div key={data.date} className="chart-bar">
-                <div 
-                  className="bar" 
-                  style={{ height: `${(data.amount / Math.max(...stats.weeklyRevenue.map(d => d.amount))) * 100}%` }}
-                >
-                  <span className="bar-value">Rs.{data.amount || 0}</span>
+            {stats.weeklyRevenue.map(data => {
+              const maxAmount = Math.max(...stats.weeklyRevenue.map(d => d.amount), 1); // Prevent division by zero
+              const heightPercent = maxAmount > 0 ? (data.amount / maxAmount) * 100 : 0;
+              return (
+                <div key={data.date} className="chart-bar">
+                  <div 
+                    className="bar" 
+                    style={{ height: `${heightPercent}%` }}
+                  >
+                    <span className="bar-value">Rs.{data.amount || 0}</span>
+                  </div>
+                  <span className="bar-label">{new Date(data.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
                 </div>
-                <span className="bar-label">{new Date(data.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

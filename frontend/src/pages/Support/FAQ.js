@@ -1,117 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Support.css';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api/v1';
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(null);
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const faqs = [
-    {
-      category: 'Getting Started',
-      questions: [
-        {
-          question: 'How do I create an account on BOOK-KARO?',
-          answer: 'Click on "Create Free Account" in the navigation bar, fill in your details including name, email, phone number, and address, then submit the form. You\'ll be automatically logged in and can start browsing services.'
-        },
-        {
-          question: 'Is registration free?',
-          answer: 'Yes! Registration is completely free. There are no hidden charges for creating an account or browsing services.'
-        },
-        {
-          question: 'How do I book a service?',
-          answer: 'Browse services by category or location, click on a service to view details, then click "Book This Service". Fill in your preferred date and time, and submit the booking. You\'ll receive a confirmation once the vendor accepts.'
+  useEffect(() => {
+    fetchFAQs();
+  }, []);
+
+  const fetchFAQs = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/public/content/faqs`);
+      const faqData = response.data.data;
+      
+      // Group FAQs by category
+      const grouped = faqData.reduce((acc, faq) => {
+        if (!acc[faq.category]) {
+          acc[faq.category] = [];
         }
-      ]
-    },
-    {
-      category: 'Bookings & Payments',
-      questions: [
-        {
-          question: 'How do I track my bookings?',
-          answer: 'Navigate to "My Bookings" from the navigation menu. You can filter bookings by status: Pending, Confirmed, Completed, or Cancelled. Click on any booking to view detailed information.'
-        },
-        {
-          question: 'Can I cancel a booking?',
-          answer: 'Yes, you can cancel a booking before it\'s confirmed by the vendor. Go to "My Bookings", click on the booking, and select "Cancel Booking". Once confirmed or in progress, cancellation policies may vary.'
-        },
-        {
-          question: 'What payment methods are accepted?',
-          answer: 'Currently, payments are handled directly with service providers. Payment methods may include cash, UPI, cards, or online transfer depending on the provider\'s preferences.'
-        },
-        {
-          question: 'How does pricing work?',
-          answer: 'Each service has a base price displayed on the service card. Final pricing may vary based on specific requirements, which will be confirmed by the vendor before service delivery.'
-        }
-      ]
-    },
-    {
-      category: 'Services & Providers',
-      questions: [
-        {
-          question: 'What types of services are available?',
-          answer: 'BOOK-KARO offers a wide range of home services including Plumbing, Electrical work, Cleaning, Carpentry, Painting, AC Repair, Appliance Repair, and more. Browse by category to see all available services.'
-        },
-        {
-          question: 'How are service providers verified?',
-          answer: 'All service providers on BOOK-KARO undergo a verification process including identity checks, skill verification, and background checks. We continuously monitor provider ratings and reviews.'
-        },
-        {
-          question: 'Can I choose a specific service provider?',
-          answer: 'Yes, when you view service details, you can see the provider\'s information, ratings, and reviews. You can choose to book with providers you trust or have worked with before.'
-        },
-        {
-          question: 'How do I rate and review a service?',
-          answer: 'After a service is completed, go to "My Bookings", click on the completed booking, and you\'ll see an option to write a review. Rate the service from 1-5 stars and share your experience.'
-        }
-      ]
-    },
-    {
-      category: 'Account & Profile',
-      questions: [
-        {
-          question: 'How do I update my profile information?',
-          answer: 'Go to "My Profile" from the navigation menu, click "Edit Profile", update your information, and click "Save Changes". You can update your name, phone number, and address details.'
-        },
-        {
-          question: 'Can I save multiple addresses?',
-          answer: 'Yes! Go to "My Profile" and navigate to the "Addresses" tab. You can add multiple addresses (Home, Office, etc.) and set a default address for bookings.'
-        },
-        {
-          question: 'How do I save my favorite services?',
-          answer: 'Click the heart icon on any service card or detail page to add it to your favorites. Access your saved favorites from the heart icon in the navigation bar.'
-        },
-        {
-          question: 'How do I reset my password?',
-          answer: 'Currently, password reset can be requested through the Contact Us page. Future updates will include a self-service password reset option.'
-        }
-      ]
-    },
-    {
-      category: 'Safety & Support',
-      questions: [
-        {
-          question: 'Is my personal information safe?',
-          answer: 'Yes, we take data security seriously. Your personal information is encrypted and stored securely. We never share your data with third parties without your consent.'
-        },
-        {
-          question: 'What if I\'m not satisfied with a service?',
-          answer: 'If you\'re unhappy with a service, please contact us through the Help Center with your booking details. We\'ll work with you and the provider to resolve the issue.'
-        },
-        {
-          question: 'How do I report a problem with a provider?',
-          answer: 'You can report issues through the Contact Us page or email us at support@BOOK-KARO.com. Include your booking ID and details of the issue for fastest resolution.'
-        },
-        {
-          question: 'What are the service hours?',
-          answer: 'Our customer support is available Monday-Saturday, 9 AM - 6 PM IST. Service providers may have different availability, which you can check on their profile.'
-        }
-      ]
+        acc[faq.category].push({
+          question: faq.question,
+          answer: faq.answer
+        });
+        return acc;
+      }, {});
+      
+      // Convert to array format matching the original structure
+      const categorizedFaqs = Object.keys(grouped).map(category => ({
+        category,
+        questions: grouped[category]
+      }));
+      
+      setFaqs(categorizedFaqs);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching FAQs:', err);
+      setError('Failed to load FAQs. Please try again later.');
+      setLoading(false);
     }
-  ];
+  };
 
   const toggleFAQ = (categoryIndex, questionIndex) => {
     const index = `${categoryIndex}-${questionIndex}`;
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  if (loading) {
+    return <LoadingSpinner message="Loading FAQs..." fullScreen />;
+  }
+
+  if (error) {
+    return (
+      <div className="support-page">
+        <div className="container">
+          <div className="error-message">
+            <p>{error}</p>
+            <button onClick={fetchFAQs} className="btn btn-primary">Retry</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="support-page">

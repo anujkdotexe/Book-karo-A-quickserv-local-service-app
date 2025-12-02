@@ -83,6 +83,7 @@ public class MockPaymentGateway {
             case DEBIT_CARD -> "DC";
             case NET_BANKING -> "NB";
             case CASH_ON_DELIVERY -> "COD";
+            case WALLET -> "WLT";
         };
         
         return prefix + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -118,6 +119,11 @@ public class MockPaymentGateway {
             };
             case CASH_ON_DELIVERY -> new String[]{
                 "COD not available for this location"
+            };
+            case WALLET -> new String[]{
+                "Insufficient wallet balance",
+                "Wallet service temporarily unavailable",
+                "Invalid wallet transaction"
             };
         };
         

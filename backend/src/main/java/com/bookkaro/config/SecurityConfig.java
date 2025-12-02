@@ -13,7 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -44,6 +44,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Disable CSRF for API endpoints (JWT provides protection)
+                // CSRF is mainly needed for browser-based form submissions with cookies
+                // JWT tokens in headers provide sufficient protection for REST APIs
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
@@ -52,7 +55,12 @@ public class SecurityConfig {
                         .requestMatchers("/api-docs/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/services/**").permitAll()
+                        .requestMatchers("/categories/**").permitAll()
+                        .requestMatchers("/faqs/**").permitAll()
+                        .requestMatchers("/coupons/**").permitAll() // Public access to coupon endpoints
                         .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/reviews/service/**").permitAll() // Public read access to service reviews
+                        .requestMatchers("/settings/shared-settings").permitAll() // Public access to system settings
                         
                         // Vendor-only endpoints (without /api/v1 prefix since context-path adds it)
                         .requestMatchers("/vendor/**").hasRole("VENDOR")
@@ -85,8 +93,9 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("deprecation")
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return NoOpPasswordEncoder.getInstance(); // Plain text passwords - NOT for production!
     }
 
     @Bean

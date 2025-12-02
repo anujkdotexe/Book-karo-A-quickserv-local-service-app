@@ -1,31 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/adminAPI';
-import { useToast } from '../../components/Toast/Toast';
 import { useModal } from '../../components/Modal/Modal';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import '../Vendor/VendorBookings.css';
 
 const AdminBookings = () => {
-  const toast = useToast();
   const modal = useModal();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('ALL');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [statusCounts, setStatusCounts] = useState({
+    ALL: 0,
+    PENDING: 0,
+    CONFIRMED: 0,
+    COMPLETED: 0,
+    CANCELLED: 0
+  });
 
   useEffect(() => {
     loadBookings();
   }, [filter, page]);
 
+  useEffect(() => {
+    loadStatusCounts();
+  }, []);
+
+  const loadStatusCounts = async () => {
+    try {
+      const statuses = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
+      const counts = {};
+      
+      for (const status of statuses) {
+        const statusFilter = status === 'ALL' ? null : status;
+        const data = await adminAPI.getAllBookings(statusFilter, 0, 1);
+        counts[status] = data.totalElements || 0;
+      }
+      
+      setStatusCounts(counts);
+    } catch (err) {
+      console.error('Failed to load status counts:', err);
+    }
+  };
+
   const loadBookings = async () => {
     try {
       setLoading(true);
+      setError(null);
       const statusFilter = filter === 'ALL' ? null : filter;
       const data = await adminAPI.getAllBookings(statusFilter, page, 20);
       setBookings(data.content || []);
       setTotalPages(data.totalPages || 0);
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load bookings');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load bookings. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -52,6 +82,7 @@ const AdminBookings = () => {
                 await adminAPI.cancelBooking(bookingId, reason || 'Admin cancellation');
                 modal.success('Booking cancelled successfully');
                 loadBookings();
+                loadStatusCounts();
               } catch (error) {
                 modal.error(error.response?.data?.message || 'Failed to cancel booking');
               }
@@ -73,8 +104,76 @@ const AdminBookings = () => {
             await adminAPI.updateBookingStatus(bookingId, newStatus);
             modal.success('Booking status updated successfully');
             loadBookings();
+            loadStatusCounts();
           } catch (error) {
             modal.error(error.response?.data?.message || 'Failed to update status');
+          }
+        }
+      }
+    );
+  };
+
+  const handleRevertBooking = async (bookingId) => {
+    modal.prompt('Please provide a reason for reverting this booking:', {
+      title: 'Revert Completed Booking',
+      placeholder: 'Enter revert reason (e.g., customer complaint, incorrect completion, etc.)...',
+      minLength: 5,
+      maxLength: 300,
+      required: true,
+      confirmText: 'Continue',
+      cancelText: 'Cancel',
+      onConfirm: async (reason) => {
+        // Show status selection modal
+        modal.custom({
+          title: 'Select New Status',
+          content: (
+            <div style={{ padding: '20px' }}>
+              <p style={{ marginBottom: '20px' }}>Select the status to revert to:</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <button
+                  onClick={() => {
+                    modal.close();
+                    confirmRevert(bookingId, 'CONFIRMED', reason);
+                  }}
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '12px' }}
+                >
+                  CONFIRMED
+                </button>
+                <button
+                  onClick={() => {
+                    modal.close();
+                    confirmRevert(bookingId, 'PENDING', reason);
+                  }}
+                  className="btn btn-outline"
+                  style={{ width: '100%', padding: '12px' }}
+                >
+                  PENDING
+                </button>
+              </div>
+            </div>
+          ),
+          showClose: true
+        });
+      }
+    });
+  };
+
+  const confirmRevert = async (bookingId, newStatus, reason) => {
+    modal.confirm(
+      `Are you sure you want to revert this booking to ${newStatus}?\n\nReason: ${reason}`,
+      {
+        title: 'Confirm Revert',
+        confirmText: 'Yes, Revert Booking',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          try {
+            await adminAPI.revertBooking(bookingId, newStatus, reason);
+            modal.success('Booking reverted successfully');
+            loadBookings();
+            loadStatusCounts();
+          } catch (error) {
+            modal.error(error.response?.data?.message || 'Failed to revert booking');
           }
         }
       }
@@ -92,10 +191,17 @@ const AdminBookings = () => {
   };
 
   if (loading && bookings.length === 0) {
+    return <LoadingSpinner message="Loading bookings..." fullScreen />;
+  }
+
+  if (error && bookings.length === 0) {
     return (
-      <div className="vendor-bookings">
-        <div className="loading-spinner">Loading bookings...</div>
-      </div>
+      <ErrorModal
+        title="Failed to Load Bookings"
+        message={error}
+        onRefresh={loadBookings}
+        onClose={() => setError(null)}
+      />
     );
   }
 
@@ -113,37 +219,37 @@ const AdminBookings = () => {
           className={`filter-tab ${filter === 'ALL' ? 'active' : ''}`}
           onClick={() => { setFilter('ALL'); setPage(0); }}
         >
-          All ({bookings.length})
+          All ({statusCounts.ALL})
         </button>
         <button 
           className={`filter-tab ${filter === 'PENDING' ? 'active' : ''}`}
           onClick={() => { setFilter('PENDING'); setPage(0); }}
         >
-          Pending
+          Pending ({statusCounts.PENDING})
         </button>
         <button 
           className={`filter-tab ${filter === 'CONFIRMED' ? 'active' : ''}`}
           onClick={() => { setFilter('CONFIRMED'); setPage(0); }}
         >
-          Confirmed
+          Confirmed ({statusCounts.CONFIRMED})
         </button>
         <button 
           className={`filter-tab ${filter === 'COMPLETED' ? 'active' : ''}`}
           onClick={() => { setFilter('COMPLETED'); setPage(0); }}
         >
-          Completed
+          Completed ({statusCounts.COMPLETED})
         </button>
         <button 
           className={`filter-tab ${filter === 'CANCELLED' ? 'active' : ''}`}
           onClick={() => { setFilter('CANCELLED'); setPage(0); }}
         >
-          Cancelled
+          Cancelled ({statusCounts.CANCELLED})
         </button>
       </div>
 
       {!bookings || bookings.length === 0 ? (
         <div className="empty-state">
-          <p>No {filter.toLowerCase()} bookings found.</p>
+          <p>No {filter === 'ALL' ? '' : filter.toLowerCase() + ' '}bookings found.</p>
         </div>
       ) : (
         <>
@@ -167,17 +273,16 @@ const AdminBookings = () => {
                     <td>#{booking.id}</td>
                     <td>
                       <div className="customer-info">
-                        <strong>{booking.user?.fullName || `${booking.user?.firstName} ${booking.user?.lastName}`}</strong>
-                        <span className="customer-email">{booking.user?.email}</span>
+                        <strong>{booking.userName}</strong>
+                        <span className="customer-email">{booking.userEmail}</span>
                       </div>
                     </td>
                     <td>
                       <div className="vendor-info">
-                        <strong>{booking.service?.vendor?.businessName}</strong>
-                        <span className="vendor-phone">{booking.service?.vendor?.phone}</span>
+                        <strong>{booking.vendorName}</strong>
                       </div>
                     </td>
-                    <td>{booking.service?.serviceName}</td>
+                    <td>{booking.serviceName}</td>
                     <td>
                       <div className="booking-datetime">
                         <span className="booking-date">
@@ -186,7 +291,7 @@ const AdminBookings = () => {
                         <span className="booking-time">{booking.bookingTime}</span>
                       </div>
                     </td>
-                    <td className="booking-price">Rs.{booking.price?.toLocaleString()}</td>
+                    <td className="booking-price">Rs.{booking.totalAmount?.toLocaleString()}</td>
                     <td>
                       <span className={`status-badge ${getStatusColor(booking.status)}`}>
                         {booking.status}
@@ -231,7 +336,20 @@ const AdminBookings = () => {
                           </>
                         )}
                         {(booking.status === 'COMPLETED' || booking.status === 'CANCELLED') && (
-                          <span className="text-muted">No actions</span>
+                          <>
+                            {booking.status === 'COMPLETED' && (
+                              <button
+                                onClick={() => handleRevertBooking(booking.id)}
+                                className="btn btn-warning btn-sm"
+                                title="Revert to previous status"
+                              >
+                                Revert
+                              </button>
+                            )}
+                            {booking.status === 'CANCELLED' && (
+                              <span className="text-muted">No actions</span>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>

@@ -122,6 +122,16 @@ export const adminAPI = {
     return response.data.data;
   },
 
+  /**
+   * Reactivate vendor
+   * @param {number} vendorId - Vendor ID
+   * @returns {Promise} Reactivated vendor
+   */
+  reactivateVendor: async (vendorId) => {
+    const response = await api.put(`/admin/vendors/${vendorId}/reactivate`);
+    return response.data.data;
+  },
+
   // ========== Service Management ==========
   
   /**
@@ -208,9 +218,7 @@ export const adminAPI = {
    * @returns {Promise} Updated booking
    */
   cancelBooking: async (bookingId, reason = null) => {
-    const params = {};
-    if (reason) params.reason = reason;
-    const response = await api.post(`/admin/bookings/${bookingId}/cancel`, null, { params });
+    const response = await api.post(`/admin/bookings/${bookingId}/cancel`, {}, { params: { reason } });
     return response.data.data;
   },
 
@@ -222,6 +230,110 @@ export const adminAPI = {
    */
   updateBookingStatus: async (bookingId, status) => {
     const response = await api.patch(`/admin/bookings/${bookingId}/status`, null, { params: { status } });
+    return response.data.data;
+  },
+
+  /**
+   * Revert completed booking to previous status (admin override)
+   * @param {number} bookingId - Booking ID
+   * @param {string} newStatus - Target status (CONFIRMED or PENDING)
+   * @param {string} reason - Revert reason (required)
+   * @returns {Promise} Updated booking
+   */
+  revertBooking: async (bookingId, newStatus, reason) => {
+    const response = await api.post(`/admin/bookings/${bookingId}/revert`, { newStatus, reason });
+    return response.data.data;
+  },
+
+  // ========== Coupon Management ==========
+  
+  /**
+   * Get all coupons
+   * @returns {Promise} List of all coupons
+   */
+  getAllCoupons: async () => {
+    const response = await api.get('/admin/coupons');
+    return response.data.data;
+  },
+
+  /**
+   * Create new coupon
+   * @param {Object} couponData - Coupon details
+   * @returns {Promise} Created coupon
+   */
+  createCoupon: async (couponData) => {
+    const response = await api.post('/admin/coupons', couponData);
+    return response.data.data;
+  },
+
+  /**
+   * Update existing coupon
+   * @param {number} couponId - Coupon ID
+   * @param {Object} couponData - Updated coupon details
+   * @returns {Promise} Updated coupon
+   */
+  updateCoupon: async (couponId, couponData) => {
+    const response = await api.put(`/admin/coupons/${couponId}`, couponData);
+    return response.data.data;
+  },
+
+  /**
+   * Toggle coupon active status
+   * @param {number} couponId - Coupon ID
+   * @returns {Promise} Updated coupon
+   */
+  toggleCouponStatus: async (couponId) => {
+    const response = await api.patch(`/admin/coupons/${couponId}/toggle-status`);
+    return response.data.data;
+  },
+
+  // ========== Audit Log Management ==========
+  
+  /**
+   * Get audit logs with filtering and sorting
+   * @param {Object} params - Query parameters { entityType, page, size, sortBy, sortDir }
+   * @returns {Promise} Paginated audit logs
+   */
+  getAuditLogs: async (params = {}) => {
+    const response = await api.get('/admin/audit-logs', { params });
+    return response.data.data;
+  },
+
+  /**
+   * Get audit logs for specific entity
+   * @param {string} entityType - Entity type (e.g., 'VENDOR', 'SERVICE', 'BOOKING')
+   * @param {number} entityId - Entity ID
+   * @returns {Promise} List of audit logs for the entity
+   */
+  getEntityAuditLogs: async (entityType, entityId) => {
+    const response = await api.get(`/admin/audit-logs/entity/${entityType}/${entityId}`);
+    return response.data.data;
+  },
+
+  /**
+   * Get audit logs by user
+   * @param {number} userId - User ID
+   * @returns {Promise} List of audit logs performed by the user
+   */
+  getUserAuditLogs: async (userId) => {
+    const response = await api.get(`/admin/audit-logs/user/${userId}`);
+    return response.data.data;
+  },
+
+  // ========== Platform Analytics ==========
+  
+  /**
+   * Get comprehensive platform analytics
+   * @returns {Promise} Complete platform analytics with 6 major sections:
+   *   - userAnalytics: User metrics, growth, segmentation, retention
+   *   - vendorAnalytics: Vendor metrics, approval status, top performers
+   *   - serviceAnalytics: Service metrics, performance, top services
+   *   - bookingAnalytics: Booking trends, status breakdown, cancellations
+   *   - revenueAnalytics: Revenue metrics, monthly trends, category breakdown
+   *   - customerExperienceAnalytics: Ratings, satisfaction, top rated items
+   */
+  getPlatformAnalytics: async () => {
+    const response = await api.get('/admin/analytics/platform');
     return response.data.data;
   }
 };

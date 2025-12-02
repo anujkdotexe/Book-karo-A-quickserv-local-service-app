@@ -198,6 +198,10 @@
   margin-bottom: var(--spacing-md);
 }
 
+.cart-summary-card .btn-outline {
+  width: 100%;
+}
+
 /* Empty Cart */
 .empty-cart-card {
   text-align: center;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import { useModal } from '../../components/Modal/Modal';
 import './VendorServices.css';
 
@@ -16,9 +17,25 @@ const VendorServices = () => {
     category: 'PLUMBING',
     price: '',
     durationMinutes: '',
+    city: '',
     isAvailable: true
   });
   const modal = useModal();
+
+  // Category name to ID mapping (based on common categories)
+  // These IDs should match the categories table in the database
+  const CATEGORY_MAP = {
+    'PLUMBING': 1,
+    'ELECTRICAL': 2,
+    'CLEANING': 3,
+    'CARPENTRY': 4,
+    'PAINTING': 5,
+    'PEST_CONTROL': 6,
+    'APPLIANCE_REPAIR': 7,
+    'AC_REPAIR': 8,
+    'SALON': 9,
+    'PHOTOGRAPHY': 10
+  };
 
   useEffect(() => {
     loadServices();
@@ -27,11 +44,11 @@ const VendorServices = () => {
   const loadServices = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await vendorAPI.getServices();
       setServices(Array.isArray(data) ? data : []);
-      setError(null);
     } catch (err) {
-      modal.error(err.response?.data?.message || 'Failed to load services');
+      setError(err.response?.data?.message || 'Failed to load services. Please try again.');
       setServices([]);
     } finally {
       setLoading(false);
@@ -47,6 +64,7 @@ const VendorServices = () => {
         category: service.category,
         price: service.price,
         durationMinutes: service.durationMinutes,
+        city: service.city || '',
         isAvailable: service.isAvailable
       });
     } else {
@@ -57,6 +75,7 @@ const VendorServices = () => {
         category: 'PLUMBING',
         price: '',
         durationMinutes: '',
+        city: '',
         isAvailable: true
       });
     }
@@ -68,14 +87,68 @@ const VendorServices = () => {
     setEditingService(null);
   };
 
+  const validateServiceForm = () => {
+    const errors = {};
+    
+    if (!formData.serviceName || formData.serviceName.trim() === '') {
+      errors.serviceName = 'Service name is required';
+    }
+    
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      errors.price = 'Price must be greater than 0';
+    }
+    
+    if (!formData.city || formData.city.trim() === '') {
+      errors.city = 'City is required';
+    }
+    
+    if (!formData.durationMinutes || parseInt(formData.durationMinutes) <= 0) {
+      errors.durationMinutes = 'Duration must be greater than 0';
+    }
+    
+    if (!formData.description || formData.description.trim() === '') {
+      errors.description = 'Description is required';
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form
+    const validationErrors = validateServiceForm();
+    if (Object.keys(validationErrors).length > 0) {
+      modal.error('Validation errors: ' + Object.values(validationErrors).join(', '));
+      return;
+    }
+    
     try {
       if (editingService) {
-        await vendorAPI.updateService(editingService.id, formData);
+        // For updates, prepare UpdateServiceRequest format
+        const updateData = {
+          serviceName: formData.serviceName,
+          description: formData.description,
+          categoryId: CATEGORY_MAP[formData.category],
+          price: parseFloat(formData.price),
+          city: formData.city,
+          estimatedDuration: parseInt(formData.durationMinutes),
+          isAvailable: formData.isAvailable
+        };
+        await vendorAPI.updateService(editingService.id, updateData);
         modal.success('Service updated successfully');
       } else {
-        await vendorAPI.createService(formData);
+        // For new services, prepare CreateServiceRequest format
+        const createData = {
+          serviceName: formData.serviceName,
+          description: formData.description,
+          categoryId: CATEGORY_MAP[formData.category],
+          price: parseFloat(formData.price),
+          city: formData.city,
+          estimatedDuration: parseInt(formData.durationMinutes),
+          isAvailable: formData.isAvailable
+        };
+        await vendorAPI.createService(createData);
         modal.success('Service created successfully');
       }
       handleCloseModal();
@@ -127,10 +200,17 @@ const VendorServices = () => {
   };
 
   if (loading) {
+    return <LoadingSpinner message="Loading services..." fullScreen />;
+  }
+
+  if (error && services.length === 0) {
     return (
-      <div className="vendor-services">
-        <LoadingSpinner message="Loading services..." />
-      </div>
+      <ErrorModal
+        title="Failed to Load Services"
+        message={error}
+        onRefresh={loadServices}
+        onClose={() => setError(null)}
+      />
     );
   }
 
@@ -146,9 +226,7 @@ const VendorServices = () => {
         </button>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
-
-      {!services || services.length === 0 ? (
+      {services.length === 0 ? (
         <div className="empty-state">
           <p>No services yet. Create your first service to start receiving bookings!</p>
           <button onClick={() => handleOpenModal()} className="btn btn-primary">
@@ -263,15 +341,44 @@ const VendorServices = () => {
                 </div>
 
                 <div className="form-group">
+                  <label>City/Location *</label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={e => setFormData({...formData, city: e.target.value})}
+                    placeholder="e.g., Mumbai, Delhi, Bangalore"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
                   <label>Price (Rs.) *</label>
                   <input
                     type="number"
                     value={formData.price}
                     onChange={e => setFormData({...formData, price: e.target.value})}
-                    min="0"
+                    min="1"
+                    max="1000000"
                     step="0.01"
                     required
+                    onKeyDown={(e) => {
+                      // Prevent negative sign and 'e' (scientific notation)
+                      if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const pasteValue = e.clipboardData.getData('text');
+                      if (parseFloat(pasteValue) <= 0 || isNaN(parseFloat(pasteValue))) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
+                  <small style={{color: '#666', fontSize: '0.85rem'}}>
+                    Minimum: ₹1, Maximum: ₹10,00,000
+                  </small>
                 </div>
               </div>
 

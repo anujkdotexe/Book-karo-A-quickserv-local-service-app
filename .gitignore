@@ -159,3 +159,46 @@ scripts/testsprite_bugs_20251023_005701.json
 scripts/testsprite_results_20251023_005002.json
 BUG_FIXES_APPLIED.md
 .github/instructions/copilot-instructions.md
+changes.txt
+.amazonq/rules/bookkaro-rule.md
+backendoutput.md
+bugslist.md
+csv files/addresses.csv
+csv files/announcements.csv
+csv files/audit_logs.csv
+csv files/banners.csv
+csv files/bookings.csv
+csv files/cart_items.csv
+csv files/categories.csv
+csv files/coupon_usages.csv
+csv files/coupons.csv
+csv files/faqs.csv
+csv files/favorites.csv
+csv files/payments.csv
+csv files/refunds.csv
+csv files/reviews.csv
+csv files/services.csv
+csv files/system_settings.csv
+csv files/user_preferences.csv
+csv files/user_roles.csv
+csv files/users.csv
+csv files/vendor_availabilities.csv
+csv files/vendors.csv
+csv files/wallets.csv
+scripts/database/COMPLETE_DATABASE_FIXES.sql
+scripts/database/create_system_settings_table.sql
+scripts/database/fix_all_sequences.sql
+scripts/database/fix_cart_sequence.sql
+scripts/database/fix_payment_status_constraint.sql
+scripts/generate_complete_data.py
+scripts/generate_comprehensive_data.py
+scripts/generate_final_data_part2.py
+scripts/generate_final_data.py
+scripts/generate_proper_faqs.py
+scripts/generate_remaining_data.py
+scripts/generate_remaining_tables.py
+scripts/generate_valid_coupons.py
+scripts/database/setup_system_settings_complete.sql
+database_backups/contact_inquiries_table.sql
+database_backups/CREATE_PERFORMANCE_INDEXES.sql
+database_backups/mock_data_backup_20251031_192547.sql

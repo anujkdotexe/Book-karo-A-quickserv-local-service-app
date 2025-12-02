@@ -1,5 +1,33 @@
 /* Vendor Analytics Page Styles */
 
+.vendor-analytics-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 24px;
+}
+
+.analytics-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.analytics-header {
+  margin-bottom: 32px;
+}
+
+.analytics-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.analytics-header p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
 .analytics-date-range {
   display: flex;
   gap: 12px;

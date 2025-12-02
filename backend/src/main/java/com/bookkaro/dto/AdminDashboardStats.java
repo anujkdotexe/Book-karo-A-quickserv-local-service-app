@@ -21,15 +21,71 @@ public class AdminDashboardStats {
     private Long totalVendors;
     private Long totalServices;
     private Long totalBookings;
+    private Long totalCoupons;
     private Long pendingVendorApprovals;
     private Long pendingServiceApprovals;
     private BigDecimal platformRevenue;
     private BigDecimal monthlyRevenue;
     
+    // Payment statistics
+    private Long totalPayments;
+    private Long successfulPayments;
+    private Long failedPayments;
+    private Long refundedPayments;
+    private Long pendingRefunds;
+    private BigDecimal totalRefundAmount;
+    
     private List<UserStats> userGrowth;
     private List<VendorStats> topVendors;
     private List<ServiceStats> topServices;
     private List<RevenueStats> revenueData;
+    
+    // Analytics data
+    private List<UserSignupStats> userSignups;  // User signups over time
+    private List<ServiceApprovalStats> rejectedServices;  // Rejected services trend
+    private ReviewDistribution reviewDistribution;  // Review ratings distribution
+    private BookingFunnel bookingFunnel;  // Booking status funnel
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UserSignupStats {
+        private String date;
+        private Long signups;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ServiceApprovalStats {
+        private String date;
+        private Long rejectedCount;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ReviewDistribution {
+        private Long oneStar;
+        private Long twoStars;
+        private Long threeStars;
+        private Long fourStars;
+        private Long fiveStars;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BookingFunnel {
+        private Long pending;
+        private Long confirmed;
+        private Long completed;
+        private Long cancelled;
+    }
     
     @Data
     @NoArgsConstructor
@@ -48,6 +104,8 @@ public class AdminDashboardStats {
     public static class VendorStats {
         private Long vendorId;
         private String businessName;
+        private String city;
+        private String state;
         private Long totalBookings;
         private BigDecimal totalRevenue;
         private Double averageRating;

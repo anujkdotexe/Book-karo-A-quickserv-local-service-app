@@ -17,16 +17,17 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
-  // Listen for logout events to clear cart
-  useEffect(() => {
-    const handleLogout = () => {
-      setCartItems([]);
-      localStorage.removeItem('cart');
-    };
-
-    window.addEventListener('user-logout', handleLogout);
-    return () => window.removeEventListener('user-logout', handleLogout);
-  }, []);
+  // Don't clear cart on logout - user may logout accidentally
+  // Cart persists in localStorage for better UX
+  // useEffect(() => {
+  //   const handleLogout = () => {
+  //     setCartItems([]);
+  //     localStorage.removeItem('cart');
+  //   };
+  //
+  //   window.addEventListener('user-logout', handleLogout);
+  //   return () => window.removeEventListener('user-logout', handleLogout);
+  // }, []);
 
   // Load cart from backend on mount (if authenticated)
   useEffect(() => {
@@ -71,29 +72,58 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems, token]);
 
-  const addToCart = async (service) => {
+  const addToCart = async (service, userCity = null) => {
+    // Validate service city matches user city
+    if (userCity && service.city && userCity.toLowerCase() !== service.city.toLowerCase()) {
+      return {
+        success: false,
+        message: `Service is in ${service.city}, but you are in ${userCity}. Cross-city bookings may not be serviceable.`,
+        citySuggestion: `Consider searching for services in ${userCity}`
+      };
+    }
+
     if (token) {
       // Use backend API
       try {
         const response = await cartAPI.addToCart(service.id, 1);
-        await loadCartFromBackend(); // Refresh cart
-        return { success: true, message: response.data.message };
+        
+        console.log('Add to cart response:', response.data);
+        
+        // Check if the backend returned success
+        if (response.data && response.data.success === true) {
+          // Refresh cart after successful addition
+          try {
+            await loadCartFromBackend();
+          } catch (loadError) {
+            // If refresh fails, still count as success since item was added
+            console.warn('Cart refresh failed, but item was added:', loadError);
+          }
+          return { success: true, message: response.data.message || 'Item added to cart' };
+        } else {
+          console.error('Backend returned non-success:', response.data);
+          return { success: false, message: response.data?.message || 'Failed to add to cart' };
+        }
       } catch (error) {
+        console.error('Add to cart error:', error);
         return { success: false, message: error.response?.data?.message || 'Failed to add to cart' };
       }
     } else {
       // Use localStorage (guest user)
-      const existingItem = cartItems.find(item => item.id === service.id);
+      const existingItem = cartItems.find(item => item.id === service.id || item.serviceId === service.id);
       
       if (existingItem) {
         return { success: false, message: 'Service already in cart' };
       }
 
       const cartItem = {
-        id: service.id,
-        serviceName: service.name,
+        id: service.id, // For localStorage cart identification
+        serviceId: service.id, // For backend booking creation
+        serviceName: service.serviceName || service.name, // Handle both property names
+        name: service.serviceName || service.name, // Alias for compatibility
         category: service.category,
         price: service.price,
+        city: service.city, // Store city for validation
+        state: service.state,
         quantity: 1,
         subtotal: service.price
       };
@@ -135,7 +165,8 @@ export const CartProvider = ({ children }) => {
   };
 
   const isInCart = (serviceId) => {
-    return cartItems.some(item => item.serviceId === serviceId || item.id === serviceId);
+    // Check using id property (standardized)
+    return cartItems.some(item => item.id === serviceId);
   };
 
   const getCartTotal = () => {

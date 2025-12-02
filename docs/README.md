@@ -137,7 +137,7 @@ All documentation is version-controlled in Git. Changes should be:
 **Total Documents**: 9 files  
 **Total Size**: ~100 KB  
 **Categories**: 3 (Essential, Product, Operations)  
-**Last Major Update**: October 24, 2025
+**Last Major Update**: December 1, 2025
 
 ---
 
@@ -163,6 +163,7 @@ For documentation issues or suggestions:
 
 ---
 
-**Last Updated**: October 24, 2025  
-**Documentation Version**: 1.0  
+**Last Updated**: December 1, 2025  
+**Documentation Version**: 1.2  
+**System Version**: Backend 1.0.4, Frontend 1.0.0  
 **Maintained by**: BOOK-KARO Development Team

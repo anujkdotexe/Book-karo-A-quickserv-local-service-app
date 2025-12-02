@@ -22,8 +22,14 @@ public class ReviewDto {
     private Long bookingId;
     private Long serviceId;
     private String serviceName;
+    private Long vendorId;
+    private String vendorName;
     private Integer rating;
     private String comment;
+    private Integer helpfulCount;
+    private Boolean isVerified;
+    private String vendorResponse;
+    private LocalDateTime responseAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

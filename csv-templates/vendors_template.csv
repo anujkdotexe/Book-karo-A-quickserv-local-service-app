@@ -1,6 +1,0 @@
-vendorCode,businessName,primaryCategory,phone,email,location,city,state,postalCode,availability,yearsOfExperience,description
-PLUMB001,QuickFix Plumbing,Plumbing,9123456789,quickfix@example.com,Andheri West,Mumbai,Maharashtra,400058,Mon-Sat 9AM-7PM,5,Expert plumbing services for residential and commercial properties
-CLEAN001,Sparkle Cleaners,Cleaning,9123456790,sparkle@example.com,Bandra East,Mumbai,Maharashtra,400051,Mon-Sun 8AM-8PM,3,Professional cleaning services with eco-friendly products
-ELEC001,PowerUp Electrical,Electrical,9123456791,powerup@example.com,Powai,Mumbai,Maharashtra,400076,Mon-Fri 9AM-6PM,8,Licensed electricians for all electrical work and installations
-PAINT001,ColorCraft Painters,Painting,9123456792,colorcraft@example.com,Juhu,Mumbai,Maharashtra,400049,Mon-Sat 8AM-6PM,10,Interior and exterior painting with quality finish
-AC001,CoolBreeze AC Services,Appliance Repair,9123456793,coolbreeze@example.com,Goregaon,Mumbai,Maharashtra,400063,Mon-Sun 24/7,7,AC repair maintenance and installation for all brands

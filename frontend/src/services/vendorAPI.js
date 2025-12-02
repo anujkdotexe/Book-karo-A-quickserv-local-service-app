@@ -84,6 +84,57 @@ export const vendorAPI = {
   toggleServiceAvailability: async (serviceId) => {
     const response = await api.put(`/vendor/services/${serviceId}/toggle`);
     return response.data.data;
+  },
+
+  // ========== Availability Management ==========
+
+  /**
+   * Get vendor availabilities
+   * @returns {Promise} List of availability slots
+   */
+  getAvailabilities: async () => {
+    const response = await api.get('/vendor/availabilities');
+    return response.data.data;
+  },
+
+  /**
+   * Create new availability slot
+   * @param {Object} availabilityData - Availability details (dayOfWeek, startTime, endTime, isAvailable, specialNote)
+   * @returns {Promise} Created availability
+   */
+  createAvailability: async (availabilityData) => {
+    const response = await api.post('/vendor/availabilities', availabilityData);
+    return response.data.data;
+  },
+
+  /**
+   * Update availability slot
+   * @param {number} availabilityId - Availability ID
+   * @param {Object} availabilityData - Updated availability details
+   * @returns {Promise} Updated availability
+   */
+  updateAvailability: async (availabilityId, availabilityData) => {
+    const response = await api.put(`/vendor/availabilities/${availabilityId}`, availabilityData);
+    return response.data.data;
+  },
+
+  /**
+   * Delete availability slot
+   * @param {number} availabilityId - Availability ID
+   * @returns {Promise} Success message
+   */
+  deleteAvailability: async (availabilityId) => {
+    const response = await api.delete(`/vendor/availabilities/${availabilityId}`);
+    return response.data;
+  },
+
+  /**
+   * Get vendor reviews
+   * @returns {Promise} List of customer reviews for vendor's services
+   */
+  getReviews: async () => {
+    const response = await api.get('/vendor/reviews');
+    return response.data.data;
   }
 };
 

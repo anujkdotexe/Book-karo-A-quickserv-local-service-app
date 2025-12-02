@@ -45,6 +45,9 @@ public class Address {
     private String postalCode;
 
     @Column(length = 100)
+    private String country;
+
+    @Column(length = 100)
     private String landmark;
 
     @Column(precision = 10, scale = 7)
@@ -60,8 +63,21 @@ public class Address {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Builder.Default
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 
     @PrePersist
     protected void onCreate() {
@@ -76,6 +92,7 @@ public class Address {
 
     public enum AddressType {
         HOME,
+        WORK,
         OFFICE,
         OTHER
     }

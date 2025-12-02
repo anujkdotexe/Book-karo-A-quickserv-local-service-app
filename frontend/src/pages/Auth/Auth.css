@@ -207,14 +207,27 @@
   font-size: 0.875rem;
   margin-top: 6px;
   font-weight: 500;
+  animation: shake 0.3s ease-in-out;
+  background-color: #fee2e2;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #dc2626;
 }
 
-.form-group input[aria-invalid="true"] {
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.form-group input[aria-invalid="true"],
+.form-group input.input-error {
   border-color: #dc2626;
   background-color: #fef2f2;
 }
 
-.form-group input[aria-invalid="true"]:focus {
+.form-group input[aria-invalid="true"]:focus,
+.form-group input.input-error:focus {
   outline-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
@@ -297,19 +310,41 @@
 .validation-error {
   position: absolute;
   right: 12px;
-  font-size: 1.2rem;
-  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .validation-check {
-  color: #10b981;
+  background-color: #10b981;
   animation: checkmark-pop 0.3s ease;
 }
 
+.validation-check::after {
+  content: '';
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
 .validation-error {
-  color: #ef4444;
+  background-color: #ef4444;
   animation: error-shake 0.3s ease;
+}
+
+.validation-error::after {
+  content: '';
+  width: 12px;
+  height: 2px;
+  background-color: white;
+  border-radius: 1px;
 }
 
 @keyframes checkmark-pop {
@@ -373,6 +408,16 @@
 
 .suggestion-item:active {
   background-color: #e5e7eb;
+}
+
+/* Fixed Form Actions at Bottom */
+.form-actions-fixed {
+  position: relative;
+  background: var(--white);
+  padding: var(--spacing-lg) 0;
+  margin-top: var(--spacing-2xl);
+  border-top: 2px solid #e5e7eb;
+  z-index: 10;
 }
 
 /* Sticky Form Actions */

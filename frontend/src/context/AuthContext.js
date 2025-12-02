@@ -4,6 +4,28 @@ import { useToast } from '../components/Toast/Toast';
 
 const AuthContext = createContext();
 
+// Helper to check if token is expired
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  
+  try {
+    // JWT tokens have 3 parts separated by dots
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    
+    // Decode the payload (second part)
+    const payload = JSON.parse(atob(parts[1]));
+    
+    // Check expiration (exp is in seconds, Date.now() is in milliseconds)
+    if (!payload.exp) return false; // No expiration set
+    
+    return payload.exp * 1000 < Date.now();
+  } catch (error) {
+    console.error('Error checking token expiration:', error);
+    return true; // Treat as expired if we can't parse it
+  }
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -23,11 +45,19 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      // Check if token is expired
+      if (isTokenExpired(storedToken)) {
+        // Token expired, clear storage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        toast.info('Your session has expired. Please log in again.');
+      } else {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
     }
     setLoading(false);
-  }, []);
+  }, [toast]);
 
   // Listen for session expiration events
   useEffect(() => {
@@ -116,7 +146,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     
-    // Clear cart data (prevent data leakage between accounts)
+    // Clear cart data - INTENTIONAL: Prevents cart items from one user being shown to another
+    // This is a security measure to avoid data leakage between accounts
     localStorage.removeItem('cart');
     
     // Clear service filters (optional, but good for privacy)

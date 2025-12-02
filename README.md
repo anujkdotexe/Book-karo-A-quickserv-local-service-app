@@ -1,624 +1,455 @@
-# BOOK-KARO - Local Service Marketplace Platform# BOOK-KARO - Quick Serve Local Service App
+# BOOK-KARO - Quick Serve Local Service App
 
+> A production-ready three-tier service marketplace platform connecting customers with local service providers across India.
 
-
-> A production-ready, three-tier service marketplace connecting customers with local service providers across multiple cities in India.A production-ready three-tier service marketplace platform connecting customers with local service providers.
-
-
-
-[![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)](https://github.com/anujkdotexe/Bookaro-A-quickserv-local-service-app)## Tech Stack
-
+[![Version](https://img.shields.io/badge/version-1.0.4-blue.svg)](https://github.com/anujkdotexe/Bookaro-A-quickserv-local-service-app)
 [![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)]()
+[![License](https://img.shields.io/badge/license-Private-red.svg)]()
 
-[![License](https://img.shields.io/badge/license-Private-red.svg)]()**Backend:**
+---
 
-- Spring Boot 3.5.0 (Optimized for fast startup)
+## Table of Contents
 
-## 📋 Table of Contents- PostgreSQL 15.13
-
-- JWT Authentication
-
-- [Overview](#overview)- Hibernate/JPA with lazy initialization
-
-- [Tech Stack](#tech-stack)- Maven (Multi-threaded builds)
-
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
 - [Features](#features)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Test Credentials](#test-credentials)
+- [Project Status](#project-status)
 
-- [Quick Start](#quick-start)**Frontend:**
+---
 
-- [Documentation](#documentation)- React 18+
+## Overview
 
-- [Deployment](#deployment)- React Router
+**BOOK-KARO** is a scalable service booking platform enabling seamless connections between customers and local service providers. The platform features a robust three-role system (User, Vendor, Admin) with complete booking lifecycle management, payment processing, and refund workflows.
 
-- [Test Credentials](#test-credentials)- Axios
-
-- [Project Status](#project-status)- CSS Variables (Custom Styling)
-
-
-
----## Performance Highlights
-
-
-
-## Overview**Backend Optimization:**
-
-- Startup time: 5-10 seconds (60% faster)
-
-**BOOK-KARO** is a scalable service booking platform enabling seamless connections between customers and local service providers. The platform features a robust three-role system (User, Vendor, Admin) with complete booking lifecycle management, payment processing, and refund workflows.- Multi-threaded compilation (16 cores)
-
-- Memory usage: ~300MB (33% less)
-
-**Key Highlights:**- Cloud-deployment ready
-
+**Key Highlights:**
 - 🚀 **Optimized Performance**: 5-10 second startup time, 60% faster than standard Spring Boot
+- 🌆 **Multi-City Coverage**: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai
+- 💰 **Complete Payment Flow**: Mock gateway integration with 95% success simulation
+- 🔄 **Refund Management**: Time-based policy with admin approval workflow
+- 🔒 **Enterprise Security**: JWT authentication, BCrypt hashing, role-based access control
 
-- 🏙️ **Multi-City Coverage**: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai**Build Optimization:**
+---
 
-- 💳 **Complete Payment Flow**: Mock gateway integration with 95% success simulation- Incremental builds: ~3 seconds
+## Tech Stack
 
-- 🔄 **Refund Management**: Time-based policy with admin approval workflow- Full compile: ~7 seconds
-
-- 🔒 **Enterprise Security**: JWT authentication, BCrypt hashing, role-based access control- Parallel Maven builds enabled
-
-
-
----## Features
-
-
-
-## Tech Stack**User Authentication**
-
-- Registration with email/password
-
-### Backend- JWT-based login with 24-hour token expiration
-
-- **Framework**: Spring Boot 3.5.0- BCrypt password hashing
-
+### Backend
+- **Framework**: Spring Boot 3.5.0 (Optimized for fast startup)
+- **Language**: Java 24.0.2
 - **Database**: PostgreSQL 15.13
+- **Security**: Spring Security 6.x + JWT
+- **ORM**: Hibernate/JPA with lazy initialization
+- **Build Tool**: Maven 3.9+ (Multi-threaded builds)
+- **Port**: 8081
 
-- **Security**: Spring Security 6.x + JWT**Profile Management**
+### Frontend
+- **Framework**: React 18+
+- **Routing**: React Router v6
+- **HTTP Client**: Axios
+- **Styling**: CSS Modules with CSS Variables
+- **State Management**: Context API
+- **Port**: 3000 (development)
 
-- **ORM**: Hibernate/JPA with lazy initialization- View and update personal information
+### Performance Highlights
 
-- **Build**: Maven 3.9+ (multi-threaded builds)- Secure profile access
+**Backend Optimization:**
+- Startup time: 5-10 seconds (60% faster)
+- Multi-threaded compilation (16 cores)
+- Memory usage: ~300MB (33% less)
+- Cloud-deployment ready
 
-- **Logging**: SLF4J with Logback
+**Build Optimization:**
+- Incremental builds: ~3 seconds
+- Full compile: ~7 seconds
+- Package creation: ~10 seconds
+- Parallel Maven builds enabled
 
-**Service Discovery**
+**Database:**
+- 24 tables with complete relationships
+- 126 users, 24 vendors, 212 services
+- CSV-based data import
+- Data initializers disabled for production data
 
-### Frontend- Browse all available services
-
-- **Framework**: React 18+- Advanced search with filters (category, city, price range)
-
-- **Routing**: React Router v6- Pagination support
-
-- **HTTP Client**: Axios- Service details with ratings and reviews
-
-- **Styling**: CSS Variables (Custom Design System)
-
-- **State Management**: Context API**Booking System**
-
-- Create bookings with date/time selection
-
-### Performance Optimizations- Automatic price calculation
-
-- Lazy bean initialization (60% startup improvement)- Booking status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED)
-
-- HikariCP connection pooling- View booking history
-
-- Multi-threaded Maven builds (16 cores)
-
-- Deferred repository bootstrap**Payment Processing**
-
-- Hibernate batch operations- Mock payment gateway simulation (95% success rate)
-
-- Secure payment flow
-
----- Payment status tracking
-
-- Automatic booking creation on success
+---
 
 ## Features
 
-**Refund Management** (NEW)
+### 🔐 User Authentication
+- Registration with email/password validation
+- JWT-based login with 24-hour token expiration
+- BCrypt password hashing (strength 10)
+- Role-based access control (USER, VENDOR, ADMIN)
 
-### 🔐 Authentication & Authorization- Request refunds for eligible bookings
+### 👤 Profile Management
+- View and update personal information
+- Secure password changes
+- Profile photo upload (planned)
 
-- Multi-role system (USER, VENDOR, ADMIN)- Time-based refund policy (100%, 50%, or 0%)
+### 🔍 Service Discovery
+- Browse all available services
+- Advanced search with filters (category, city, price range)
+- Pagination support
+- Service details with ratings and reviews
 
-- JWT-based authentication (24-hour token expiration)- Admin approval/rejection workflow
+### 📅 Booking System
+- Create bookings with date/time selection
+- **Address selection at checkout** - Choose service delivery location
+- Real-time availability checking
+- **City validation** - Service city must match selected address city
+- Booking status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED)
+- Email notifications (planned)
 
-- BCrypt password hashing- Refund status tracking (PENDING, PROCESSING, COMPLETED, REJECTED)
+### 💳 Payment Processing
+- Mock payment gateway integration
+- Multiple payment methods (UPI, Card, Wallet)
+- Payment status tracking
+- Transaction history
 
-- Secure session management- Automatic booking cancellation on approval
+### 🔄 Refund Management
+- User-initiated refund requests
+- Time-based refund policy (90%/50%/0%)
+- Admin approval workflow
+- Automatic booking cancellation
 
+### ⭐ Reviews & Ratings
+- 5-star rating system
+- **Service-specific reviews** - Each service has unique, contextual reviews
+- **Real reviewer names** - Personalized reviews with authentic Indian names
+- Detailed review comments with service context
+- Service-level aggregated ratings
+- Review submission post-booking
+- Vendor response capability
 
-
-### 👤 User Management**Favorites**
-
-- Profile creation and management- Add/remove services to favorites
-
-- Multiple address support (HOME, WORK, OTHER)- Quick access to preferred services
-
-- Default address selection
-
-- Password change functionality**Address Management**
-
-- Multiple address support
-
-### 🔍 Service Discovery- Set default address
-
-- Browse 25+ services across 6 cities- Address types (HOME, WORK, OTHER)
-
-- Advanced filters (category, city, price range, rating)
-
-- Real-time search with validation**Review & Rating System**
-
-- Service details with vendor information- Rate services (1-5 stars)
-
-- Write detailed reviews
-
-### 📅 Booking System- View service reviews
-
-- Dynamic time slot generation based on vendor availability
-
-- Date/time selection with validation## Database Schema
-
-- Automatic price calculation
-
-- Status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED)- **users**: User authentication and profile (9 users: 3 test + 6 vendors)
-
-- Booking history with detailed views- **vendors**: Service provider information (6 regional vendors)
-
-- **services**: Service catalog (25 services across 6 cities)
-
-### 💳 Payment Processing- **bookings**: Customer bookings (30 sample bookings with reviews)
-
-- Mock payment gateway simulation- **payments**: Payment records
-
-- Card validation (expiry, CVV)- **refunds**: Refund requests and status
-
-- Payment status tracking- **reviews**: Service reviews and ratings
-
-- Automatic booking creation on success- **addresses**: User address management
-
-- Payment history- **favorites**: User favorites/wishlist
-
-- **cart_items**: Shopping cart
-
-### 💰 Refund Management- **content**: Public content (FAQ, Help)
-
-- Request refunds for eligible bookings
-
-- Time-based refund policy:**Regional Coverage**: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai
-
-  - 100% refund (>24 hours before booking)
-
-  - 50% refund (12-24 hours before booking)## Setup Instructions
-
-  - 0% refund (<12 hours before booking)
-
-- Admin approval workflow### Prerequisites
-
-- Automatic booking cancellation- Java 21+
-
-- Node.js 18+
-
-### ⭐ Reviews & Ratings### Prerequisites
-
-- 5-star rating system with visual preview- Java 21+
-
-- Detailed review comments- Node.js 18+
-
-- Service-level aggregated ratings- PostgreSQL 15+
-
-- Review submission post-booking- Maven 3.9+
-
-
-
-### ❤️ Favorites & Cart### Quick Start (Development)
-
+### ❤️ Favorites & Cart
 - Add/remove services to favorites
+- Shopping cart functionality
+- Quick access to preferred services
 
-- Shopping cart functionality**Option 1: Use the startup script (Recommended)**
+### 📍 Address Management
+- Multiple saved addresses (HOME, WORK, OTHER)
+- Default address selection
+- **Address selection at checkout** - Required for booking validation
+- Full address CRUD operations
+- City-based service filtering
 
-- Quick access to preferred services```powershell
+### 👔 Vendor Features
+- **Service Management**: Create, update, delete services with full CRUD operations
+- **Booking Management**: View, accept, reject, and manage booking requests
+- **Analytics Dashboard**: Revenue tracking, booking statistics, performance metrics
+- **Availability Management**: Set working hours and availability schedules
+- **Review Management**: View and respond to customer reviews
+- **Profile Management**: Update business information and service areas
 
-# Windows PowerShell
+### 🛡️ Admin Features
+- **User Management**: View, edit, activate/deactivate users
+- **Vendor Management**: Approve/reject vendors, manage vendor profiles
+- **Service Moderation**: Approve/reject services, manage categories
+- **Booking Management**: View all bookings, manage booking statuses
+- **Platform Analytics**: Dashboard with real-time statistics and charts
+- **Refund Management**: Approve/reject refund requests with workflow
+- **Content Management**: 
+  - FAQs (create, edit, delete, reorder)
+  - Announcements (platform-wide notifications)
+  - Banners (promotional content management)
+- **Coupon System**: Create and manage discount coupons
+- **Audit Logs**: Complete system activity tracking
+- **System Settings**: Configure platform-wide settings
+  - Contact information and support details
+  - Pricing and fee structures
+  - Feature toggles and configurations
+  - Public vs. admin-only settings
 
----.\scripts\START_APP.ps1
-
-```
+---
 
 ## Quick Start
 
-**Option 2: Manual startup**
-
 ### Prerequisites
+- Java 21+
+- Node.js 18+
+- PostgreSQL 15+
+- Maven 3.9+
 
-```bash```bash
+### Option 1: Use the Startup Script (Recommended)
 
-Java 21+# Backend (Terminal 1)
-
-Node.js 18+cd backend
-
-PostgreSQL 15+mvn clean package -DskipTests
-
-Maven 3.9+java -jar target/bookkaro-backend-1.0.3.jar
-
-```
-
-# Frontend (Terminal 2)
-
-### Database Setupcd frontend
-
-```sqlnpm install
-
-CREATE DATABASE bookkarodb;npm start
-
-``````
-
-
-
-Update `backend/src/main/resources/application.properties`:Backend runs on: `http://localhost:8081/api/v1`  
-
-```propertiesFrontend runs on: `http://localhost:3000`
-
-spring.datasource.url=jdbc:postgresql://localhost:5432/bookkarodb
-
-spring.datasource.username=postgres### Fast Development Builds
-
-spring.datasource.password=your_password
-
-```**Incremental compile (2-3 seconds):**
-
-```bash
-
-### Option 1: Automated Startup (Recommended)cd backend
-
-```powershellmvn compile -DskipTests
-
-# Windows PowerShell```
-
+```powershell
+# Windows PowerShell
+cd D:\Springboard
 .\scripts\START_APP.ps1
-
-```**Full rebuild (5-7 seconds):**
-
-```bash
-
-### Option 2: Manual Startupcd backend
-
-mvn clean compile -DskipTests
-
-**Backend (Terminal 1):**```
-
-```bash
-
-cd backend**Create JAR (8-10 seconds):**
-
-mvn clean package -DskipTests```bash
-
-java -jar target/bookkaro-backend-1.0.3.jarcd backend
-
-```.\fast-build.ps1
-
-# OR: mvn clean package -DskipTests
-
-**Frontend (Terminal 2):**```
-
-```bash
-
-cd frontend### Database Configuration
-
-npm install
-
-npm startCreate PostgreSQL database:
-
-``````sql
-
-CREATE DATABASE bookkarodb;
-
-**Access Points:**```
-
-- Backend API: `http://localhost:8081/api/v1`
-
-- Frontend App: `http://localhost:3000`Update `backend/src/main/resources/application.properties`:
-
-```properties
-
----spring.datasource.url=jdbc:postgresql://localhost:5432/bookkarodb
-
-spring.datasource.username=postgres
-
-## Documentationspring.datasource.password=your_password
-
 ```
 
-### Essential Documentation
+### Option 2: Manual Startup
 
-| Document | Description |## Deployment
-
-|----------|-------------|
-
-| [Quick Start Guide](docs/QUICK_START.md) | Detailed setup and configuration |### Production Build
-
-| [API Documentation](docs/API_DOCUMENTATION.md) | Complete API reference with examples |```bash
-
-| [Architecture](docs/ARCHITECTURE.md) | System architecture and design patterns |# Backend
-
-| [Database Schema](docs/DATABASE_SCHEMA.md) | Database structure and relationships |cd backend
-
-| [Production Checklist](docs/PRODUCTION_READINESS_CHECKLIST.md) | Deployment readiness guide |mvn clean package -DskipTests
-
-| [UI/UX Guidelines](docs/UI_UX_GUIDELINES.md) | Design system and component library |# Output: target/bookkaro-backend-1.0.3.jar
-
-
-
----# Frontend
-
-cd frontend
-
-## Deploymentnpm run build
-
-# Output: build/ directory
-
-### Production Build```
-
-
-
-**Backend:**### Environment Variables (Production)
-
-```bash
-
-cd backend**IMPORTANT**: The application uses default values for development. Override these in production:
-
+**Backend (Terminal 1)**
+```powershell
+cd backend
 mvn clean package -DskipTests
-
-# Output: target/bookkaro-backend-1.0.3.jar```bash
-
-```SPRING_PROFILES_ACTIVE=prod
-
-SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/dbname
-
-**Frontend:**SPRING_DATASOURCE_USERNAME=username
-
-```bashSPRING_DATASOURCE_PASSWORD=password  # Default in dev: root (CHANGE THIS!)
-
-cd frontendJWT_SECRET=your-super-secret-256-bit-key  # Default in dev: bookkaroSecretKey2025... (CHANGE THIS!)
-
-npm run buildPORT=8081
-
-# Output: build/ directory```
-
+java -jar target/bookkaro-backend-1.0.4.jar
 ```
 
-**Security**: Never use default database password or JWT secret in production. Generate a strong JWT secret using:
-
-### Environment Variables```bash
-
-# Generate secure 256-bit secret
-
-**⚠️ CRITICAL**: Override these in production:openssl rand -base64 32
-
+**Frontend (Terminal 2)**
+```powershell
+cd frontend
+npm install  # First time only
+npm start
 ```
 
-```bash
-
-SPRING_PROFILES_ACTIVE=prod### Cloud Deployment
-
-SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/dbname- **Railway/Render**: Auto-detected, just push to Git
-
-SPRING_DATASOURCE_USERNAME=username- **Heroku**: Uses included `Procfile`
-
-SPRING_DATASOURCE_PASSWORD=strong_password_here- **Docker**: See `backend/DEPLOYMENT_OPTIMIZATION.md`
-
-JWT_SECRET=your-256-bit-secret-key- **AWS/GCP/Azure**: Java 21 runtime, 512MB RAM minimum
-
-PORT=8081
-
-```**Startup time**: 5-10 seconds (optimized for cloud)
-
-
-
-**Generate Secure JWT Secret:**## Performance Optimizations
-
-```bash
-
-openssl rand -base64 32See detailed guides:
-
-```- `backend/BUILD_OPTIMIZATION.md` - Compilation speed (40-60% faster)
-
-- `backend/DEPLOYMENT_OPTIMIZATION.md` - Startup optimization (60-70% faster)
-
-### Cloud Platforms
-
-- ✅ **Railway/Render**: Auto-detected, push to Git**Key optimizations:**
-
-- ✅ **Heroku**: Uses included `Procfile`- Lazy bean initialization
-
-- ✅ **AWS/GCP/Azure**: Java 21 runtime, 512MB RAM minimum- Deferred repository bootstrap
-
-- ✅ **Docker**: Build and deploy with included configurations- HikariCP connection pooling
-
-- Multi-threaded Maven builds
-
-**Startup Time**: 5-10 seconds (cloud-optimized)- Hibernate batch operations
-
-
-
----## Test Credentials
-
-
-
-## Test Credentials- **User**: user@bookkaro.com / password123
-
-- **Vendor**: vendor@bookkaro.com / password123
-
-| Role | Email | Password |- **Admin**: admin@bookkaro.com / admin123
-
-|------|-------|----------|
-
-| User | user@bookkaro.com | password123 |## Project Status
-
-| Vendor | vendor@bookkaro.com | password123 |
-
-| Admin | admin@bookkaro.com | admin123 |**Version**: 1.0.3  
-
-**Status**: Production Ready - Fully Optimized  
-
----**Last Updated**: October 22, 2025
-
-
-
-## Project Status### Completed
-
-- Phase 1 - User Module (All 13 features including refunds)
-
-**Version**: 1.0.3  - Professional SLF4J logging
-
-**Status**: ✅ Production Ready  - Modern UI/UX with consistent styling
-
-**Last Updated**: October 24, 2025- Complete CRUD operations
-
-- JWT authentication & authorization
-
-### Completed Features ✅- Database with 25 services across 6 regional vendors (multi-city)
-
-- [x] User Module (13 features including refunds)- Backend startup optimization (60% faster)
-
-- [x] JWT Authentication & Authorization- Build compilation optimization (40% faster)
-
-- [x] Multi-role system (USER/VENDOR/ADMIN)- Cloud deployment ready
-
-- [x] Payment gateway simulation- Multi-role system (USER/VENDOR/ADMIN)
-
-- [x] Refund management with admin workflow- Payment simulation with mock gateway
-
-- [x] Dynamic vendor availability scheduling- Complete refund management system with admin approval workflow
-
-- [x] Review system with star rating preview
-
-- [x] Breadcrumb navigation### Pending
-
-- [x] Advanced validation (email typo detection, card expiry)- [ ] Phase 2 - Vendor Module Testing
-
-- [x] Performance optimization (60% faster startup)- [ ] Phase 3 - Admin Module Testing
-
-- [x] Build optimization (40% faster compilation)- [ ] Production deployment to cloud
-
-- [x] Cloud deployment ready- [ ] Performance monitoring dashboard
-
-
-
-### In Progress 🔄## Documentation
-
-- [ ] Vendor Module comprehensive testing
-
-- [ ] Admin Module comprehensive testing- `README.md` - This file (overview and quick start)
-
-- [ ] Production monitoring dashboard- `QUICK_START.md` - Detailed setup guide
-
-- `STRUCTURE.md` - Professional folder structure and organization
-
-### Planned 📋- `backend/BUILD_OPTIMIZATION.md` - Compilation speed guide
-
-- [ ] Email notifications- `backend/DEPLOYMENT_OPTIMIZATION.md` - Startup optimization guide
-
-- [ ] SMS booking confirmations- `docs/important/` - Complete technical documentation
-
-- [ ] Advanced analytics dashboard  - `API_DOCUMENTATION.md` - All API endpoints
-
-- [ ] Mobile app (React Native)  - `DATABASE_SCHEMA.md` - Database structure
-
-  - `ARCHITECTURE.md` - System architecture
-
----  - `PRODUCTION_READINESS_CHECKLIST.md` - Deployment checklist
-
-
-
-## Development Tools## Security Notes
-
-
-
-### Fast Compilation**Development Configuration** (Change for Production):
-
-```bash- Database password: Currently 'root' (use strong password)
-
-# Incremental (2-3 seconds)- JWT secret: Default key (generate 256-bit secret)
-
-cd backend && mvn compile -DskipTests- CORS: Currently allows all origins (restrict to your domain)
-
-- Enable HTTPS/SSL for production
-
-# Full rebuild (5-7 seconds)- Set `SPRING_PROFILES_ACTIVE=prod`
-
-cd backend && mvn clean compile -DskipTests
-
-## API Documentation
-
-# Create JAR (8-10 seconds)
-
-cd backend && .\fast-build.ps1See `docs/important/API_DOCUMENTATION.md` for complete API reference.
-
-```
-
-## Contributing
-
-### Performance Features
-
-- **Multi-threaded builds**: Utilizes all 16 CPU coresThis is a private project. Contact the repository owner for collaboration.
-
-- **Lazy initialization**: Beans created on-demand
-
-- **Connection pooling**: HikariCP optimized for cloud## License
-
-- **Batch operations**: Hibernate batch inserts/updates
-
-Private - All Rights Reserved
+**Access Application:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8081/api/v1
 
 ---
 
-## Security Notes
+## Documentation
 
-### Development vs. Production
+### User Guides
+- **[Quick Start Guide](docs/QUICK_START.md)** - Detailed setup and usage
+- **[Test Credentials](docs/TEST_USER_CREDENTIALS.md)** - Test account details
+- **[Current Status](docs/CURRENT_STATUS.md)** - Project status and metrics
 
-**Development (Current):**
-- Database password: `root`
-- JWT secret: Default key
-- CORS: Allows all origins
-- HTTP only
+### Technical Documentation
+- **[Architecture](docs/ARCHITECTURE.md)** - System design and architecture
+- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference
+- **[Database Schema](docs/DATABASE_SCHEMA_COMPLETE.md)** - Database design and relationships
+- **[Build Optimization](docs/BUILD_OPTIMIZATION.md)** - Performance optimization details
 
-**Production (Required):**
-- ✅ Strong database password (16+ characters)
-- ✅ 256-bit JWT secret (generated)
-- ✅ CORS restricted to your domain
-- ✅ HTTPS/SSL enabled
-- ✅ `SPRING_PROFILES_ACTIVE=prod`
-- ✅ Environment-based secrets management
+---
+
+## Test Credentials
+
+### Unified Password
+**All test accounts use the same password**: `Password@123`
+
+(Must contain: uppercase, lowercase, number, special character)
+
+### Test Accounts
+
+| Role | Email | Password | Description |
+|------|-------|----------|-------------|
+| User | user@bookkaro.com | Password@123 | Regular customer account |
+| Admin | admin@bookkaro.com | Password@123 | Platform administrator |
+| Vendor | mumbai@bookkaro.com | Password@123 | Mumbai service provider |
+| Vendor | pune@bookkaro.com | Password@123 | Pune service provider |
+
+### Database Status (CSV Data)
+- **Total Users**: 87 (1 admin + 26 vendors + 60 regular users)
+- **Total Vendors**: 26 across multiple cities (Mumbai, Pune, Bengaluru, Chennai, Hyderabad, Ahmedabad, Jaipur)
+- **Total Services**: 580 across 6 categories
+- **Total Bookings**: 973 (complete transaction history)
+- **Total Reviews**: 762 (customer feedback)
+- **Total Addresses**: 226 (home, work, office, other)
+- **Total Favorites**: 488 (user preferences)
+- **Total Tables**: 24+ (complete schema)
+- **Data Source**: CSV files (`/csv files/` directory)
+- **Data Initializers**: Disabled (`app.data.init.enabled=false`)
+
+---
+
+## Project Status
+
+### Current Version
+- **Backend**: v1.0.4
+- **Frontend**: v1.0.0
+- **Database**: Fully populated with mock data
+
+### Completed Features ✅
+- **Authentication System**: JWT-based login/register with role-based access (USER, VENDOR, ADMIN)
+- **Service Marketplace**: Browse 580+ services across 6 categories with advanced filtering
+- **Booking System**: Complete booking lifecycle with address selection and status tracking
+- **Payment Integration**: Mock payment gateway with multiple payment methods
+- **Refund Management**: Time-based refund policy with admin approval workflow
+- **Review System**: 5-star ratings with 762+ authentic customer reviews
+- **Favorites System**: Save and manage preferred services (488+ favorites)
+- **Address Management**: Multiple address types (HOME, WORK, OFFICE, OTHER)
+- **Shopping Cart**: Add multiple services and checkout functionality
+- **Vendor Dashboard**: Complete vendor management with analytics and booking tracking
+- **Admin Panel**: Comprehensive platform management with real-time analytics
+- **Content Management**: Dynamic FAQs, announcements, and banner management
+- **Coupon System**: Discount codes with usage tracking
+- **Notification System**: Platform-wide messaging and alerts
+- **Audit Logging**: Complete system activity tracking
+- **System Settings**: Dynamic platform configuration management
+- **Multi-City Support**: Services across 7+ major Indian cities
+
+### In Progress 🚧
+- **Email Notifications**: SMTP integration for booking confirmations
+- **Push Notifications**: Real-time browser notifications
+- **Advanced Analytics**: Enhanced reporting and data visualization
+- **Mobile Optimization**: Progressive Web App (PWA) features
+
+### Planned 📋
+- **Payment Gateway**: Razorpay/Stripe integration for real payments
+- **SMS Notifications**: OTP verification and booking updates
+- **Mobile App**: React Native iOS/Android applications
+- **Advanced Reporting**: Business intelligence and data export
+- **Multi-language Support**: Hindi and regional language support
+- **Geolocation Services**: GPS-based service discovery
+- **Real-time Chat**: Customer-vendor communication system
+
+---
+
+## API Endpoints (150+ Total)
+
+### Authentication & User Management
+- `POST /api/v1/auth/register` - User registration with validation
+- `POST /api/v1/auth/login` - JWT-based authentication
+- `GET /api/v1/users/profile` - User profile management
+- `PUT /api/v1/users/profile` - Update user information
+
+### Service Management
+- `GET /api/v1/services` - List services with filtering and pagination
+- `GET /api/v1/services/{id}` - Detailed service information
+- `GET /api/v1/services/categories` - All 6 service categories
+- `GET /api/v1/services/search` - Advanced search with multiple filters
+
+### Booking System
+- `POST /api/v1/bookings` - Create booking with address validation
+- `GET /api/v1/bookings` - User booking history with pagination
+- `GET /api/v1/bookings/{id}` - Detailed booking information
+- `PUT /api/v1/bookings/{id}/cancel` - Cancel booking with refund
+
+### Address Management
+- `GET /api/v1/addresses` - User addresses (HOME, WORK, OFFICE, OTHER)
+- `POST /api/v1/addresses` - Create new address
+- `PUT /api/v1/addresses/{id}` - Update address
+- `DELETE /api/v1/addresses/{id}` - Delete address
+
+### Favorites & Cart
+- `GET /api/v1/favorites` - User favorite services
+- `POST /api/v1/favorites/{serviceId}` - Add to favorites (idempotent)
+- `DELETE /api/v1/favorites/{serviceId}` - Remove from favorites
+- `GET /api/v1/cart` - Shopping cart items
+- `POST /api/v1/cart` - Add service to cart
+
+### Reviews & Ratings
+- `GET /api/v1/reviews/service/{id}` - Service reviews with pagination
+- `POST /api/v1/reviews` - Submit review after booking
+- `GET /api/v1/reviews/user` - User's review history
+
+### Vendor Dashboard
+- `GET /api/v1/vendor/dashboard` - Vendor analytics and statistics
+- `GET /api/v1/vendor/services` - Vendor's services management
+- `GET /api/v1/vendor/bookings` - Vendor booking requests
+- `GET /api/v1/vendor/reviews` - Reviews for vendor services
+- `PUT /api/v1/vendor/availability` - Update availability schedule
+
+### Admin Panel (25+ Endpoints)
+- `GET /api/v1/admin/dashboard` - Platform-wide analytics
+- `GET /api/v1/admin/users` - User management with search
+- `GET /api/v1/admin/vendors` - Vendor approval and management
+- `GET /api/v1/admin/services` - Service moderation
+- `GET /api/v1/admin/bookings` - All platform bookings
+- `GET /api/v1/admin/content/faqs` - FAQ management
+- `GET /api/v1/admin/content/announcements` - Announcement system
+- `GET /api/v1/admin/content/banners` - Banner management
+- `GET /api/v1/admin/coupons` - Coupon system management
+- `GET /api/v1/admin/audit-logs` - System activity tracking
+- `GET /api/v1/admin/refunds` - Refund approval workflow
+
+### System Configuration
+- `GET /api/v1/settings/public` - Public system settings
+- `GET /api/v1/settings` - Admin system configuration
+- `PUT /api/v1/settings` - Update system settings
+
+### Payment & Refunds
+- `POST /api/v1/payments` - Process payment (mock gateway)
+- `GET /api/v1/payments/history` - Payment transaction history
+- `POST /api/v1/refunds/request` - Request refund with policy
+- `GET /api/v1/refunds` - Refund status tracking
+
+See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for complete API reference with request/response examples.
+
+---
+
+## Current System State (December 1, 2025)
+
+### Database Statistics
+- **87 Users** (customers, vendors, admins) 
+- **26 Vendors** (active service providers)
+- **580 Services** across 6 categories
+- **973 Bookings** (complete transaction history)
+- **226 Addresses** (home, work, office, other)
+- **488 Favorites** (user preferences)
+- **762 Reviews** (customer feedback)
+- **115 Payments** (transaction records)
+- **24 Coupons** (discount system)
+- **12 Announcements** (platform updates)
+- **8 FAQs** (help content)
+- **6 Banners** (promotional content)
+
+### Core Tables (24+)
+- **User Management**: users, vendors, user_preferences, user_roles
+- **Service Management**: services, categories, vendor_availabilities
+- **Booking System**: bookings, addresses, reviews
+- **Commerce**: payments, refunds, cart_items, favorites
+- **Promotions**: coupons, coupon_usages, wallets
+- **Content**: announcements, faqs, banners
+- **System**: audit_logs, notifications, search_analytics, system_settings
+- **Contact**: contact_inquiries
+
+### Service Categories (6)
+1. **Electrical** - Electrical repairs and installations
+2. **Home Services** - General home maintenance
+3. **IT & Software** - Technology solutions
+4. **Logistics** - Delivery and transport services
+5. **Painting** - Interior/exterior painting
+6. **Plumbing** - Plumbing repairs and installations
+
+See [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) for complete schema.
+
+---
+
+## Deployment
+
+### Development
+```powershell
+# Backend
+mvn spring-boot:run
+
+# Frontend
+npm start
+```
+
+### Production Build
+```powershell
+# Backend
+mvn clean package
+java -jar target/bookkaro-backend-1.0.4.jar
+
+# Frontend
+npm run build
+```
+
+### Docker (Planned)
+```bash
+docker-compose up
+```
+
+See [DEPLOYMENT_OPTIMIZATION.md](docs/DEPLOYMENT_OPTIMIZATION.md) for deployment details.
 
 ---
 
 ## Contributing
 
-This is a private project. For collaboration inquiries, contact the repository owner.
+This is a private project. For access or collaboration inquiries, please contact the repository owner.
 
 ---
 
 ## License
 
-**Private - All Rights Reserved**
-
-Copyright © 2025 Book-Karo. All rights reserved.
+Private - All Rights Reserved
 
 ---
 
-## Support
+## Contact
 
-For technical support or questions:
-- **Repository**: [Bookaro-A-quickserv-local-service-app](https://github.com/anujkdotexe/Bookaro-A-quickserv-local-service-app)
-- **Issues**: GitHub Issues
-- **Owner**: [@anujkdotexe](https://github.com/anujkdotexe)
+- **Repository**: [anujkdotexe/Bookaro-A-quickserv-local-service-app](https://github.com/anujkdotexe/Bookaro-A-quickserv-local-service-app)
+- **Branch**: main
+- **Last Updated**: December 1, 2025
 
 ---
 
-**Built with ❤️ using Spring Boot & React**
+## Acknowledgments
+
+Built with love using Spring Boot, React, and PostgreSQL.

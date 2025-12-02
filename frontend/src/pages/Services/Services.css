@@ -33,8 +33,12 @@
 
 .search-inputs {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr auto auto;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr auto auto;
   gap: var(--spacing-md);
+}
+
+.keyword-search {
+  font-weight: 500;
 }
 
 .search-inputs .btn {
@@ -195,8 +199,20 @@
 
 .sort-btn.active {
   background: var(--royal-blue);
-  color: white;
+  color: white !important;
   border-color: var(--royal-blue);
+}
+
+.sort-btn:active {
+  color: white !important;
+  background: var(--royal-blue) !important;
+  opacity: 1 !important;
+}
+
+.sort-btn.active:active {
+  color: white !important;
+  background: var(--royal-blue) !important;
+  opacity: 1 !important;
 }
 
 /* Ensure buttons are always visible */

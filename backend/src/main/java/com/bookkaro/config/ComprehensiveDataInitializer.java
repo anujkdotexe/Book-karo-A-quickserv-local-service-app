@@ -8,6 +8,7 @@ import com.bookkaro.repository.UserRepository;
 import com.bookkaro.repository.VendorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,10 +22,14 @@ import java.util.List;
 /**
  * Comprehensive data initializer that generates 150+ services across 50 vendors
  * Each vendor is linked to a User account with VENDOR role for login capability
+ * Only runs when app.data.init.enabled=true
  */
 @Configuration
 public class ComprehensiveDataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(ComprehensiveDataInitializer.class);
+
+    @Value("${app.data.init.enabled:false}")
+    private boolean dataInitEnabled;
 
     @Bean
     @Order(3) // Run after DataInitializer (Order 1)
@@ -33,7 +38,26 @@ public class ComprehensiveDataInitializer {
                                            ServiceRepository serviceRepository,
                                            PasswordEncoder passwordEncoder) {
         return args -> {
+            if (!dataInitEnabled) {
+                logger.info("Comprehensive data initialization disabled - using existing database");
+                return;
+            }
+            // Check if we have CSV data loaded (100 users means CSV is loaded)
+            long userCount = userRepository.count();
+            long serviceCount = serviceRepository.count();
+            
+            if (userCount >= 100) {
+                logger.info("============================================");
+                logger.info("CSV DATA DETECTED - Skipping vendor generation");
+                logger.info("User count: " + userCount);
+                logger.info("Service count: " + serviceCount);
+                logger.info("Using data from CSV files");
+                logger.info("============================================");
+                return; // Skip all initialization if CSV data is present
+            }
+            
             // Generate 6 regional vendors (one per city) with multiple services each
+            // Only runs if no CSV data is present
             if (serviceRepository.count() < 20) {
                 logger.info("============================================");
                 logger.info("GENERATING REGIONAL VENDORS WITH SERVICES");
@@ -87,7 +111,7 @@ public class ComprehensiveDataInitializer {
                             .primaryCategory(category)
                             .phone(String.format("98765432%02d", 10 + i))
                             .email(email)
-                            .location(generateLocation(city, i))
+                            .address(generateLocation(city, i))
                             .city(city)
                             .state(getState(city))
                             .postalCode(String.format("%d", 400001 + i * 100))
@@ -119,9 +143,9 @@ public class ComprehensiveDataInitializer {
                 int globalServiceIndex = 1;
                 for (int i = 0; i < vendors.size(); i++) {
                     Vendor vendor = vendors.get(i);
-                    int serviceCount = Integer.parseInt(regionConfig[i][3]);
+                    int vendorServiceCount = Integer.parseInt(regionConfig[i][3]);
                     
-                    for (int j = 0; j < serviceCount; j++) {
+                    for (int j = 0; j < vendorServiceCount; j++) {
                         Service service = generateService(vendor, j, globalServiceIndex);
                         services.add(service);
                         globalServiceIndex++;
@@ -191,10 +215,10 @@ public class ComprehensiveDataInitializer {
         return Service.builder()
                 .serviceName(serviceType)
                 .description(generateServiceDescription(serviceType, category))
-                .category(category)
+                .categoryLegacy(category)
                 .price(new BigDecimal(prices[globalIndex % prices.length]))
                 .durationMinutes(durations[serviceIndex % durations.length])
-                .address(vendor.getLocation())
+                .address(vendor.getCity())
                 .city(vendor.getCity())
                 .state(vendor.getState())
                 .postalCode(vendor.getPostalCode())

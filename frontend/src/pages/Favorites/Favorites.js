@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { favoriteAPI } from '../../services/api';
 import { useModal } from '../../components/Modal/Modal';
-import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import './Favorites.css';
 
 const Favorites = () => {
@@ -49,9 +49,7 @@ const Favorites = () => {
         {error && <div className="error-message">{error}</div>}
 
         {loading ? (
-          <div className="favorites-grid">
-            <SkeletonLoader type="service" count={6} />
-          </div>
+          <LoadingSpinner message="Loading favorites..." size="thick" fullScreen />
         ) : favorites.length === 0 ? (
           <div className="empty-state-card">
             <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

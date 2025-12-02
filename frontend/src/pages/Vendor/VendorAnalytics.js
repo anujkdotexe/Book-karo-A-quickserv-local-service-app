@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './VendorDashboard.css';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import './VendorAnalytics.css';
 
 const VendorAnalytics = () => {
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,43 +45,24 @@ const VendorAnalytics = () => {
   };
 
   if (loading) {
-    return (
-      <div className="vendor-dashboard">
-        <div className="container">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Loading analytics...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading analytics..." fullScreen />;
   }
 
   if (error) {
     return (
-      <div className="vendor-dashboard">
-        <div className="container">
-          <div className="error-message-card" role="alert">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <h3>Unable to Load Analytics</h3>
-            <p>{error}</p>
-            <button onClick={fetchAnalytics} className="btn btn-primary">
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
+      <ErrorModal
+        title="Failed to Load Analytics"
+        message={error}
+        onRefresh={fetchAnalytics}
+        onClose={() => setError(null)}
+      />
     );
   }
 
   return (
-    <div className="vendor-dashboard">
-      <div className="container">
-        <div className="dashboard-header">
+    <div className="vendor-analytics-page">
+      <div className="analytics-container">
+        <div className="analytics-header">
           <h1>Analytics Dashboard</h1>
           <p>Track your performance and revenue</p>
         </div>
@@ -181,7 +165,7 @@ const VendorAnalytics = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {analytics.topServices.map((service, index) => (
+                    {analytics?.topServices?.map((service, index) => (
                       <tr key={index}>
                         <td>{service.serviceName}</td>
                         <td>{service.bookingCount}</td>
@@ -241,7 +225,12 @@ const VendorAnalytics = () => {
             {analytics?.recentActivities && analytics.recentActivities.length > 0 ? (
               <div className="activity-list">
                 {analytics.recentActivities.slice(0, 10).map((activity, index) => (
-                  <div key={index} className="activity-item">
+                  <div 
+                    key={index} 
+                    className="activity-item clickable"
+                    onClick={() => navigate('/vendor/bookings')}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="activity-icon">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10"></circle>

@@ -27,6 +27,8 @@ public class VendorDashboardStats {
     private BigDecimal monthlyRevenue;
     private Double averageRating;
     private Long totalReviews;
+    private Integer availabilitySlots;
+    private String avgResponseTime;
     
     private List<RecentBooking> recentBookings;
     private List<ServicePerformance> topServices;

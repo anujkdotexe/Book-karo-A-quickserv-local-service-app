@@ -37,7 +37,7 @@ const PrivacyPolicy = () => {
             <p>We collect the following personal information when you register and use our Service:</p>
             <ul>
               <li><strong>Account Information:</strong> Name, email address, phone number, password</li>
-              <li><strong>Profile Information:</strong> Address, city, state, postal code</li>
+              <li><strong>Profile Information:</strong> Address, city, state, PIN code</li>
               <li><strong>Booking Information:</strong> Service details, booking dates, special requests</li>
               <li><strong>Payment Information:</strong> Billing address (payment processing handled by third-party providers)</li>
             </ul>

@@ -15,8 +15,15 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  React.useEffect(() => {
+    if (user) {
+      navigate('/services');
+    }
+  }, [user, navigate]);
 
   React.useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
@@ -75,7 +82,14 @@ const Login = () => {
       
       setSuccessMessage('Login successful! Redirecting...');
       
-      const userData = result.userData || JSON.parse(localStorage.getItem('user'));
+      const userData = result.userData || (() => {
+        try {
+          const stored = localStorage.getItem('user');
+          return stored ? JSON.parse(stored) : null;
+        } catch (e) {
+          return null;
+        }
+      })();
       
       // Multi-role routing: Prioritize ADMIN > VENDOR > USER
       setTimeout(() => {
@@ -104,7 +118,14 @@ const Login = () => {
     if (result.success) {
       setSuccessMessage('Login successful! Redirecting...');
       
-      const userData = result.userData || JSON.parse(localStorage.getItem('user'));
+      const userData = result.userData || (() => {
+        try {
+          const stored = localStorage.getItem('user');
+          return stored ? JSON.parse(stored) : null;
+        } catch (e) {
+          return null;
+        }
+      })();
       
       // Multi-role routing: Prioritize ADMIN > VENDOR > USER
       setTimeout(() => {
@@ -150,7 +171,7 @@ const Login = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder="rajesh@example.com"
                 aria-required="true"
                 aria-invalid={!!fieldErrors.email}
                 aria-describedby={fieldErrors.email ? 'email-error' : undefined}
@@ -230,19 +251,19 @@ const Login = () => {
               </Link>
             </div>
 
-            <button type="submit" className="btn btn-auth-primary" disabled={loading}>
+            <button type="submit" className="btn btn-auth-primary" disabled={loading} style={{ width: '100%' }}>
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
-          {process.env.NODE_ENV === 'development' && (
+          {(process.env.NODE_ENV === 'development' && process.env.REACT_APP_ENABLE_QUICK_LOGIN !== 'false') && (
             <details style={{ marginTop: '24px', padding: '16px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
               <summary style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#6b7280', userSelect: 'none' }}>
                 Development: Quick Login
               </summary>
               <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexDirection: 'column' }}>
                 <button
-                  onClick={() => handleQuickLogin('user@bookkaro.com', 'password123')}
+                  onClick={() => handleQuickLogin('user@bookkaro.com', 'Password@123')}
                   disabled={loading}
                   className="btn btn-outline"
                   style={{ fontSize: '13px', padding: '8px 12px' }}
@@ -250,7 +271,7 @@ const Login = () => {
                   User Account
                 </button>
                 <button
-                  onClick={() => handleQuickLogin('vendor@bookkaro.com', 'password123')}
+                  onClick={() => handleQuickLogin('mumbai@bookkaro.com', 'Password@123')}
                   disabled={loading}
                   className="btn btn-outline"
                   style={{ fontSize: '13px', padding: '8px 12px' }}
@@ -258,7 +279,7 @@ const Login = () => {
                   Vendor Account
                 </button>
                 <button
-                  onClick={() => handleQuickLogin('admin@bookkaro.com', 'admin123')}
+                  onClick={() => handleQuickLogin('admin@bookkaro.com', 'Password@123')}
                   disabled={loading}
                   className="btn btn-outline"
                   style={{ fontSize: '13px', padding: '8px 12px' }}

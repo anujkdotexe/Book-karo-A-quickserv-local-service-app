@@ -27,32 +27,46 @@ public class Payment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private PaymentMethod method;
+    @Column(name = "payment_method", nullable = false, length = 50)
+    private String paymentMethod;
+
+    @Column(name = "payment_provider", length = 50)
+    private String paymentProvider;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "currency", length = 3)
     @Builder.Default
-    private PaymentStatus status = PaymentStatus.PENDING;
+    private String currency = "INR";
 
-    @Column(name = "transaction_id", unique = true, length = 100)
+    @Column(name = "payment_status", length = 20)
+    @Builder.Default
+    private String paymentStatus = "PENDING";
+
+    @Column(name = "external_transaction_id", unique = true, length = 255)
     private String transactionId;
 
-    @Column(name = "gateway_response", columnDefinition = "TEXT")
-    private String gatewayResponse;
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
 
-    @Column(name = "payment_date")
-    private LocalDateTime paymentDate;
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -65,12 +79,14 @@ public class Payment {
         updatedAt = LocalDateTime.now();
     }
 
+    // Keep enums for backwards compatibility with other classes
     public enum PaymentMethod {
         UPI,
         CREDIT_CARD,
         DEBIT_CARD,
         NET_BANKING,
-        CASH_ON_DELIVERY  // Simulated payments only
+        CASH_ON_DELIVERY,
+        WALLET
     }
 
     public enum PaymentStatus {

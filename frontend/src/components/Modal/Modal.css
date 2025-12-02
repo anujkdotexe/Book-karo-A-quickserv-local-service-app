@@ -84,6 +84,37 @@
   border-bottom: none;
 }
 
+/* Top-right actions (Refresh / Close) for loading modal */
+.modal-top-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.modal-top-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--modal-text-secondary);
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+
+.modal-top-btn:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--modal-text-primary);
+  transform: translateY(-1px);
+}
+
+.modal-top-btn svg { display: block; }
+
 .modal-title {
   color: var(--modal-text-primary);
   font-size: 1.5rem;
@@ -220,14 +251,14 @@
 
 /* Modal Buttons - Gradient & Modern */
 .modal-btn {
-  padding: 14px 36px;
-  border-radius: 12px;
+  padding: 12px 28px;
+  border-radius: 10px;
   font-size: 0.95rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 140px;
+  min-width: 120px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   position: relative;
   overflow: hidden;

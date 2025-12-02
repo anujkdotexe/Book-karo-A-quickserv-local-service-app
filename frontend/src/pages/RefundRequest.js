@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { refundAPI, bookingAPI } from '../services/api';
+import { useModal } from '../components/Modal/Modal';
+import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import './RefundRequest.css';
 
 const RefundRequest = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
+  const modal = useModal();
   
   const [booking, setBooking] = useState(null);
   const [reason, setReason] = useState('');
@@ -17,6 +20,7 @@ const RefundRequest = () => {
 
   useEffect(() => {
     fetchBookingDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
   const fetchBookingDetails = async () => {
@@ -74,8 +78,10 @@ const RefundRequest = () => {
       
       await refundAPI.requestRefund(bookingId, reason);
       
-      alert('Refund request submitted successfully! An admin will review it soon.');
-      navigate('/bookings');
+      // Replace alert() with modal
+      modal.success('Refund request submitted successfully! An admin will review it soon.', {
+        onClose: () => navigate('/bookings')
+      });
       
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit refund request');
@@ -85,11 +91,7 @@ const RefundRequest = () => {
   };
 
   if (loading) {
-    return (
-      <div className="refund-request-page">
-        <div className="loading-spinner">Loading booking details...</div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading booking details..." fullScreen />;
   }
 
   if (!booking) {

@@ -158,14 +158,14 @@ public class AnalyticsService {
     private BigDecimal calculateTotalRevenue() {
         List<Booking> completedBookings = bookingRepository.findByStatus(Booking.BookingStatus.COMPLETED);
         return completedBookings.stream()
-                .map(Booking::getTotalAmount)
+                .map(Booking::getPriceTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal calculateVendorRevenue(List<Long> serviceIds) {
         List<Booking> completedBookings = bookingRepository.findByServiceIdInAndStatus(serviceIds, Booking.BookingStatus.COMPLETED);
         return completedBookings.stream()
-                .map(Booking::getTotalAmount)
+                .map(Booking::getPriceTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -182,7 +182,7 @@ public class AnalyticsService {
                     Booking.BookingStatus.COMPLETED, startOfDay, endOfDay);
             
             BigDecimal dayRevenue = dayBookings.stream()
-                    .map(Booking::getTotalAmount)
+                    .map(Booking::getPriceTotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             
             dataPoints.add(AnalyticsDto.RevenueDataPoint.builder()
@@ -208,7 +208,7 @@ public class AnalyticsService {
                     serviceIds, Booking.BookingStatus.COMPLETED, startOfDay, endOfDay);
             
             BigDecimal dayRevenue = dayBookings.stream()
-                    .map(Booking::getTotalAmount)
+                    .map(Booking::getPriceTotal)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             
             dataPoints.add(AnalyticsDto.RevenueDataPoint.builder()
@@ -284,7 +284,7 @@ public class AnalyticsService {
                             service.getId(), Booking.BookingStatus.COMPLETED);
                     BigDecimal revenue = bookingRepository.findByServiceIdAndStatus(
                                     service.getId(), Booking.BookingStatus.COMPLETED).stream()
-                            .map(Booking::getTotalAmount)
+                            .map(Booking::getPriceTotal)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     
                     BigDecimal avgRating = service.getAverageRating();
@@ -313,7 +313,7 @@ public class AnalyticsService {
                             service.getId(), Booking.BookingStatus.COMPLETED);
                     BigDecimal revenue = bookingRepository.findByServiceIdAndStatus(
                                     service.getId(), Booking.BookingStatus.COMPLETED).stream()
-                            .map(Booking::getTotalAmount)
+                            .map(Booking::getPriceTotal)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     
                     BigDecimal avgRating = service.getAverageRating();
@@ -357,6 +357,8 @@ public class AnalyticsService {
                     return AnalyticsDto.TopVendor.builder()
                             .vendorId(vendor.getId())
                             .businessName(vendor.getBusinessName())
+                            .city(vendor.getCity())
+                            .state(vendor.getState())
                             .bookingCount(bookingCount)
                             .revenue(revenue)
                             .averageRating(avgRatingDouble)
@@ -372,7 +374,7 @@ public class AnalyticsService {
     private List<AnalyticsDto.CategoryStats> getCategoryStats() {
         List<com.bookkaro.model.Service> allServices = serviceRepository.findAll();
         Map<String, List<com.bookkaro.model.Service>> servicesByCategory = allServices.stream()
-                .collect(Collectors.groupingBy(com.bookkaro.model.Service::getCategory));
+                .collect(Collectors.groupingBy(s -> s.getCategory() != null ? s.getCategory().getName() : "Uncategorized"));
         
         return servicesByCategory.entrySet().stream()
                 .map(entry -> {
@@ -406,7 +408,7 @@ public class AnalyticsService {
 
     private List<AnalyticsDto.CategoryStats> getVendorCategoryStats(List<com.bookkaro.model.Service> vendorServices) {
         Map<String, List<com.bookkaro.model.Service>> servicesByCategory = vendorServices.stream()
-                .collect(Collectors.groupingBy(com.bookkaro.model.Service::getCategory));
+                .collect(Collectors.groupingBy(s -> s.getCategory() != null ? s.getCategory().getName() : "Uncategorized"));
         
         return servicesByCategory.entrySet().stream()
                 .map(entry -> {

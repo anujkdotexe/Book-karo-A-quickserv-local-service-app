@@ -104,6 +104,21 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* Field Error Styles */
+.form-group input[aria-invalid="true"],
+.form-group select[aria-invalid="true"] {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.field-error {
+  display: block;
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: var(--spacing-xs);
+  font-weight: 500;
+}
+
 .checkbox-group label {
   display: flex;
   align-items: center;
@@ -439,7 +454,7 @@
   }
 }
 
-/* Clean Badge Styles (No Emojis) */
+/* Clean Badge Styles - Official Theme Colors */
 .address-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -450,22 +465,22 @@
 }
 
 .address-badge.home {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: white;
 }
 
 .address-badge.office {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
 }
 
 .address-badge.other {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   color: white;
 }
 
 .address-badge.default {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 

@@ -88,6 +88,8 @@ public class AnalyticsDto {
     public static class TopVendor {
         private Long vendorId;
         private String businessName;
+        private String city;
+        private String state;
         private Long bookingCount;
         private BigDecimal revenue;
         private Double averageRating;

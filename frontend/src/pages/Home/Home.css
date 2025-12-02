@@ -218,6 +218,16 @@
   color: var(--light-gray);
 }
 
+.cta-section .btn-hero-primary {
+  background-color: var(--navy-blue);
+  box-shadow: 0 4px 14px rgba(30, 58, 138, 0.4);
+}
+
+.cta-section .btn-hero-primary:hover {
+  background-color: #0f172a;
+  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.6);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero-title {

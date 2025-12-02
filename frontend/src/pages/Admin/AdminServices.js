@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { adminAPI } from '../../services/adminAPI';
 import { useModal } from '../../components/Modal/Modal';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import './AdminServices.css';
 
 const AdminServices = () => {
+  const location = useLocation();
   const [services, setServices] = useState([]);
   const [pendingServices, setPendingServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState(location.state?.filter === 'PENDING' ? 'pending' : 'all');
+  const [totalServices, setTotalServices] = useState(0);
   const modal = useModal();
 
   useEffect(() => {
@@ -24,12 +29,13 @@ const AdminServices = () => {
   const loadServices = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await adminAPI.getAllServices(currentPage, 20);
       setServices(data.content || []);
       setTotalPages(data.totalPages || 0);
-      setError(null);
+      setTotalServices(data.totalElements || 0);
     } catch (err) {
-      modal.error(err.response?.data?.message || 'Failed to load services');
+      setError(err.response?.data?.message || 'Failed to load services. Please try again.');
       setServices([]);
     } finally {
       setLoading(false);
@@ -39,11 +45,11 @@ const AdminServices = () => {
   const loadPendingServices = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await adminAPI.getPendingServices();
       setPendingServices(Array.isArray(data) ? data : []);
-      setError(null);
     } catch (err) {
-      modal.error(err.response?.data?.message || 'Failed to load pending services');
+      setError(err.response?.data?.message || 'Failed to load pending services. Please try again.');
       setPendingServices([]);
     } finally {
       setLoading(false);
@@ -151,7 +157,21 @@ const AdminServices = () => {
   const displayServices = activeTab === 'pending' ? pendingServices : services;
 
   if (loading && displayServices.length === 0) {
-    return <div className="admin-services"><div className="loading-spinner">Loading services...</div></div>;
+    return <LoadingSpinner message="Loading services..." fullScreen />;
+  }
+
+  if (error && displayServices.length === 0) {
+    return (
+      <ErrorModal
+        title="Failed to Load Services"
+        message={error}
+        onRefresh={() => {
+          if (activeTab === 'pending') loadPendingServices();
+          else loadServices();
+        }}
+        onClose={() => setError(null)}
+      />
+    );
   }
 
   return (
@@ -168,7 +188,7 @@ const AdminServices = () => {
           className={`tab ${activeTab === 'all' ? 'active' : ''}`}
           onClick={() => setActiveTab('all')}
         >
-          All Services
+          All Services ({totalServices})
         </button>
         <button
           className={`tab ${activeTab === 'pending' ? 'active' : ''}`}

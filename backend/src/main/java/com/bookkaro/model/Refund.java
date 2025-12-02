@@ -19,6 +19,10 @@ public class Refund {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", nullable = false)
+    private Payment payment;
+
     @OneToOne
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
@@ -30,18 +34,33 @@ public class Refund {
     private String reason;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "refund_status", nullable = false, length = 20)
     @Builder.Default
     private RefundStatus status = RefundStatus.PENDING;
+
+    @Column(name = "requested_at")
+    private LocalDateTime requestedAt;
 
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
+    @Column(name = "processor_transaction_id", length = 100)
+    private String processorTransactionId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @PrePersist
     protected void onCreate() {

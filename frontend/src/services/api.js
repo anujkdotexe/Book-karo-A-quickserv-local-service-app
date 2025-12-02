@@ -60,10 +60,11 @@ api.interceptors.response.use(
         // Fallback: silently redirect
       }
       
-      // Redirect to login after a brief delay to show message
+      // Redirect to login after a brief delay to allow toast to display
+      const REDIRECT_DELAY = 2000; // 2 seconds - configurable constant
       setTimeout(() => {
         window.location.href = '/login';
-      }, 1500);
+      }, REDIRECT_DELAY);
     }
     
     // Add user-friendly error messages
@@ -97,6 +98,7 @@ export const serviceAPI = {
         category: filters.category || undefined,
         city: filters.city || undefined,
         location: filters.location || undefined,
+        keyword: filters.keyword || undefined,
         minPrice: filters.minPrice || undefined,
         maxPrice: filters.maxPrice || undefined,
         minRating: filters.minRating || undefined,
@@ -110,6 +112,7 @@ export const serviceAPI = {
   getVendorInfo: (id) => api.get(`/services/${id}/vendor`),
   getCities: () => api.get('/services/cities'),
   getCategories: () => api.get('/services/categories'),
+  getTrendingSearches: () => api.get('/services/trending'),
 };
 
 export const bookingAPI = {
@@ -125,10 +128,11 @@ export const bookingAPI = {
 export const reviewAPI = {
   createReview: (data) => api.post('/reviews', data),
   submitReview: (data) => api.post('/reviews', data), // Keep for backward compatibility
-  getServiceReviews: (serviceId, page, size) =>
+  getServiceReviews: (serviceId, rating = null) =>
     api.get(`/reviews/service/${serviceId}`, {
-      params: { page, size },
+      params: { rating },
     }),
+  markHelpful: (reviewId) => api.post(`/reviews/${reviewId}/helpful`),
 };
 
 export const addressAPI = {
@@ -173,4 +177,16 @@ export const refundAPI = {
   rejectRefund: (refundId, reason) => api.patch(`/refunds/${refundId}/reject`, null, { params: { reason } }),
 };
 
+export const adminAPI = {
+  getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
+  getDashboardStats: () => api.get('/admin/dashboard/stats'),
+};
+
+export const searchAPI = {
+  autocomplete: (query, limit = 10) => 
+    api.get('/services/autocomplete', { params: { q: query, limit } }),
+  getTrending: () => api.get('/services/trending'),
+};
+
 export default api;
+

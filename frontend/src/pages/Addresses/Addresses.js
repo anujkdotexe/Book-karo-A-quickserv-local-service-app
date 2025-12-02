@@ -109,11 +109,23 @@ const Addresses = () => {
     }
     
     try {
+      // Construct addressLine1 and addressLine2 from individual fields
+      const addressPayload = {
+        addressType: formData.addressType,
+        addressLine1: `${formData.houseNumber}, ${formData.buildingName}`.trim(),
+        addressLine2: `${formData.street}, ${formData.area}`.trim(),
+        city: formData.city,
+        state: formData.state,
+        postalCode: formData.postalCode,
+        landmark: formData.landmark,
+        isDefault: formData.isDefault,
+      };
+
       if (editingAddress) {
-        await addressAPI.updateAddress(editingAddress.id, formData);
+        await addressAPI.updateAddress(editingAddress.id, addressPayload);
         modal.success('Address updated successfully');
       } else {
-        const response = await addressAPI.createAddress(formData);
+        const response = await addressAPI.createAddress(addressPayload);
         modal.success('Address added successfully');
         // Optimistically add new address to list
         if (response.data.data) {
@@ -235,6 +247,7 @@ const Addresses = () => {
                     required
                   >
                     <option value="HOME">Home</option>
+                    <option value="WORK">Work</option>
                     <option value="OFFICE">Office</option>
                     <option value="OTHER">Other</option>
                   </select>
@@ -249,7 +262,6 @@ const Addresses = () => {
                   value={formData.houseNumber}
                   onChange={handleInputChange}
                   placeholder="A-101, House #45"
-                  required
                   aria-invalid={!!fieldErrors.houseNumber}
                   aria-describedby={fieldErrors.houseNumber ? 'houseNumber-error' : undefined}
                 />
@@ -268,7 +280,6 @@ const Addresses = () => {
                   value={formData.buildingName}
                   onChange={handleInputChange}
                   placeholder="Sunshine Apartments, Green Villa"
-                  required
                   aria-invalid={!!fieldErrors.buildingName}
                   aria-describedby={fieldErrors.buildingName ? 'buildingName-error' : undefined}
                 />
@@ -298,7 +309,6 @@ const Addresses = () => {
                   value={formData.area}
                   onChange={handleInputChange}
                   placeholder="Andheri West, Koramangala"
-                  required
                   aria-invalid={!!fieldErrors.area}
                   aria-describedby={fieldErrors.area ? 'area-error' : undefined}
                 />
@@ -307,18 +317,6 @@ const Addresses = () => {
                     {fieldErrors.area}
                   </span>
                 )}
-              </div>
-
-              <div className="form-group">
-                <label>Landmark</label>
-                <input
-                  type="text"
-                  name="landmark"
-                  value={formData.landmark}
-                  onChange={handleInputChange}
-                  placeholder="Near Metro Station, Opposite Mall"
-                />
-                <small style={{ color: '#666', fontSize: '0.85rem' }}>Optional but helps delivery</small>
               </div>
 
               <div className="form-row">
@@ -330,7 +328,7 @@ const Addresses = () => {
                     value={formData.city}
                     onChange={handleInputChange}
                     placeholder="Mumbai"
-                    required
+                    autoComplete="address-level2"
                     aria-invalid={!!fieldErrors.city}
                     aria-describedby={fieldErrors.city ? 'city-error' : undefined}
                   />
@@ -349,7 +347,7 @@ const Addresses = () => {
                     value={formData.state}
                     onChange={handleInputChange}
                     placeholder="Maharashtra"
-                    required
+                    autoComplete="address-level1"
                     aria-invalid={!!fieldErrors.state}
                     aria-describedby={fieldErrors.state ? 'state-error' : undefined}
                   />
@@ -369,7 +367,6 @@ const Addresses = () => {
                     onChange={handleInputChange}
                     placeholder="400001"
                     maxLength="6"
-                    required
                     aria-invalid={!!fieldErrors.postalCode}
                     aria-describedby={fieldErrors.postalCode ? 'postalCode-error' : undefined}
                   />
@@ -454,6 +451,12 @@ const Addresses = () => {
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                      </svg>
+                    )}
+                    {address.addressType === 'WORK' && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                        <polyline points="17 2 12 7 7 2"></polyline>
                       </svg>
                     )}
                     {address.addressType === 'OFFICE' && (

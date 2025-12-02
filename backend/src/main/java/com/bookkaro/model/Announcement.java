@@ -24,30 +24,40 @@ public class Announcement {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false, length = 50)
-    private String type; // INFO, WARNING, URGENT, MAINTENANCE
+    @Column(name = "announcement_type", length = 50)
+    private String announcementType; // INFO, WARNING, URGENT, MAINTENANCE
 
-    @Column(name = "target_audience", length = 50)
-    private String targetAudience; // ALL, USERS, VENDORS, ADMINS
+    @Column(name = "audience", length = 50)
+    private String audience; // ALL, USERS, VENDORS, ADMINS
 
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
+    @Column(name = "priority")
+    @Builder.Default
+    private Integer priority = 0;
 
-    @Column(name = "end_date")
-    private LocalDateTime endDate;
+    @Column(name = "starts_at")
+    private LocalDateTime startsAt;
+
+    @Column(name = "ends_at")
+    private LocalDateTime endsAt;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
 
-    @Column(name = "created_by")
-    private Long createdBy;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @PrePersist
     protected void onCreate() {

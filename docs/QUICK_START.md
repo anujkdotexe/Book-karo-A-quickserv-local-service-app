@@ -1,10 +1,26 @@
 # BOOK-KARO Quick Start Guide
 
+**Version**: Backend 1.0.4, Frontend 1.0.0  
+**Status**: ✅ Production Ready  
+**Last Updated**: December 1, 2025  
+
+## System Overview
+
+BOOK-KARO is a complete service marketplace platform with **580 active services**, **87 users**, and **973 booking records**. The system supports customers, vendors, and administrators with full-featured dashboards.
+
+### Current Live Data
+- **Service Categories**: 6 (Electrical, Home Services, IT & Software, Logistics, Painting, Plumbing)  
+- **Active Services**: 580 services across all categories
+- **Registered Users**: 87 (customers, vendors, admins)
+- **Service Providers**: 26 verified vendors
+- **Booking History**: 973 completed transactions
+- **Customer Reviews**: 762 ratings and feedback
+
 ## Prerequisites
-- Java 21+ installed
-- Node.js 18+ installed
-- PostgreSQL 15+ running
-- Maven 3.9+ installed
+- **Java 21+** installed (current: Java 21)
+- **Node.js 18+** installed (required for React frontend)
+- **PostgreSQL 15+** running (current: PostgreSQL 15.13)
+- **Maven 3.9+** installed (for backend builds)
 
 ## Start the Application
 
@@ -21,9 +37,9 @@ This script starts both backend and frontend automatically.
 ```powershell
 cd D:\Springboard\backend
 
-# Fast build + run (8-10 seconds)
+# Fast build + run (5-10 seconds startup)
 mvn clean package -DskipTests
-java -jar target/bookkaro-backend-1.0.3.jar
+java -jar target/bookkaro-backend-1.0.4.jar
 
 # OR for development (with hot reload)
 mvn spring-boot:run

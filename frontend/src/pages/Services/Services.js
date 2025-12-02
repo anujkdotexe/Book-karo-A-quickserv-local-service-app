@@ -2,17 +2,30 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { serviceAPI, favoriteAPI } from '../../services/api';
 import { useModal } from '../../components/Modal/Modal';
-import SkeletonLoader from '../../components/SkeletonLoader/SkeletonLoader';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import './Services.css';
 
 // Utility function to sanitize input (prevent XSS)
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return input;
+  // Comprehensive HTML encoding to prevent XSS
   return input
-    .replace(/[<>'"]/g, '') // Remove potential XSS characters
-    .replace(/[;\\]/g, '') // Remove SQL special characters
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/`/g, '&#x60;')
+    .replace(/\//g, '&#x2F;')
     .trim();
+};
+
+// Separate sanitization for location fields (preserve hyphens and commas)
+const sanitizeLocation = (input) => {
+  if (typeof input !== 'string') return input;
+  // Allow letters, numbers, spaces, hyphens, and commas for proper location names like "Anna Nagar, Chennai"
+  return input.replace(/[^a-zA-Z0-9\s,-]/g, '').trim();
 };
 
 const Services = () => {
@@ -23,6 +36,8 @@ const Services = () => {
   const [sortLoading, setSortLoading] = useState(false);
   const [error, setError] = useState('');
   const favoritePendingRef = useRef(new Set()); // Track pending favorite operations
+  const abortControllerRef = useRef(null); // For cancelling pending requests
+  const debounceTimerRef = useRef(null); // For debouncing filter changes
   
   // Load filters from localStorage on mount
   const loadFiltersFromStorage = () => {
@@ -38,6 +53,7 @@ const Services = () => {
       category: '',
       city: '',
       location: '',
+      keyword: '',
       minPrice: '',
       maxPrice: '',
       minRating: '',
@@ -94,7 +110,7 @@ const Services = () => {
     if (searchQuery) {
       setSearchParams(prev => ({
         ...prev,
-        category: searchQuery  // Use category field for general search
+        keyword: searchQuery  // Use dedicated keyword field for general search
       }));
     }
   }, [urlSearchParams]);
@@ -153,20 +169,32 @@ const Services = () => {
     fetchCategories();
     fetchFavorites();
     
-    // Periodically refresh favorites to handle network instability
+    // Periodically refresh favorites (reduced frequency to save bandwidth)
     const favoritesRefreshInterval = setInterval(() => {
       fetchFavorites();
-    }, 60000); // Refresh every 60 seconds
+    }, 300000); // Refresh every 5 minutes (300000ms)
     
     // Cleanup
     return () => {
       clearInterval(favoritesRefreshInterval);
+      // Clear debounce timer on unmount to prevent memory leak
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       // Optionally clear filters on unmount (disabled by default)
       // localStorage.removeItem('serviceFilters');
     };
   }, []);
 
   const fetchServices = useCallback(async () => {
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+
     setSortLoading(true);
     setLoading(true);
     setError('');
@@ -176,7 +204,8 @@ const Services = () => {
         page,
         9,
         sortBy,
-        sortDir
+        sortDir,
+        abortControllerRef.current.signal
       );
       
       // Handle both paginated and non-paginated responses
@@ -203,6 +232,10 @@ const Services = () => {
         setCategories(uniqueCategories);
       }
     } catch (err) {
+      // Ignore abort errors from cancelled requests
+      if (err.name === 'AbortError') {
+        return;
+      }
       setError('Failed to load services. Please try again later.');
       setServices([]);
       setTotalPages(0);
@@ -274,10 +307,9 @@ const Services = () => {
     const { name, value } = e.target;
     let sanitizedValue = value;
     
-    // Sanitize text inputs (including city)
+    // Use unified sanitization for location (preserve hyphens and commas)
     if (name === 'location') {
-      // Allow only letters, numbers, spaces, commas, and hyphens for location
-      sanitizedValue = value.replace(/[^a-zA-Z0-9\s]/g, '');
+      sanitizedValue = sanitizeLocation(value);
       // Limit location length
       if (sanitizedValue.length > 100) {
         sanitizedValue = sanitizedValue.substring(0, 100);
@@ -300,12 +332,20 @@ const Services = () => {
       }
     }
     
+    // Debounce filter changes to avoid excessive API calls
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
     setSearchParams(prevParams => ({
       ...prevParams,
       [name]: sanitizedValue,
     }));
-    // Reset to page 0 when filters change
-    setPage(0);
+    
+    // Debounce page reset and fetch (500ms delay)
+    debounceTimerRef.current = setTimeout(() => {
+      setPage(0);
+    }, 500);
   };
 
   const handleKeyPress = (e) => {
@@ -408,6 +448,16 @@ const Services = () => {
         <div className="search-filter-section fade-in">
           <form onSubmit={handleSearch} className="search-form">
             <div className="search-inputs">
+              <input
+                type="text"
+                name="keyword"
+                placeholder="Search services (e.g., Plumbing, Cleaning)"
+                value={searchParams.keyword}
+                onChange={handleSearchChange}
+                onKeyPress={handleKeyPress}
+                aria-label="Search by keyword"
+                className="keyword-search"
+              />
               <select
                 name="category"
                 value={searchParams.category}
@@ -581,9 +631,7 @@ const Services = () => {
 
         {/* Services Grid */}
         {loading && services.length === 0 ? (
-          <div className="services-grid">
-            <SkeletonLoader type="service" count={9} />
-          </div>
+          <LoadingSpinner message="Loading services..." size="thick" fullScreen />
         ) : !error && services.length === 0 && !loading ? (
           <div className="no-results-message" role="status" aria-live="polite">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

@@ -14,15 +14,16 @@ public interface BannerRepository extends JpaRepository<Banner, Long> {
     
     List<Banner> findByIsActiveTrueOrderByDisplayOrderAsc();
     
-    List<Banner> findByPositionAndIsActiveTrueOrderByDisplayOrderAsc(String position);
-    
+    // Updated to use current Banner entity fields: target, startsAt, endsAt
+    List<Banner> findByTargetAndIsActiveTrueOrderByDisplayOrderAsc(String target);
+
     @Query("SELECT b FROM Banner b WHERE b.isActive = true " +
-           "AND (b.startDate IS NULL OR b.startDate <= :now) " +
-           "AND (b.endDate IS NULL OR b.endDate >= :now) " +
-           "AND b.position = :position " +
+           "AND (b.startsAt IS NULL OR b.startsAt <= :now) " +
+           "AND (b.endsAt IS NULL OR b.endsAt >= :now) " +
+           "AND b.target = :target " +
            "ORDER BY b.displayOrder ASC")
-    List<Banner> findActiveBannersByPosition(
+    List<Banner> findActiveBannersByTarget(
         @Param("now") LocalDateTime now, 
-        @Param("position") String position
+        @Param("target") String target
     );
 }

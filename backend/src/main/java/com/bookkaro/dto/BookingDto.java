@@ -20,6 +20,7 @@ import java.time.LocalTime;
 public class BookingDto {
 
     private Long id;
+    private String bookingReference;
     private Long userId;
     private String userName;
     private String userEmail;
@@ -27,10 +28,17 @@ public class BookingDto {
     private String serviceName;
     private Long vendorId;
     private String vendorName;
+    private LocalDateTime scheduledAt;
+    
+    // Legacy fields for backward compatibility
     private LocalDate bookingDate;
     private LocalTime bookingTime;
+    
     private String status;
+    private String paymentStatus;
     private BigDecimal totalAmount;
+    private BigDecimal priceTotal;
+    private String priceCurrency;
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Home.css';
 
 const Home = () => {
@@ -39,15 +39,15 @@ const Home = () => {
             </p>
             <div className="hero-actions">
               {isAuthenticated ? (
-                <Link to="/services" className="btn btn-hero-primary">
+                <Link to="/services" className="btn-hero-primary">
                   Browse Services
                 </Link>
               ) : (
                 <>
-                  <Link to="/register" className="btn btn-hero-primary">
+                  <Link to="/register" className="btn-hero-primary">
                     Get Started
                   </Link>
-                  <Link to="/login" className="btn btn-hero-secondary">
+                  <Link to="/login" className="btn-hero-secondary">
                     Sign In
                   </Link>
                 </>
@@ -99,7 +99,7 @@ const Home = () => {
             <h2>Ready to Get Started?</h2>
             <p>Join thousands of satisfied customers on BOOK-KARO today!</p>
             {!isAuthenticated && (
-              <Link to="/register" className="btn btn-hero-primary">
+              <Link to="/register" className="btn-hero-primary">
                 Create Free Account
               </Link>
             )}

@@ -12,14 +12,13 @@ const Payment = () => {
     cardNumber: '4111 1111 1111 1111',
     cardName: 'TEST USER',
     expiryMonth: '12',
-    expiryYear: '2025',
+    expiryYear: '2026',
     cvv: '123'
   });
 
   const [errors, setErrors] = useState({});
   const [processing, setProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [cardType, setCardType] = useState('');
 
   useEffect(() => {
     if (!bookingData) {
@@ -27,38 +26,16 @@ const Payment = () => {
     }
   }, [bookingData, navigate]);
 
-  // Detect card type based on card number
-  const detectCardType = (number) => {
-    const cleaned = number.replace(/\s/g, '');
-    
-    if (/^4/.test(cleaned)) {
-      return 'visa';
-    } else if (/^5[1-5]/.test(cleaned)) {
-      return 'mastercard';
-    } else if (/^3[47]/.test(cleaned)) {
-      return 'amex';
-    } else if (/^6(?:011|5)/.test(cleaned)) {
-      return 'discover';
-    } else if (/^35/.test(cleaned)) {
-      return 'jcb';
-    } else if (/^3(?:0[0-5]|[68])/.test(cleaned)) {
-      return 'diners';
-    }
-    
-    return '';
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     let formattedValue = value;
 
     if (name === 'cardNumber') {
+      // Format as XXXX XXXX XXXX XXXX for Visa (16 digits)
       formattedValue = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-      formattedValue = formattedValue.slice(0, 19);
-      // Detect card type
-      const type = detectCardType(formattedValue);
-      setCardType(type);
+      formattedValue = formattedValue.slice(0, 19); // Max 16 digits + 3 spaces
     } else if (name === 'cvv') {
+      // CVV is 3 digits for Visa
       formattedValue = value.replace(/\D/g, '').slice(0, 3);
     } else if (name === 'expiryMonth' || name === 'expiryYear') {
       formattedValue = value.replace(/\D/g, '').slice(0, name === 'expiryMonth' ? 2 : 4);
@@ -79,8 +56,12 @@ const Payment = () => {
 
     if (!paymentData.cardNumber) {
       newErrors.cardNumber = 'Card number is required';
-    } else if (paymentData.cardNumber.replace(/\s/g, '').length !== 16) {
-      newErrors.cardNumber = 'Card number must be 16 digits';
+    } else {
+      const cleanedCardNumber = paymentData.cardNumber.replace(/\s/g, '');
+      // Visa cards start with 4 and are 16 digits
+      if (!/^4\d{15}$/.test(cleanedCardNumber)) {
+        newErrors.cardNumber = 'Please enter a valid Visa card number (16 digits starting with 4)';
+      }
     }
 
     if (!paymentData.cardName) {
@@ -129,9 +110,22 @@ const Payment = () => {
     setProcessing(true);
 
     try {
-      // Step 1: Process payment via backend
+      // Create booking FIRST, then process payment (atomic transaction)
+      // This prevents payment success + booking failure scenarios
+      
+      // Step 1: Create booking (unpaid status)
+      const bookingResponse = await bookingAPI.createBooking({
+        serviceId: bookingData.serviceId,
+        bookingDate: bookingData.bookingDate,
+        bookingTime: bookingData.bookingTime,
+        notes: bookingData.notes
+      });
+
+      const createdBooking = bookingResponse.data.data;
+
+      // Step 2: Process payment for the created booking
       const paymentResponse = await paymentAPI.processPayment({
-        bookingId: null, // Will be created after payment
+        bookingId: createdBooking.id,
         amount: servicePrice,
         paymentMethod: 'CARD',
         cardNumber: paymentData.cardNumber.replace(/\s/g, ''),
@@ -141,15 +135,7 @@ const Payment = () => {
         expiryYear: paymentData.expiryYear
       });
 
-      // Step 2: If payment successful, create booking
       if (paymentResponse.data.success) {
-        await bookingAPI.createBooking({
-          serviceId: bookingData.serviceId,
-          bookingDate: bookingData.bookingDate,
-          bookingTime: bookingData.bookingTime,
-          notes: bookingData.notes
-        });
-
         setPaymentSuccess(true);
 
         // Redirect to bookings page after 3 seconds
@@ -157,11 +143,31 @@ const Payment = () => {
           navigate('/bookings');
         }, 3000);
       } else {
-        setErrors({ form: paymentResponse.data.message || 'Payment failed' });
+        // Payment failed but booking exists - user can retry payment later
+        setErrors({ 
+          form: `Payment failed: ${paymentResponse.data.message || 'Unknown error'}. Booking created (ID: ${createdBooking.id}). Please retry payment from your bookings page.` 
+        });
         setProcessing(false);
       }
     } catch (err) {
-      setErrors({ form: err.response?.data?.message || 'Payment or booking failed. Please try again.' });
+      // Display specific validation errors from backend
+      const errorMessage = err.response?.data?.message || 'Operation failed. Please try again.';
+      
+      // Extract specific error details
+      let displayError = errorMessage;
+      if (errorMessage.includes('city')) {
+        displayError = 'City Mismatch: ' + errorMessage;
+      } else if (errorMessage.includes('past')) {
+        displayError = 'Invalid Date: ' + errorMessage;
+      } else if (errorMessage.includes('available')) {
+        displayError = 'Service Unavailable: ' + errorMessage;
+      } else if (errorMessage.includes('advance')) {
+        displayError = 'Booking Time: ' + errorMessage;
+      } else if (errorMessage.includes('duplicate')) {
+        displayError = 'Duplicate Booking: ' + errorMessage;
+      }
+      
+      setErrors({ form: displayError });
       setProcessing(false);
     }
   };
@@ -206,9 +212,18 @@ const Payment = () => {
 
   return (
     <div className="payment-container">
+      <div className="payment-top-header">
+        <button 
+          type="button" 
+          className="back-button" 
+          onClick={() => navigate(-1)}
+        >
+          ← Back
+        </button>
+        <h1>Complete Payment</h1>
+      </div>
       <div className="payment-card">
         <div className="payment-header">
-          <h1>Payment Details</h1>
           <p>Complete your booking payment</p>
         </div>
 
@@ -226,7 +241,12 @@ const Payment = () => {
 
         <form onSubmit={handleSubmit} className="payment-form">
           <div className="form-group">
-            <label htmlFor="cardNumber">Card Number</label>
+            <label htmlFor="cardNumber">
+              Card Number 
+              <span style={{ fontWeight: 'normal', color: '#666', marginLeft: '8px' }}>
+                (Visa only)
+              </span>
+            </label>
             <div className="card-input-wrapper">
               <input
                 type="text"
@@ -234,19 +254,12 @@ const Payment = () => {
                 name="cardNumber"
                 value={paymentData.cardNumber}
                 onChange={handleChange}
-                placeholder="1234 5678 9012 3456"
+                placeholder="4111 1111 1111 1111"
                 className={errors.cardNumber ? 'error' : ''}
               />
-              {cardType && (
-                <span className={`card-type-icon card-${cardType}`}>
-                  {cardType === 'visa' && '💳 Visa'}
-                  {cardType === 'mastercard' && '💳 Mastercard'}
-                  {cardType === 'amex' && '💳 Amex'}
-                  {cardType === 'discover' && '💳 Discover'}
-                  {cardType === 'jcb' && '💳 JCB'}
-                  {cardType === 'diners' && '💳 Diners'}
-                </span>
-              )}
+              <span className="card-type-icon">
+                💳 Visa
+              </span>
             </div>
             {errors.cardNumber && <span className="error-message">{errors.cardNumber}</span>}
           </div>
@@ -259,7 +272,7 @@ const Payment = () => {
               name="cardName"
               value={paymentData.cardName}
               onChange={handleChange}
-              placeholder="JOHN DOE"
+              placeholder="RAJESH KUMAR"
               className={errors.cardName ? 'error' : ''}
             />
             {errors.cardName && <span className="error-message">{errors.cardName}</span>}
@@ -326,17 +339,10 @@ const Payment = () => {
 
           <div className="payment-actions">
             <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => navigate(-1)}
-              disabled={processing}
-            >
-              Cancel
-            </button>
-            <button
               type="submit"
               className="btn btn-primary"
               disabled={processing}
+              style={{ width: '100%' }}
             >
               {processing ? (
                 <>

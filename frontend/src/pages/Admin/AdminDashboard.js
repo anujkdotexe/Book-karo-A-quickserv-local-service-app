@@ -30,7 +30,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="admin-dashboard">
-        <LoadingSpinner message="Loading dashboard..." size="large" />
+        <LoadingSpinner message="Loading dashboard..." size="thick" fullScreen />
       </div>
     );
   }
@@ -65,9 +65,11 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Users</h3>
-            <p className="stat-value">{stats?.totalUsers || 0}</p>
-            <span className="stat-label">Platform Users</span>
+            <h2>Total Users Registered</h2>
+            <div>
+              <span className="stat-value">{stats?.totalUsers || 0}</span>
+              <span className="stat-label">Platform Users</span>
+            </div>
           </div>
         </div>
 
@@ -80,9 +82,11 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Vendors</h3>
-            <p className="stat-value">{stats?.totalVendors || 0}</p>
-            <span className="stat-label">Service Providers</span>
+            <h2>Total Vendors Count</h2>
+            <div>
+              <span className="stat-value">{stats?.totalVendors || 0}</span>
+              <span className="stat-label">Service Providers</span>
+            </div>
           </div>
         </div>
 
@@ -94,9 +98,11 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Services</h3>
-            <p className="stat-value">{stats?.totalServices || 0}</p>
-            <span className="stat-label">Active Listings</span>
+            <h2>Total Services Available</h2>
+            <div>
+              <span className="stat-value">{stats?.totalServices || 0}</span>
+              <span className="stat-label">Active Listings</span>
+            </div>
           </div>
         </div>
 
@@ -110,13 +116,15 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Total Bookings</h3>
-            <p className="stat-value">{stats?.totalBookings || 0}</p>
-            <span className="stat-label">All Time</span>
+            <h2>Total Bookings Received</h2>
+            <div>
+              <span className="stat-value">{stats?.totalBookings || 0}</span>
+              <span className="stat-label">All Time</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card danger clickable" onClick={() => navigate('/admin/vendors')}>
+        <div className="stat-card danger clickable" onClick={() => navigate('/admin/vendors', { state: { filter: 'PENDING' } })}>
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -124,13 +132,15 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Pending Vendor Approvals</h3>
-            <p className="stat-value">{stats?.pendingVendorApprovals || 0}</p>
-            <span className="stat-label">Requires Action</span>
+            <h2>Pending Vendor Approvals</h2>
+            <div>
+              <span className="stat-value">{stats?.pendingVendorApprovals || 0}</span>
+              <span className="stat-label">Requires Action</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card danger clickable" onClick={() => navigate('/admin/services')}>
+        <div className="stat-card danger clickable" onClick={() => navigate('/admin/services', { state: { filter: 'PENDING' } })}>
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -140,13 +150,15 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Pending Service Approvals</h3>
-            <p className="stat-value">{stats?.pendingServiceApprovals || 0}</p>
-            <span className="stat-label">Awaiting Review</span>
+            <h2>Pending Service Approvals</h2>
+            <div>
+              <span className="stat-value">{stats?.pendingServiceApprovals || 0}</span>
+              <span className="stat-label">Awaiting Review</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card success clickable" onClick={() => navigate('/admin/bookings')}>
+        <div className="stat-card success">
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -154,13 +166,15 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Platform Revenue</h3>
-            <p className="stat-value">Rs.{stats?.platformRevenue?.toLocaleString() || 0}</p>
-            <span className="stat-label">Total Earnings</span>
+            <h2>Platform Revenue Earned</h2>
+            <div>
+              <span className="stat-value">Rs.{stats?.platformRevenue?.toLocaleString() || 0}</span>
+              <span className="stat-label">Total Earnings</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card info clickable" onClick={() => navigate('/admin/bookings')}>
+        <div className="stat-card info">
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -168,9 +182,76 @@ const AdminDashboard = () => {
             </svg>
           </div>
           <div className="stat-content">
-            <h3>Monthly Revenue</h3>
-            <p className="stat-value">Rs.{stats?.monthlyRevenue?.toLocaleString() || 0}</p>
-            <span className="stat-label">This Month</span>
+            <h2>Monthly Revenue Status</h2>
+            <div>
+              <span className="stat-value">Rs.{stats?.monthlyRevenue?.toLocaleString() || 0}</span>
+              <span className="stat-label">This Month</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card purple clickable" onClick={() => navigate('/admin/coupons')}>
+          <div className="stat-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+              <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h2>Active Coupons Offers</h2>
+            <div>
+              <span className="stat-value">{stats?.totalCoupons || 0}</span>
+              <span className="stat-label">Active Offers</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card success clickable" onClick={() => navigate('/admin/payments')}>
+          <div className="stat-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h2>Successful Payments</h2>
+            <div>
+              <span className="stat-value">{stats?.successfulPayments || 0}</span>
+              <span className="stat-label">Completed Transactions</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card danger clickable" onClick={() => navigate('/admin/payments')}>
+          <div className="stat-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h2>Failed Payments</h2>
+            <div>
+              <span className="stat-value">{stats?.failedPayments || 0}</span>
+              <span className="stat-label">Requires Attention</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card warning clickable" onClick={() => navigate('/admin/refunds')}>
+          <div className="stat-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h2>Pending Refunds</h2>
+            <div>
+              <span className="stat-value">{stats?.pendingRefunds || 0}</span>
+              <span className="stat-label">Awaiting Processing</span>
+            </div>
           </div>
         </div>
       </div>
@@ -207,10 +288,10 @@ const AdminDashboard = () => {
             <div className="section-header">
               <h2>Top Vendors (Revenue)</h2>
               <button 
-                onClick={() => navigate('/admin/vendors')} 
+                onClick={() => navigate('/admin/analytics')} 
                 className="view-all-btn"
               >
-                View All →
+                View Analytics →
               </button>
             </div>
             <div className="vendor-list">
@@ -218,7 +299,7 @@ const AdminDashboard = () => {
                 <div 
                   key={vendor.vendorId} 
                   className="vendor-item clickable-row"
-                  onClick={() => navigate('/admin/vendors')}
+                  onClick={() => navigate('/admin/analytics')}
                 >
                   <div className="vendor-info">
                     <h4>{vendor.businessName}</h4>
@@ -239,10 +320,10 @@ const AdminDashboard = () => {
             <div className="section-header">
               <h2>Top Services (Revenue)</h2>
               <button 
-                onClick={() => navigate('/admin/services')} 
+                onClick={() => navigate('/admin/analytics')} 
                 className="view-all-btn"
               >
-                View All →
+                View Analytics →
               </button>
             </div>
             <div className="services-list">
@@ -250,7 +331,7 @@ const AdminDashboard = () => {
                 <div 
                   key={service.serviceId} 
                   className="service-item clickable-row"
-                  onClick={() => navigate('/admin/services')}
+                  onClick={() => navigate('/admin/analytics')}
                 >
                   <div className="service-info">
                     <h4>{service.serviceName}</h4>
@@ -271,17 +352,23 @@ const AdminDashboard = () => {
           <div className="section full-width">
             <h2>Revenue Trend (Last 7 Days)</h2>
             <div className="revenue-chart">
-              {stats.revenueData.map(data => (
-                <div key={data.date} className="chart-bar">
-                  <div 
-                    className="bar" 
-                    style={{ height: `${(Number(data.revenue) / Math.max(...stats.revenueData.map(d => Number(d.revenue)))) * 100}%` }}
-                  >
-                    <span className="bar-value">Rs.{Number(data.revenue) || 0}</span>
-                  </div>
-                  <span className="bar-label">{new Date(data.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                </div>
-              ))}
+              {(() => {
+                const maxRevenue = Math.max(...stats.revenueData.map(d => Number(d.revenue)), 1);
+                return stats.revenueData.map(data => {
+                  const heightPercent = maxRevenue > 0 ? (Number(data.revenue) / maxRevenue) * 100 : 0;
+                  return (
+                    <div key={data.date} className="chart-bar">
+                      <div 
+                        className="bar" 
+                        style={{ height: `${heightPercent}%` }}
+                      >
+                        <span className="bar-value">Rs.{Number(data.revenue) || 0}</span>
+                      </div>
+                      <span className="bar-label">{new Date(data.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}

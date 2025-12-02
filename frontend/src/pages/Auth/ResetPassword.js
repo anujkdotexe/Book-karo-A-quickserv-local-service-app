@@ -31,8 +31,16 @@ const ResetPassword = () => {
 
     if (!formData.newPassword) {
       errors.newPassword = 'Password is required';
-    } else if (formData.newPassword.length < 6) {
-      errors.newPassword = 'Password must be at least 6 characters';
+    } else if (formData.newPassword.length < 8) {
+      errors.newPassword = 'Password must be at least 8 characters';
+    } else if (!/[A-Z]/.test(formData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one uppercase letter';
+    } else if (!/[a-z]/.test(formData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one lowercase letter';
+    } else if (!/[0-9]/.test(formData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one number';
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one special character';
     }
 
     if (!formData.confirmPassword) {

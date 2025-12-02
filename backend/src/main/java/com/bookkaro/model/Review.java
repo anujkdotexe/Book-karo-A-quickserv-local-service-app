@@ -45,17 +45,44 @@ public class Review {
     @JoinColumn(name = "service_id", nullable = false)
     private Service service;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id", nullable = false)
+    private Vendor vendor;
+
     @Column(nullable = false)
     private Integer rating; // 1-5 stars
 
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "likes_count")
+    @Builder.Default
+    private Integer helpfulCount = 0;
+
+    @Column(name = "is_verified")
+    @Builder.Default
+    private Boolean isVerified = false;
+
+    @Column(name = "vendor_response", columnDefinition = "TEXT")
+    private String vendorResponse;
+
+    @Column(name = "response_at")
+    private LocalDateTime responseAt;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Authentication Controller - Handles user registration and login
+ * Rate limiting is disabled for testing purposes
  */
 @RestController
 @RequestMapping("/auth")
@@ -30,7 +31,9 @@ public class AuthController {
      * POST /auth/register
      */
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
+            @Valid @RequestBody RegisterRequest request) {
+        
         ApiResponse<AuthResponse> response = authService.register(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -40,7 +43,9 @@ public class AuthController {
      * POST /auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+        
         ApiResponse<AuthResponse> response = authService.login(request);
         return ResponseEntity.ok(response);
     }

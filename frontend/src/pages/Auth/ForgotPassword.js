@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useModal } from '../../components/Modal/Modal';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import './Auth.css';
 
 const ForgotPassword = () => {
   const modal = useModal();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [resetToken, setResetToken] = useState('');
   const [fieldError, setFieldError] = useState('');
+
+  // Redirect if already logged in
+  React.useEffect(() => {
+    if (user) {
+      navigate('/services');
+    }
+  }, [user, navigate]);
 
   const validateEmail = (email) => {
     if (!email) return 'Email is required';

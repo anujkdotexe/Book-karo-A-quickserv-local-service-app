@@ -20,13 +20,14 @@ import java.util.Optional;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.service LEFT JOIN FETCH r.booking WHERE r.service.id = :serviceId")
+    // Fixed: Removed JOIN FETCH to avoid pagination conflicts
+    @Query("SELECT r FROM Review r WHERE r.service.id = :serviceId")
     Page<Review> findByServiceId(@Param("serviceId") Long serviceId, Pageable pageable);
 
-    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.service LEFT JOIN FETCH r.booking WHERE r.user.id = :userId")
+    @Query("SELECT r FROM Review r WHERE r.user.id = :userId")
     Page<Review> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.service LEFT JOIN FETCH r.booking WHERE r.booking.id = :bookingId")
+    @Query("SELECT r FROM Review r WHERE r.booking.id = :bookingId")
     Optional<Review> findByBookingId(@Param("bookingId") Long bookingId);
 
     Boolean existsByBookingId(Long bookingId);
@@ -34,13 +35,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // New methods for ReviewController
     Boolean existsByUserAndBooking(User user, Booking booking);
     
-    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.service LEFT JOIN FETCH r.booking WHERE r.service = :service ORDER BY r.createdAt DESC")
+    // Fixed: Removed JOIN FETCH to avoid SELECT DISTINCT + ORDER BY conflict in PostgreSQL
+    // Relationships will be fetched lazily and converted in the DTO
+    @Query("SELECT r FROM Review r WHERE r.service = :service ORDER BY r.createdAt DESC")
     List<Review> findByServiceOrderByCreatedAtDesc(@Param("service") Service service);
     
-    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.service LEFT JOIN FETCH r.booking WHERE r.service = :service")
+    @Query("SELECT r FROM Review r WHERE r.service = :service")
     List<Review> findByService(@Param("service") Service service);
     
-    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.user LEFT JOIN FETCH r.service LEFT JOIN FETCH r.booking WHERE r.user = :user ORDER BY r.createdAt DESC")
+    @Query("SELECT r FROM Review r WHERE r.user = :user ORDER BY r.createdAt DESC")
     List<Review> findByUserOrderByCreatedAtDesc(@Param("user") User user);
     
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.service.id = :serviceId")
@@ -51,4 +54,14 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // Analytics methods
     @Query("SELECT r FROM Review r WHERE r.service.id IN :serviceIds")
     List<Review> findByServiceIdIn(@Param("serviceIds") List<Long> serviceIds);
+    
+    // Filter by rating
+    @Query("SELECT r FROM Review r WHERE r.service = :service AND r.rating = :rating ORDER BY r.createdAt DESC")
+    List<Review> findByServiceAndRatingOrderByCreatedAtDesc(@Param("service") Service service, @Param("rating") Integer rating);
+    
+    // Platform Analytics methods
+    @Query("SELECT AVG(r.rating) FROM Review r")
+    Double findAverageRating();
+    
+    Long countByRating(Integer rating);
 }

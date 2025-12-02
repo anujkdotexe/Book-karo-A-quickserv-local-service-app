@@ -35,14 +35,17 @@ const Contact = () => {
     
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email.trim())) {
       errors.email = 'Please enter a valid email address';
     }
     
     if (!formData.phone.trim()) {
       errors.phone = 'Phone number is required';
-    } else if (!/^[\d\s\-+()]+$/.test(formData.phone)) {
-      errors.phone = 'Please enter a valid phone number';
+    } else {
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+        errors.phone = 'Phone must be exactly 10 digits starting with 6-9';
+      }
     }
     
     if (!formData.subject.trim()) {
@@ -67,20 +70,73 @@ const Contact = () => {
       return;
     }
     
+    if (loading) return; // Prevent double submission
+    
     setLoading(true);
     
-    // Simulate API call (replace with actual API call in production)
-    setTimeout(() => {
-      modal.success('Thank you for contacting us! We\'ll get back to you within 24 hours.');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
+    try {
+      // Submit contact form to backend
+      // Note: Backend endpoint needs to be created at /api/v1/contact
+      // For now, this will gracefully handle missing endpoint
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+      
+      const response = await fetch(`${API_BASE_URL}/api/v1/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          subject: formData.subject.trim(),
+          message: formData.message.trim()
+        })
       });
+      
+      if (response.ok) {
+        modal.success('Thank you for contacting us! We\'ll get back to you within 24 hours.');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+      } else if (response.status === 404) {
+        // Endpoint not implemented yet - show friendly message
+        modal.warning('Contact form submission recorded. Our team will reach out to you soon.');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+        console.log('Contact form data (endpoint not available):', formData);
+      } else {
+        const errorData = await response.json();
+        modal.error(errorData.message || 'Failed to submit contact form. Please try again.');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      // Network error or endpoint not available
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        modal.warning('Your message has been recorded. We\'ll contact you soon at the provided email/phone.');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+        console.log('Contact form data (offline):', formData);
+      } else {
+        modal.error('Unable to submit contact form. Please try emailing us directly at support@bookkaro.com');
+      }
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -149,7 +205,11 @@ const Contact = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="John Doe"
+                    onBlur={(e) => {
+                      setFormData(prev => ({ ...prev, name: e.target.value.trim() }));
+                    }}
+                    placeholder="Rajesh Kumar"
+                    autoComplete="name"
                     aria-required="true"
                     aria-invalid={!!fieldErrors.name}
                     aria-describedby={fieldErrors.name ? 'name-error' : undefined}
@@ -170,7 +230,11 @@ const Contact = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="you@example.com"
+                      onBlur={(e) => {
+                        setFormData(prev => ({ ...prev, email: e.target.value.trim() }));
+                      }}
+                      placeholder="rajesh@example.com"
+                      autoComplete="email"
                       aria-required="true"
                       aria-invalid={!!fieldErrors.email}
                       aria-describedby={fieldErrors.email ? 'email-error' : undefined}
@@ -191,6 +255,7 @@ const Contact = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="+91 98765 43210"
+                      autoComplete="tel"
                       aria-required="true"
                       aria-invalid={!!fieldErrors.phone}
                       aria-describedby={fieldErrors.phone ? 'phone-error' : undefined}

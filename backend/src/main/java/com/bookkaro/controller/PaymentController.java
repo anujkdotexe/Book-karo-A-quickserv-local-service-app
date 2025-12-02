@@ -50,7 +50,7 @@ public class PaymentController {
 
     /**
      * Get payment history for logged-in user
-     * GET /payments
+     * GET /payments or /payments/history
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getUserPayments(
@@ -80,6 +80,16 @@ public class PaymentController {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage()));
         }
+    }
+
+    /**
+     * Alias endpoint for payment history (backward compatibility)
+     * GET /payments/history
+     */
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPaymentHistory(
+            Authentication authentication) {
+        return getUserPayments(authentication);
     }
 
     private User getUserFromAuth(Authentication authentication) {

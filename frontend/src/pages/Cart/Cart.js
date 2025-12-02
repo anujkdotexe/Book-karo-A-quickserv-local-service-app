@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useModal } from '../../components/Modal/Modal';
+import { favoriteAPI } from '../../services/api';
+import settingsAPI from '../../services/settingsAPI';
 import './Cart.css';
 
 const Cart = () => {
   const { cartItems, removeFromCart, clearCart, getCartTotal } = useCart();
   const modal = useModal();
   const navigate = useNavigate();
+  const [serviceFee, setServiceFee] = useState(99); // Default value
+
+  useEffect(() => {
+    // Fetch service fee from settings
+    const fetchServiceFee = async () => {
+      try {
+        const publicSettings = await settingsAPI.getPublicSettings();
+        const fee = parseInt(publicSettings['pricing.service_fee']) || 99;
+        setServiceFee(fee);
+      } catch (error) {
+        console.error('Error fetching service fee:', error);
+        // Keep default value if fetch fails
+      }
+    };
+
+    fetchServiceFee();
+  }, []);
 
   const handleRemove = (serviceId, serviceName) => {
     removeFromCart(serviceId);
@@ -15,15 +34,34 @@ const Cart = () => {
   };
 
   const handleClearCart = () => {
-    modal.confirm('Are you sure you want to clear your cart?', {
-      onConfirm: () => {
-        clearCart();
-        modal.success('Cart cleared successfully');
-      },
-      title: 'Clear Cart',
-      confirmText: 'Yes, Clear',
-      cancelText: 'Cancel'
-    });
+    // Offer "Move to Wishlist" option before clearing cart
+    modal.confirm(
+      `You have ${cartItems.length} item(s) in your cart. What would you like to do?`,
+      {
+        title: 'Clear Cart',
+        message: 'Choose how to proceed:',
+        confirmText: 'Move to Wishlist & Clear',
+        cancelText: 'Just Clear Cart',
+        alternateText: 'Cancel',
+        onConfirm: async () => {
+          // Move items to wishlist before clearing
+          try {
+            for (const item of cartItems) {
+              await favoriteAPI.addFavorite(item.serviceId);
+            }
+            clearCart();
+            modal.success(`${cartItems.length} items moved to wishlist and cart cleared`);
+          } catch (err) {
+            modal.error('Failed to move items to wishlist. Cart not cleared.');
+          }
+        },
+        onCancel: () => {
+          // Just clear cart without moving to wishlist
+          clearCart();
+          modal.success('Cart cleared successfully');
+        }
+      }
+    );
   };
 
   const handleCheckout = () => {
@@ -128,12 +166,12 @@ const Cart = () => {
               </div>
               <div className="cart-summary-row">
                 <span>Service Fee</span>
-                <span className="cart-summary-amount">₹0</span>
+                <span className="cart-summary-amount">₹{cartItems.length * serviceFee}</span>
               </div>
               <div className="cart-summary-divider"></div>
               <div className="cart-summary-row cart-summary-total">
                 <span>Total</span>
-                <span className="cart-summary-amount">₹{getCartTotal()}</span>
+                <span className="cart-summary-amount">₹{getCartTotal() + (cartItems.length * serviceFee)}</span>
               </div>
               <button onClick={handleCheckout} className="btn btn-primary btn-large btn-checkout">
                 Proceed to Checkout

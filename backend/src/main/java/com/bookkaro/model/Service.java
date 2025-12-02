@@ -17,9 +17,12 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "services", indexes = {
-    @Index(name = "idx_vendor_id", columnList = "vendor_id"),
-    @Index(name = "idx_category", columnList = "category"),
-    @Index(name = "idx_is_available", columnList = "is_available")
+    @Index(name = "idx_services_vendor", columnList = "vendor_id"),
+    @Index(name = "idx_services_category", columnList = "category_id"),
+    @Index(name = "idx_services_city", columnList = "city"),
+    @Index(name = "idx_services_price", columnList = "price"),
+    @Index(name = "idx_services_approval_status", columnList = "approval_status"),
+    @Index(name = "idx_services_available", columnList = "is_available")
 })
 @EntityListeners(AuditingEntityListener.class)
 @Data
@@ -36,22 +39,30 @@ public class Service {
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
 
-    @Column(name = "service_name", nullable = false, length = 100)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @Column(name = "service_name", nullable = false, length = 200)
     private String serviceName;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false, length = 50)
-    private String category;
+    @Column(length = 100)
+    private String categoryLegacy; // Legacy string category field for backward compatibility
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
+
+    @Transient  // Not stored in database, always returns "INR"
+    @Builder.Default
+    private String priceCurrency = "INR";
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
-    @Column(length = 255)
+    @Column(name = "address", length = 255)
     private String address;
 
     @Column(length = 100)
@@ -60,30 +71,33 @@ public class Service {
     @Column(length = 100)
     private String state;
 
-    @Column(name = "postal_code", length = 10)
+    @Column(name = "postal_code", length = 20)
     private String postalCode;
 
-    @Column
-    private Double latitude;
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
 
-    @Column
-    private Double longitude;
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
 
-    @Column(name = "is_available")
+    @Column(name = "is_available", nullable = false)
     @Builder.Default
     private Boolean isAvailable = true;
 
-    @Column(name = "is_featured")
+    @Column(name = "is_featured", nullable = false)
     @Builder.Default
     private Boolean isFeatured = false;
 
-    @Column(name = "approval_status")
+    @Column(name = "approval_status", nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @Column(name = "approval_reason", columnDefinition = "TEXT")
-    private String approvalReason; // Admin feedback for approval/rejection
+    private String approvalReason; // Legacy field
 
     @Column(name = "average_rating", precision = 3, scale = 2)
     @Builder.Default
@@ -106,6 +120,9 @@ public class Service {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     /**
      * Service Approval Status Enum

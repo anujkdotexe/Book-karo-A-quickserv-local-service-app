@@ -19,7 +19,7 @@ import java.util.List;
  * No authentication required
  */
 @RestController
-@RequestMapping("/api/v1/public/content")
+@RequestMapping("/public/content")
 @RequiredArgsConstructor
 public class PublicContentController {
 
@@ -77,7 +77,9 @@ public class PublicContentController {
             @RequestParam(required = false) String position) {
         List<Banner> banners;
         if (position != null && !position.isEmpty()) {
-            banners = bannerRepository.findActiveBannersByPosition(LocalDateTime.now(), position);
+            // repository now exposes findActiveBannersByTarget which uses the same
+            // logical parameter (position in API maps to target in entity)
+            banners = bannerRepository.findActiveBannersByTarget(LocalDateTime.now(), position);
         } else {
             banners = bannerRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         }
@@ -85,15 +87,15 @@ public class PublicContentController {
     }
 
     /**
-     * Record banner click
+     * Record banner click (tracking removed - column doesn't exist in DB)
      * POST /api/v1/public/content/banners/{id}/click
      */
     @PostMapping("/banners/{id}/click")
     public ResponseEntity<ApiResponse<Void>> recordBannerClick(@PathVariable Long id) {
-        Banner banner = bannerRepository.findById(id)
+        // Verify banner exists
+        bannerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Banner not found"));
-        banner.setClickCount(banner.getClickCount() + 1);
-        bannerRepository.save(banner);
+        // Click tracking removed - column doesn't exist in database
         return ResponseEntity.ok(ApiResponse.success("Click recorded", null));
     }
 }

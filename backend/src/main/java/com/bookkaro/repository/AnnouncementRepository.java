@@ -14,10 +14,11 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
     
     List<Announcement> findByIsActiveTrueOrderByCreatedAtDesc();
     
+    // Updated to use current Announcement entity fields: startsAt, endsAt
+    // Removed targetAudience filtering since that field was removed from entity
     @Query("SELECT a FROM Announcement a WHERE a.isActive = true " +
-           "AND (a.startDate IS NULL OR a.startDate <= :now) " +
-           "AND (a.endDate IS NULL OR a.endDate >= :now) " +
-           "AND (a.targetAudience = :audience OR a.targetAudience = 'ALL') " +
+           "AND (a.startsAt IS NULL OR a.startsAt <= :now) " +
+           "AND (a.endsAt IS NULL OR a.endsAt >= :now) " +
            "ORDER BY a.createdAt DESC")
     List<Announcement> findActiveAnnouncementsForAudience(
         @Param("now") LocalDateTime now, 

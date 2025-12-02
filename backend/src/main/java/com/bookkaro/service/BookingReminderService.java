@@ -33,7 +33,7 @@ public class BookingReminderService {
         List<Booking> allBookings = bookingRepository.findAll();
         
         List<Booking> tomorrowBookings = allBookings.stream()
-                .filter(b -> b.getBookingDate().equals(tomorrow))
+                .filter(b -> b.getScheduledAt().toLocalDate().equals(tomorrow))
                 .filter(b -> b.getStatus() == BookingStatus.CONFIRMED || b.getStatus() == BookingStatus.PENDING)
                 .toList();
         
@@ -58,7 +58,7 @@ public class BookingReminderService {
             String userName = booking.getUser().getFullName();
             String serviceName = booking.getService().getServiceName();
             String vendorName = booking.getService().getVendor().getBusinessName();
-            LocalDateTime bookingDateTime = LocalDateTime.of(booking.getBookingDate(), booking.getBookingTime());
+            LocalDateTime bookingDateTime = booking.getScheduledAt();
             
             String message = String.format(
                 "Reminder: You have a booking tomorrow!\n" +
@@ -92,10 +92,10 @@ public class BookingReminderService {
         List<Booking> allBookings = bookingRepository.findAll();
         
         List<Booking> upcomingBookings = allBookings.stream()
-                .filter(b -> b.getBookingDate().equals(today))
+                .filter(b -> b.getScheduledAt().toLocalDate().equals(today))
                 .filter(b -> b.getStatus() == BookingStatus.CONFIRMED || b.getStatus() == BookingStatus.PENDING)
                 .filter(b -> {
-                    LocalDateTime bookingDateTime = LocalDateTime.of(b.getBookingDate(), b.getBookingTime());
+                    LocalDateTime bookingDateTime = b.getScheduledAt();
                     long minutesDiff = java.time.Duration.between(LocalDateTime.now(), bookingDateTime).toMinutes();
                     return minutesDiff >= 110 && minutesDiff <= 130; // Between 1h50m and 2h10m (10-minute window)
                 })

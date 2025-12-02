@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { refundAPI } from '../services/api';
+import { useModal } from '../components/Modal/Modal';
+import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import './AdminRefunds.css';
 
 const AdminRefunds = () => {
+  const modal = useModal();
   const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,22 +40,28 @@ const AdminRefunds = () => {
   };
 
   const handleApprove = async (refundId) => {
-    if (!window.confirm('Are you sure you want to approve this refund? This will process the refund and cancel the booking.')) {
-      return;
-    }
-
-    try {
-      setProcessingId(refundId);
-      await refundAPI.approveRefund(refundId);
-      
-      alert('Refund approved successfully!');
-      fetchRefunds();
-      
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to approve refund');
-    } finally {
-      setProcessingId(null);
-    }
+    // Replace alert/confirm with modal
+    modal.confirm(
+      'Are you sure you want to approve this refund? This will process the refund and cancel the booking.',
+      {
+        title: 'Approve Refund',
+        confirmText: 'Approve Refund',
+        onConfirm: async () => {
+          try {
+            setProcessingId(refundId);
+            await refundAPI.approveRefund(refundId);
+            
+            modal.success('Refund approved successfully!');
+            fetchRefunds();
+            
+          } catch (err) {
+            modal.error(err.response?.data?.message || 'Failed to approve refund');
+          } finally {
+            setProcessingId(null);
+          }
+        }
+      }
+    );
   };
 
   const openRejectModal = (refund) => {
@@ -68,8 +77,9 @@ const AdminRefunds = () => {
   };
 
   const handleReject = async () => {
+    // Replace alert with modal
     if (!rejectReason.trim()) {
-      alert('Please provide a reason for rejection');
+      modal.error('Please provide a reason for rejection');
       return;
     }
 
@@ -77,12 +87,12 @@ const AdminRefunds = () => {
       setProcessingId(refundToReject.id);
       await refundAPI.rejectRefund(refundToReject.id, rejectReason);
       
-      alert('Refund rejected successfully!');
+      modal.success('Refund rejected successfully!');
       closeRejectModal();
       fetchRefunds();
       
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to reject refund');
+      modal.error(err.response?.data?.message || 'Failed to reject refund');
     } finally {
       setProcessingId(null);
     }
@@ -99,11 +109,7 @@ const AdminRefunds = () => {
   };
 
   if (loading && refunds.length === 0) {
-    return (
-      <div className="admin-refunds-page">
-        <div className="loading-spinner">Loading refunds...</div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading refunds..." fullScreen />;
   }
 
   return (

@@ -40,9 +40,9 @@ public class FavoriteService {
         Service service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
 
-        // Check if already favorited
+        // Check if already in favorites - return success idempotently
         if (favoriteRepository.existsByUserAndService(user, service)) {
-            throw new IllegalStateException("Service already in favorites");
+            return ServiceDto.fromEntity(service);
         }
 
         Favorite favorite = Favorite.builder()

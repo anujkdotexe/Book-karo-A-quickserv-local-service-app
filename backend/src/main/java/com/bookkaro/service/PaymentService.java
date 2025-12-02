@@ -2,6 +2,9 @@ package com.bookkaro.service;
 
 import com.bookkaro.dto.PaymentRequest;
 import com.bookkaro.dto.PaymentResponse;
+import com.bookkaro.exception.BadRequestException;
+import com.bookkaro.exception.ConflictException;
+import com.bookkaro.exception.UnauthorizedException;
 import com.bookkaro.model.Booking;
 import com.bookkaro.model.Payment;
 import com.bookkaro.model.User;
@@ -28,7 +31,7 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
     private final MockPaymentGateway mockPaymentGateway;
 
-    @Transactional
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
     public PaymentResponse processPayment(PaymentRequest request, User user) {
         // Validate payment method-specific requirements
         validatePaymentMethodRequirements(request);
@@ -39,40 +42,40 @@ public class PaymentService {
         
         // Verify user owns this booking
         if (!booking.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to pay for this booking");
+            throw new UnauthorizedException("Unauthorized to pay for this booking");
         }
         
         // Validate booking status - only pending/confirmed bookings can be paid
         if (booking.getStatus() == Booking.BookingStatus.CANCELLED) {
-            throw new RuntimeException("Cannot pay for a cancelled booking");
+            throw new BadRequestException("Cannot pay for a cancelled booking");
         }
         
         if (booking.getStatus() == Booking.BookingStatus.COMPLETED) {
-            throw new RuntimeException("Booking already completed");
+            throw new BadRequestException("Booking already completed");
         }
         
         // Check if payment already exists
         if (paymentRepository.findByBookingId(booking.getId()).isPresent()) {
-            throw new RuntimeException("Payment already processed for this booking");
+            throw new ConflictException("Payment already processed for this booking");
         }
         
         // Validate amount matches booking total
-        if (request.getAmount().compareTo(booking.getTotalAmount()) != 0) {
-            throw new RuntimeException("Payment amount does not match booking total");
+        if (request.getAmount().compareTo(booking.getPriceTotal()) != 0) {
+            throw new BadRequestException("Payment amount does not match booking total");
         }
         
         // Validate amount is positive
         if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Payment amount must be greater than zero");
+            throw new BadRequestException("Payment amount must be greater than zero");
         }
 
         // Create payment record
         Payment payment = Payment.builder()
                 .booking(booking)
                 .user(user)
-                .method(request.getMethod())
+                .paymentMethod(request.getMethod().name())
                 .amount(request.getAmount())
-                .status(Payment.PaymentStatus.PROCESSING)
+                .paymentStatus("PROCESSING")
                 .build();
         
         payment = paymentRepository.save(payment);
@@ -92,9 +95,9 @@ public class PaymentService {
         boolean success = (boolean) gatewayResponse.get("success");
         
         if (success) {
-            payment.setStatus(Payment.PaymentStatus.SUCCESS);
+            payment.setPaymentStatus("SUCCESS");
             payment.setTransactionId((String) gatewayResponse.get("transactionId"));
-            payment.setPaymentDate(LocalDateTime.now());
+            payment.setPaidAt(LocalDateTime.now());
             
             // Update booking status
             if (request.getMethod() == Payment.PaymentMethod.CASH_ON_DELIVERY) {
@@ -104,10 +107,9 @@ public class PaymentService {
             }
             bookingRepository.save(booking);
         } else {
-            payment.setStatus(Payment.PaymentStatus.FAILED);
+            payment.setPaymentStatus("FAILED");
         }
         
-        payment.setGatewayResponse((String) gatewayResponse.get("gatewayResponse"));
         payment = paymentRepository.save(payment);
 
         return convertToResponse(payment, (String) gatewayResponse.get("message"));
@@ -126,7 +128,7 @@ public class PaymentService {
         
         // Verify user owns this payment/booking
         if (!payment.getUser().getId().equals(requestingUser.getId())) {
-            throw new RuntimeException("Access denied: You can only view your own payments");
+            throw new UnauthorizedException("Access denied: You can only view your own payments");
         }
         
         return convertToResponse(payment, null);
@@ -161,6 +163,9 @@ public class PaymentService {
             case NET_BANKING:
                 details.put("bankCode", request.getBankCode());
                 break;
+            case WALLET:
+                // Wallet details handled separately
+                break;
             case CASH_ON_DELIVERY:
                 // No additional details needed
                 break;
@@ -173,25 +178,25 @@ public class PaymentService {
         switch (request.getMethod()) {
             case UPI:
                 if (request.getUpiId() == null || request.getUpiId().trim().isEmpty()) {
-                    throw new RuntimeException("UPI ID is required for UPI payment");
+                    throw new BadRequestException("UPI ID is required for UPI payment");
                 }
                 break;
             case CREDIT_CARD:
             case DEBIT_CARD:
                 if (request.getCardNumber() == null || request.getCardNumber().trim().isEmpty()) {
-                    throw new RuntimeException("Card number is required for card payment");
+                    throw new BadRequestException("Card number is required for card payment");
                 }
                 if (request.getCardHolderName() == null || request.getCardHolderName().trim().isEmpty()) {
-                    throw new RuntimeException("Card holder name is required for card payment");
+                    throw new BadRequestException("Card holder name is required for card payment");
                 }
                 if (request.getExpiryMonth() == null || request.getExpiryMonth().trim().isEmpty()) {
-                    throw new RuntimeException("Expiry month is required for card payment");
+                    throw new BadRequestException("Expiry month is required for card payment");
                 }
                 if (request.getExpiryYear() == null || request.getExpiryYear().trim().isEmpty()) {
-                    throw new RuntimeException("Expiry year is required for card payment");
+                    throw new BadRequestException("Expiry year is required for card payment");
                 }
                 if (request.getCvv() == null || request.getCvv().trim().isEmpty()) {
-                    throw new RuntimeException("CVV is required for card payment");
+                    throw new BadRequestException("CVV is required for card payment");
                 }
                 // Validate card expiry date
                 try {
@@ -201,19 +206,22 @@ public class PaymentService {
                     int currentMonth = java.time.LocalDate.now().getMonthValue();
                     
                     if (year < currentYear || (year == currentYear && month < currentMonth)) {
-                        throw new RuntimeException("Card has expired");
+                        throw new BadRequestException("Card has expired");
                     }
                 } catch (NumberFormatException e) {
-                    throw new RuntimeException("Invalid expiry date format");
+                    throw new BadRequestException("Invalid expiry date format");
                 }
                 break;
             case NET_BANKING:
                 if (request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
-                    throw new RuntimeException("Bank code is required for net banking payment");
+                    throw new BadRequestException("Bank code is required for net banking payment");
                 }
                 break;
+            case WALLET:
+                // Wallet validation handled by WalletService
+                break;
             case CASH_ON_DELIVERY:
-                // No additional validation needed
+                // No validation required for COD
                 break;
         }
     }
@@ -221,14 +229,13 @@ public class PaymentService {
     private PaymentResponse convertToResponse(Payment payment, String customMessage) {
         return PaymentResponse.builder()
                 .paymentId(payment.getId())
-                .bookingId(payment.getBooking().getId())
+                .bookingId(payment.getBooking() != null ? payment.getBooking().getId() : null)
                 .transactionId(payment.getTransactionId())
                 .amount(payment.getAmount())
-                .method(payment.getMethod().toString())
-                .status(payment.getStatus().toString())
-                .message(customMessage != null ? customMessage : "Payment " + payment.getStatus().toString().toLowerCase())
-                .paymentDate(payment.getPaymentDate())
-                .gatewayResponse(payment.getGatewayResponse())
+                .method(payment.getPaymentMethod())
+                .status(payment.getPaymentStatus())
+                .message(customMessage != null ? customMessage : "Payment " + payment.getPaymentStatus().toLowerCase())
+                .paymentDate(payment.getPaidAt())
                 .build();
     }
 }

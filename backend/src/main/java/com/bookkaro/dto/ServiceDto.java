@@ -30,6 +30,7 @@ public class ServiceDto {
     private Double latitude;
     private Double longitude;
     private Boolean isAvailable;
+    private String approvalStatus; // PENDING, APPROVED, REJECTED
     private BigDecimal averageRating;
     private Integer totalReviews;
     private VendorInfoDto vendor;
@@ -39,16 +40,17 @@ public class ServiceDto {
                 .id(service.getId())
                 .serviceName(service.getServiceName())
                 .description(service.getDescription())
-                .category(service.getCategory())
+                .category(service.getCategory() != null ? service.getCategory().getName() : service.getCategoryLegacy())
                 .price(service.getPrice())
                 .durationMinutes(service.getDurationMinutes())
                 .address(service.getAddress())
                 .city(service.getCity())
                 .state(service.getState())
                 .postalCode(service.getPostalCode())
-                .latitude(service.getLatitude())
-                .longitude(service.getLongitude())
+                .latitude(service.getLatitude() != null ? service.getLatitude().doubleValue() : null)
+                .longitude(service.getLongitude() != null ? service.getLongitude().doubleValue() : null)
                 .isAvailable(service.getIsAvailable())
+                .approvalStatus(service.getApprovalStatus() != null ? service.getApprovalStatus().name() : null)
                 .averageRating(service.getAverageRating())
                 .totalReviews(service.getTotalReviews())
                 .build();
@@ -62,7 +64,7 @@ public class ServiceDto {
                     .primaryCategory(service.getVendor().getPrimaryCategory())
                     .phone(service.getVendor().getPhone())
                     .email(service.getVendor().getEmail())
-                    .location(service.getVendor().getLocation())
+                    .location(service.getVendor().getCity())
                     .address(service.getVendor().getAddress())
                     .city(service.getVendor().getCity())
                     .state(service.getVendor().getState())

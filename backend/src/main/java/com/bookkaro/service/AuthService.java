@@ -4,6 +4,7 @@ import com.bookkaro.dto.RegisterRequest;
 import com.bookkaro.dto.AuthResponse;
 import com.bookkaro.dto.ApiResponse;
 import com.bookkaro.dto.LoginRequest;
+import com.bookkaro.exception.BadRequestException;
 import com.bookkaro.model.User;
 import com.bookkaro.repository.UserRepository;
 import com.bookkaro.security.JwtUtil;
@@ -16,45 +17,69 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final AuditLogService auditLogService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                      JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public AuthService(UserRepository userRepository,
+                      JwtUtil jwtUtil, AuthenticationManager authenticationManager,
+                      AuditLogService auditLogService) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
+        this.auditLogService = auditLogService;
     }
 
     public ApiResponse<AuthResponse> register(RegisterRequest request) {
+        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            return ApiResponse.error("Email already exists");
+            return ApiResponse.error("This email is already registered. Please login or use a different email.");
+        }
+        
+        // Check if phone number already exists
+        if (userRepository.existsByPhone(request.getPhone())) {
+            return ApiResponse.error("This phone number is already registered. Please use a different number.");
         }
 
+        // IMPORTANT: Password stored as plain text for testing/demo purposes
+        // In production, this should use BCryptPasswordEncoder:
+        // user.setPassword(passwordEncoder.encode(request.getPassword()));
+        // Also update SecurityConfig to use BCryptPasswordEncoder instead of NoOpPasswordEncoder
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setFullName(request.getFirstName() + " " + request.getLastName());
+        user.setPassword(request.getPassword()); // Plain text - TESTING ONLYY
+        
+        // Handle names properly
+        String firstName = request.getFirstName() != null ? request.getFirstName().trim() : "";
+        String lastName = request.getLastName() != null ? request.getLastName().trim() : "";
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setFullName((firstName + " " + lastName).trim());
         user.setPhone(request.getPhone());
-        user.setAddress(request.getAddress() != null ? request.getAddress() : "");
-        user.setCity(request.getCity() != null ? request.getCity() : "");
-        user.setState(request.getState() != null ? request.getState() : "");
-        user.setPostalCode(request.getPostalCode() != null ? request.getPostalCode() : "");
+        
+        // Handle optional address fields with null-safe trimming
+        user.setAddress(request.getAddress() != null ? request.getAddress().trim() : "");
+        user.setCity(request.getCity() != null ? request.getCity().trim() : "");
+        user.setState(request.getState() != null ? request.getState().trim() : "");
+        user.setPostalCode(request.getPostalCode() != null ? request.getPostalCode().trim() : "");
         user.addRole(User.UserRole.USER); // Set default USER role
         user.setIsActive(true);
 
         User savedUser = userRepository.save(user);
+        
+        // Audit log for registration
+        java.util.Map<String, Object> auditData = new java.util.HashMap<>();
+        auditData.put("email", savedUser.getEmail());
+        auditData.put("fullName", savedUser.getFullName());
+        auditData.put("role", savedUser.getRole().name());
+        auditData.put("city", savedUser.getCity());
+        auditLogService.log("USER", savedUser.getId(), "CREATE", savedUser.getId(), auditData);
 
         AuthResponse authResponse = new AuthResponse();
         authResponse.setToken(jwtUtil.generateToken(org.springframework.security.core.userdetails.User
@@ -86,43 +111,27 @@ public class AuthService {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String token = jwtUtil.generateToken(userDetails);
 
-            // Try to get user from database
-            User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+            // User MUST exist in database - no hardcoded fallback
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User authenticated but not found in database. Please contact support."));
 
             AuthResponse authResponse = new AuthResponse();
             authResponse.setToken(token);
-
-            // Use hardcoded data if user not in database
-            if (user == null) {
-                logger.warn("User not in database, using hardcoded data for response: {}", request.getEmail());
-                authResponse.setId(1L);
-                authResponse.setEmail(request.getEmail());
-
-                if ("user@bookkaro.com".equals(request.getEmail())) {
-                    authResponse.setFirstName("Test");
-                    authResponse.setLastName("User");
-                    authResponse.setRole("USER");
-                } else if ("vendor@bookkaro.com".equals(request.getEmail())) {
-                    authResponse.setFirstName("Test");
-                    authResponse.setLastName("Vendor");
-                    authResponse.setRole("VENDOR");
-                } else if ("admin@bookkaro.com".equals(request.getEmail())) {
-                    authResponse.setFirstName("Admin");
-                    authResponse.setLastName("User");
-                    authResponse.setRole("ADMIN");
-                }
-            } else {
-                logger.debug("User found in database: {}", request.getEmail());
-                authResponse.setId(user.getId());
-                authResponse.setEmail(user.getEmail());
-                authResponse.setFirstName(user.getFirstName());
-                authResponse.setLastName(user.getLastName());
-                authResponse.setRole(user.getRole().name()); // Primary role
-                // Add all roles for multi-role support
-                authResponse.setRoles(user.getRoles().stream()
-                        .map(Enum::name)
-                        .collect(java.util.stream.Collectors.toSet()));
-            }
+            authResponse.setId(user.getId());
+            authResponse.setEmail(user.getEmail());
+            authResponse.setFirstName(user.getFirstName());
+            authResponse.setLastName(user.getLastName());
+            authResponse.setRole(user.getRole().name()); // Primary role
+            // Add all roles for multi-role support
+            authResponse.setRoles(user.getRoles().stream()
+                    .map(Enum::name)
+                    .collect(java.util.stream.Collectors.toSet()));
+            
+            // Audit log for successful login
+            java.util.Map<String, Object> auditData = new java.util.HashMap<>();
+            auditData.put("email", user.getEmail());
+            auditData.put("role", user.getRole().name());
+            auditLogService.log("USER", user.getId(), "LOGIN", user.getId(), auditData);
 
             logger.info("Login successful for: {}", request.getEmail());
             return ApiResponse.success("Login successful", authResponse);
@@ -146,7 +155,7 @@ public class AuthService {
      */
     public ApiResponse<String> forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("No account found with this email address"));
+                .orElseThrow(() -> new RuntimeException("If an account exists with this email, you will receive password reset instructions."));
 
         // Generate reset token (UUID-based)
         String resetToken = java.util.UUID.randomUUID().toString();
@@ -167,15 +176,16 @@ public class AuthService {
      */
     public ApiResponse<String> resetPassword(String token, String newPassword) {
         User user = userRepository.findByResetToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
+                .orElseThrow(() -> new RuntimeException("Invalid reset token. Please request a new password reset."));
 
         // Check if token expired
         if (user.getResetTokenExpiry().isBefore(java.time.LocalDateTime.now())) {
-            throw new RuntimeException("Reset token has expired. Please request a new one");
+            throw new BadRequestException("Reset token has expired. Please request a new one");
         }
 
-        // Update password
-        user.setPassword(passwordEncoder.encode(newPassword));
+        // IMPORTANT: Password stored as plain text for testing/demo purposes
+        // In production: user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(newPassword); // Plain text - TESTING ONLY
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
         userRepository.save(user);

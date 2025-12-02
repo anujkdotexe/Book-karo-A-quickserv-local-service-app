@@ -1,10 +1,28 @@
-import React, { useState, useEffect,useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingAPI, reviewAPI, refundAPI } from '../../services/api';
 import { useModal } from '../../components/Modal/Modal';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import './BookingDetail.css';
 
+// Calculate refund based on payment time (matches RefundService.java logic)
+const calculateRefundPercentage = (bookingDate, bookingTime, paymentCreatedAt = null) => {
+  const bookingDateTime = new Date(`${bookingDate}T${bookingTime}`);
+  
+  // Use payment time if available, otherwise use current time (less accurate)
+  const referenceTime = paymentCreatedAt ? new Date(paymentCreatedAt) : new Date();
+  
+  const hoursDiff = (bookingDateTime - referenceTime) / (1000 * 60 * 60);
+  
+  if (hoursDiff >= 24) {
+    return 100; // Full refund
+  } else if (hoursDiff >= 12) {
+    return 50; // Half refund
+  } else {
+    return 0; // No refund
+  }
+};
 
 const BookingDetail = () => {
   const { id } = useParams();
@@ -144,12 +162,7 @@ const BookingDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading booking details...</p>
-      </div>
-    );
+    return <LoadingSpinner message="Loading booking details..." fullScreen />;
   }
 
   if (error || !booking) {
@@ -446,14 +459,7 @@ const BookingDetail = () => {
                         Request Refund
                       </button>
                       <p className="action-note">
-                        Request a refund for this booking (eligible for {
-                          (() => {
-                            const bookingDateTime = new Date(`${booking.bookingDate}T${booking.bookingTime}`);
-                            const now = new Date();
-                            const hoursDiff = (bookingDateTime - now) / (1000 * 60 * 60);
-                            return hoursDiff >= 24 ? '100%' : '50%';
-                          })()
-                        } refund)
+                        Request a refund for this booking (eligible for {calculateRefundPercentage(booking.bookingDate, booking.bookingTime)}% refund)
                       </p>
                     </>
                   )}

@@ -1,5 +1,6 @@
 package com.bookkaro.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -62,9 +63,14 @@ public class User {
     // Multi-role support - users can have multiple roles (e.g., USER + VENDOR)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role", nullable = false)
+    @Column(name = "role_name", nullable = false)
     @Enumerated(EnumType.STRING)
     private Set<UserRole> roles = new HashSet<>();
+
+    // Legacy single-role column kept for backward compatibility with existing schema
+    @Column(name = "role", insertable = true, updatable = true)
+    @Enumerated(EnumType.STRING)
+    private UserRole primaryRole;
 
     @Column(name = "is_active")
     private Boolean isActive = true;
@@ -76,8 +82,13 @@ public class User {
     @Column(name = "reset_token_expiry")
     private LocalDateTime resetTokenExpiry;
 
+    // Track last login for analytics
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
     // Link to Vendor (for VENDOR role users)
     // Changed from CascadeType.ALL to prevent accidental deletion of vendor data
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Vendor vendor;
 
@@ -120,8 +131,9 @@ public class User {
     }
 
     public void setFirstName(String firstName) {
+        if (firstName == null) firstName = "";
         String lastName = getLastName();
-        this.fullName = lastName.isEmpty() ? firstName : firstName + " " + lastName;
+        this.fullName = (firstName.trim() + " " + lastName).trim();
     }
 
     // Backward compatibility - split fullName for lastName
@@ -132,8 +144,9 @@ public class User {
     }
 
     public void setLastName(String lastName) {
+        if (lastName == null) lastName = "";
         String firstName = getFirstName();
-        this.fullName = firstName + " " + lastName;
+        this.fullName = (firstName + " " + lastName.trim()).trim();
     }
 
     public String getPhone() { return phone; }
@@ -164,22 +177,19 @@ public class User {
     public Set<UserRole> getRoles() { return roles; }
     public void setRoles(Set<UserRole> roles) { this.roles = roles; }
     
-    // Backward compatibility - get primary role (first role or USER as default)
-    public UserRole getRole() { 
-        if (roles == null || roles.isEmpty()) {
-            return UserRole.USER;
-        }
-        // Return ADMIN if present, then VENDOR, then USER
+    // Backward compatibility - get/set primary role (mapped to legacy 'role' column)
+    public UserRole getRole() {
+        if (this.primaryRole != null) return this.primaryRole;
+        if (roles == null || roles.isEmpty()) return UserRole.USER;
         if (roles.contains(UserRole.ADMIN)) return UserRole.ADMIN;
         if (roles.contains(UserRole.VENDOR)) return UserRole.VENDOR;
         return UserRole.USER;
     }
-    
-    // Backward compatibility - set role (adds to roles set)
+
+    // Backward compatibility - set role (sets legacy column and adds to roles set)
     public void setRole(UserRole role) {
-        if (this.roles == null) {
-            this.roles = new HashSet<>();
-        }
+        this.primaryRole = role;
+        if (this.roles == null) this.roles = new HashSet<>();
         this.roles.add(role);
     }
     
@@ -205,6 +215,17 @@ public class User {
             this.roles = new HashSet<>();
         }
         this.roles.add(role);
+        
+        // Also set primaryRole for backward compatibility with legacy 'role' column
+        if (this.primaryRole == null) {
+            this.primaryRole = role;
+        } else if (role == UserRole.ADMIN) {
+            // Admin takes precedence
+            this.primaryRole = UserRole.ADMIN;
+        } else if (role == UserRole.VENDOR && this.primaryRole != UserRole.ADMIN) {
+            // Vendor takes precedence over USER
+            this.primaryRole = UserRole.VENDOR;
+        }
     }
     
     public void removeRole(UserRole role) {
@@ -227,6 +248,9 @@ public class User {
 
     public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
     public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
+
+    public LocalDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
 
     public Vendor getVendor() { return vendor; }
     public void setVendor(Vendor vendor) { this.vendor = vendor; }

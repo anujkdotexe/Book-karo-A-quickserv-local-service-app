@@ -2,8 +2,10 @@ package com.bookkaro.config;
 
 import com.bookkaro.model.User;
 import com.bookkaro.repository.UserRepository;
+import com.bookkaro.repository.VendorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,117 +16,84 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class DataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
+    @Value("${app.data.init.enabled:false}")
+    private boolean dataInitEnabled;
+
     @Bean
     @Order(1)
-    CommandLineRunner initDatabase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    CommandLineRunner initDatabase(UserRepository userRepository, VendorRepository vendorRepository, 
+                                   PasswordEncoder passwordEncoder) {
         return args -> {
+            if (!dataInitEnabled) {
+                logger.info("======================================");
+                logger.info("DATA INITIALIZATION DISABLED");
+                logger.info("Using existing database data");
+                logger.info("To reset data, run: .\\scripts\\database\\POPULATE_MOCK_DATA.ps1");
+                logger.info("======================================");
+                return;
+            }
+            
             logger.info("======================================");
-            logger.info("RESETTING TEST ACCOUNT PASSWORDS");
+            logger.info("DATA INITIALIZATION ENABLED");
             logger.info("======================================");
             
-            // Force reset passwords for test accounts
+            logger.info("Checking for CSV-loaded test accounts...");
+            
+            boolean hasUserAccount = userRepository.findByEmail("user@bookkaro.com").isPresent();
+            boolean hasAdminAccount = userRepository.findByEmail("admin@bookkaro.com").isPresent();
+            
+            if (hasUserAccount) {
+                logger.info("✓ Found user@bookkaro.com from CSV");
+            }
+            if (hasAdminAccount) {
+                logger.info("✓ Found admin@bookkaro.com from CSV");
+            }
+            
+            // Check if we have data (from CSV or otherwise)
+            long userCount = userRepository.count();
+            logger.info("Total users in database: " + userCount);
+            
+            boolean needsInitialization = (userCount == 0) || (!hasUserAccount && !hasAdminAccount);
+            
+            // Fix existing users' roles if they're using legacy single-role column
+            // This ensures CSV-loaded users have proper multi-role support
+            logger.info("Checking and fixing user roles from CSV data...");
             userRepository.findByEmail("user@bookkaro.com").ifPresent(user -> {
-                user.setPassword(passwordEncoder.encode("password123"));
-                userRepository.save(user);
-                logger.info("Reset password: user@bookkaro.com → password123");
+                if (user.getRoles() == null || user.getRoles().isEmpty()) {
+                    logger.info("Fixing roles for user@bookkaro.com");
+                    user.addRole(User.UserRole.USER);
+                    userRepository.save(user);
+                    logger.info("✓ Fixed USER account roles");
+                }
+            });
+
+            userRepository.findByEmail("admin@bookkaro.com").ifPresent(admin -> {
+                if (admin.getRoles() == null || admin.getRoles().isEmpty()) {
+                    logger.info("Fixing roles for admin@bookkaro.com");
+                    admin.addRole(User.UserRole.ADMIN);
+                    userRepository.save(admin);
+                    logger.info("✓ Fixed ADMIN account roles");
+                }
             });
             
-            userRepository.findByEmail("vendor@bookkaro.com").ifPresent(user -> {
-                user.setPassword(passwordEncoder.encode("password123"));
-                userRepository.save(user);
-                logger.info("Reset password: vendor@bookkaro.com → password123");
-            });
+            // For CSV data: vendor@bookkaro.com doesn't exist
+            // Regional vendors (mumbai@bookkaro.com, pune@bookkaro.com, etc.) are used instead
+            logger.info("CSV data uses regional vendors - no vendor@bookkaro.com needed");
             
-            userRepository.findByEmail("admin@bookkaro.com").ifPresent(user -> {
-                user.setPassword(passwordEncoder.encode("admin123"));
-                userRepository.save(user);
-                logger.info("Reset password: admin@bookkaro.com → admin123");
-            });
             
-            boolean needsInitialization = false;
-            
-            if (userRepository.findByEmail("user@bookkaro.com").isEmpty()) {
-                logger.warn("Test USER account missing - reinitializing database");
-                needsInitialization = true;
-            }
-            if (userRepository.findByEmail("vendor@bookkaro.com").isEmpty()) {
-                logger.warn("Test VENDOR account missing - reinitializing database");
-                needsInitialization = true;
-            }
-            if (userRepository.findByEmail("admin@bookkaro.com").isEmpty()) {
-                logger.warn("Test ADMIN account missing - reinitializing database");
-                needsInitialization = true;
-            }
-            
-            if (needsInitialization || userRepository.count() == 0) {
+            if (needsInitialization) {
                 logger.info("======================================");
-                logger.info("INITIALIZING DATABASE WITH TEST DATA");
+                logger.info("DATABASE IS EMPTY");
+                logger.info("Waiting for CSV data to be loaded...");
                 logger.info("======================================");
-                
-                if (userRepository.findByEmail("user@bookkaro.com").isEmpty()) {
-                    User testUser = new User();
-                    testUser.setEmail("user@bookkaro.com");
-                    testUser.setPassword(passwordEncoder.encode("password123"));
-                    testUser.setFirstName("Test");
-                    testUser.setLastName("User");
-                    testUser.setFullName("Test User");
-                    testUser.setPhone("1234567890");
-                    testUser.setAddress("123 Test Street");
-                    testUser.setCity("Mumbai");
-                    testUser.setState("Maharashtra");
-                    testUser.setPostalCode("400001");
-                    testUser.setRole(User.UserRole.USER);
-                    testUser.setIsActive(true);
-                    userRepository.save(testUser);
-                    logger.info("Created USER account: user@bookkaro.com");
-                }
-
-                if (userRepository.findByEmail("vendor@bookkaro.com").isEmpty()) {
-                    User testVendor = new User();
-                    testVendor.setEmail("vendor@bookkaro.com");
-                    testVendor.setPassword(passwordEncoder.encode("password123"));
-                    testVendor.setFirstName("Test");
-                    testVendor.setLastName("Vendor");
-                    testVendor.setFullName("Test Vendor");
-                    testVendor.setPhone("0987654321");
-                    testVendor.setAddress("456 Vendor Avenue");
-                    testVendor.setCity("Mumbai");
-                    testVendor.setState("Maharashtra");
-                    testVendor.setPostalCode("400050");
-                    testVendor.setRole(User.UserRole.VENDOR);
-                    testVendor.setIsActive(true);
-                    userRepository.save(testVendor);
-                    logger.info("Created VENDOR account: vendor@bookkaro.com");
-                }
-
-                if (userRepository.findByEmail("admin@bookkaro.com").isEmpty()) {
-                    User testAdmin = new User();
-                    testAdmin.setEmail("admin@bookkaro.com");
-                    testAdmin.setPassword(passwordEncoder.encode("admin123"));
-                    testAdmin.setFirstName("Test");
-                    testAdmin.setLastName("Admin");
-                    testAdmin.setFullName("Test Admin");
-                    testAdmin.setPhone("1112223333");
-                    testAdmin.setAddress("789 Admin Plaza");
-                    testAdmin.setCity("Mumbai");
-                    testAdmin.setState("Maharashtra");
-                    testAdmin.setPostalCode("400001");
-                    testAdmin.setRole(User.UserRole.ADMIN);
-                    testAdmin.setIsActive(true);
-                    userRepository.save(testAdmin);
-                    logger.info("Created ADMIN account: admin@bookkaro.com");
-                }
-
-                logger.info("======================================");
-                logger.info("DATABASE INITIALIZED WITH TEST USERS");
-                logger.info("======================================");
-                logger.info("USER: user@bookkaro.com / password123");
-                logger.info("VENDOR: vendor@bookkaro.com / password123");
-                logger.info("ADMIN: admin@bookkaro.com / admin123");
-                logger.info("Regional vendors created by ComprehensiveDataInitializer");
-                logger.info("======================================");
+                // CSV data will be loaded by CSVDataLoader (Order 2)
+                // This prevents creating duplicate test users
             } else {
-                logger.info("Test users already exist in database");
+                logger.info("======================================");
+                logger.info("DATABASE ALREADY POPULATED (from CSV or previous init)");
+                logger.info("User count: " + userCount);
+                logger.info("Use CSV data for vendors and services");
+                logger.info("======================================");
             }
         };
     }

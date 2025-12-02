@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { userAPI } from '../../services/api';
 import { useModal } from '../../components/Modal/Modal';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import './Profile.css';
 
 const Profile = () => {
@@ -87,9 +89,10 @@ const Profile = () => {
       const completion = calculateProfileCompletion({ ...userData, ...profileData });
       setProfileCompletion(completion);
       
-      setLoading(false);
+      setError('');
     } catch (err) {
-      setError('Failed to load profile');
+      setError(err.response?.data?.message || 'Failed to load your profile. Please check your connection and try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -143,13 +146,14 @@ const Profile = () => {
       errors.lastName = 'Last name must be at least 2 characters';
     }
     
-    // Phone validation
+    // Phone validation - standardized to match Register.js (Indian mobile: 10 digits starting with 6-9)
     if (!formData.phone.trim()) {
       errors.phone = 'Phone number is required';
-    } else if (!/^[\d\s\-+()]+$/.test(formData.phone)) {
-      errors.phone = 'Please enter a valid phone number';
-    } else if (formData.phone.replace(/\D/g, '').length < 10) {
-      errors.phone = 'Phone number must be at least 10 digits';
+    } else {
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+        errors.phone = 'Phone must be exactly 10 digits starting with 6-9';
+      }
     }
     
     // Address validation (optional, but if provided must be valid)
@@ -251,8 +255,14 @@ const Profile = () => {
       errors.newPassword = 'New password is required';
     } else if (passwordData.newPassword.length < 8) {
       errors.newPassword = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(passwordData.newPassword)) {
-      errors.newPassword = 'Password must contain uppercase, lowercase, and number';
+    } else if (!/[A-Z]/.test(passwordData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one uppercase letter';
+    } else if (!/[a-z]/.test(passwordData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one lowercase letter';
+    } else if (!/\d/.test(passwordData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one number';
+    } else if (!/[@#$%^&*()_+\-=[\]{}|;:,.<>?!]/.test(passwordData.newPassword)) {
+      errors.newPassword = 'Password must contain at least one special character';
     }
     
     if (!passwordData.confirmPassword) {
@@ -302,6 +312,26 @@ const Profile = () => {
   };
 
   const copyToClipboard = (text, label) => {
+    // Check if Clipboard API is available
+    if (!navigator.clipboard) {
+      // Fallback for older browsers or non-HTTPS contexts
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        modal.success(`${label} copied to clipboard`);
+      } catch (err) {
+        modal.error('Failed to copy to clipboard');
+      }
+      document.body.removeChild(textArea);
+      return;
+    }
+
+    // Modern Clipboard API
     navigator.clipboard.writeText(text).then(() => {
       modal.success(`${label} copied to clipboard`);
     }).catch(() => {
@@ -311,6 +341,7 @@ const Profile = () => {
 
   const formatLastUpdated = (date) => {
     if (!date) return 'Not available';
+    // Handle date properly - parse as ISO string to avoid timezone issues
     const d = new Date(date);
     return d.toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -322,11 +353,17 @@ const Profile = () => {
   };
 
   if (loading) {
+    return <LoadingSpinner message="Loading profile..." fullScreen />;
+  }
+
+  if (error && !profile) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading profile...</p>
-      </div>
+      <ErrorModal
+        title="Failed to Load Profile"
+        message={error}
+        onRefresh={fetchProfile}
+        onClose={() => setError('')}
+      />
     );
   }
 
@@ -538,17 +575,7 @@ const Profile = () => {
                   <button type="submit" className="btn btn-primary">
                     Change Password
                   </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-outline" 
-                    onClick={() => {
-                      setShowPasswordChange(false);
-                      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                      setPasswordErrors({});
-                    }}
-                  >
-                    Cancel
-                  </button>
+                  {/* Removed duplicate Cancel button - X button in header already provides this functionality */}
                 </div>
               </form>
             </div>
@@ -565,6 +592,10 @@ const Profile = () => {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
+                    onBlur={(e) => {
+                      setFormData(prev => ({ ...prev, firstName: e.target.value.trim() }));
+                    }}
+                    autoComplete="given-name"
                     aria-required="true"
                     aria-invalid={!!fieldErrors.firstName}
                     aria-describedby={fieldErrors.firstName ? 'firstName-error' : undefined}
@@ -584,6 +615,10 @@ const Profile = () => {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
+                    onBlur={(e) => {
+                      setFormData(prev => ({ ...prev, lastName: e.target.value.trim() }));
+                    }}
+                    autoComplete="family-name"
                     aria-required="true"
                     aria-invalid={!!fieldErrors.lastName}
                     aria-describedby={fieldErrors.lastName ? 'lastName-error' : undefined}
@@ -604,6 +639,10 @@ const Profile = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
+                  onBlur={(e) => {
+                    setFormData(prev => ({ ...prev, phone: e.target.value.trim() }));
+                  }}
+                  autoComplete="tel"
                   placeholder="+91 98765 43210"
                   aria-required="true"
                   aria-invalid={!!fieldErrors.phone}
@@ -624,7 +663,11 @@ const Profile = () => {
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
-                  placeholder="123 Main Street"
+                  onBlur={(e) => {
+                    setFormData(prev => ({ ...prev, address: e.target.value.trim() }));
+                  }}
+                  autoComplete="address-line1"
+                  placeholder="Plot No. 123, Sector 45, Road Name"
                   aria-invalid={!!fieldErrors.address}
                   aria-describedby={fieldErrors.address ? 'address-error' : undefined}
                 />
@@ -644,6 +687,10 @@ const Profile = () => {
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
+                    onBlur={(e) => {
+                      setFormData(prev => ({ ...prev, city: e.target.value.trim() }));
+                    }}
+                    autoComplete="address-level2"
                     placeholder="Mumbai"
                     aria-invalid={!!fieldErrors.city}
                     aria-describedby={fieldErrors.city ? 'city-error' : undefined}
@@ -663,6 +710,10 @@ const Profile = () => {
                     name="state"
                     value={formData.state}
                     onChange={handleChange}
+                    onBlur={(e) => {
+                      setFormData(prev => ({ ...prev, state: e.target.value.trim() }));
+                    }}
+                    autoComplete="address-level1"
                     placeholder="Maharashtra"
                     aria-invalid={!!fieldErrors.state}
                     aria-describedby={fieldErrors.state ? 'state-error' : undefined}
@@ -682,6 +733,10 @@ const Profile = () => {
                     name="postalCode"
                     value={formData.postalCode}
                     onChange={handleChange}
+                    onBlur={(e) => {
+                      setFormData(prev => ({ ...prev, postalCode: e.target.value.trim() }));
+                    }}
+                    autoComplete="postal-code"
                     placeholder="400001"
                     maxLength="6"
                     aria-invalid={!!fieldErrors.postalCode}

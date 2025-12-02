@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/adminAPI';
 import { useModal } from '../../components/Modal/Modal';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import './AdminUsers.css';
 
 const AdminUsers = () => {
@@ -19,12 +21,12 @@ const AdminUsers = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await adminAPI.getAllUsers(currentPage, 20);
       setUsers(data.content);
       setTotalPages(data.totalPages);
-      setError(null);
     } catch (err) {
-      modal.error(err.response?.data?.message || 'Failed to load users');
+      setError(err.response?.data?.message || 'Failed to load users. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -32,17 +34,20 @@ const AdminUsers = () => {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
+      setCurrentPage(0); // Reset page on empty search
       loadUsers();
       return;
     }
     
     try {
       setLoading(true);
+      setError(null);
+      setCurrentPage(0); // Reset to page 0 when searching
       const data = await adminAPI.searchUsers(searchQuery);
       setUsers(data);
-      setError(null);
+      setTotalPages(0); // Disable pagination for search results
     } catch (err) {
-      modal.error(err.response?.data?.message || 'Search failed');
+      setError(err.response?.data?.message || 'Search failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,17 +74,17 @@ const AdminUsers = () => {
 
   const handleToggleStatus = async (userId) => {
     const user = users.find(u => u.id === userId);
-    const newStatus = !user?.enabled;
+    const isCurrentlyActive = user?.enabled;
     
     modal.confirm(
-      `Are you sure you want to ${newStatus ? 'activate' : 'suspend'} this user?`,
+      `Are you sure you want to ${isCurrentlyActive ? 'deactivate' : 'activate'} this user?`,
       {
         title: 'Toggle User Status',
-        confirmText: newStatus ? 'Activate' : 'Suspend',
+        confirmText: isCurrentlyActive ? 'Deactivate' : 'Activate',
         onConfirm: async () => {
           try {
             await adminAPI.toggleUserStatus(userId);
-            modal.success(`User ${newStatus ? 'activated' : 'suspended'} successfully`);
+            modal.success(`User ${isCurrentlyActive ? 'deactivated' : 'activated'} successfully`);
             loadUsers();
           } catch (err) {
             modal.error(err.response?.data?.message || 'Failed to toggle status');
@@ -109,7 +114,18 @@ const AdminUsers = () => {
   };
 
   if (loading && users.length === 0) {
-    return <div className="admin-users"><div className="loading-spinner">Loading users...</div></div>;
+    return <LoadingSpinner message="Loading users..." fullScreen />;
+  }
+
+  if (error && users.length === 0) {
+    return (
+      <ErrorModal
+        title="Failed to Load Users"
+        message={error}
+        onRefresh={loadUsers}
+        onClose={() => setError(null)}
+      />
+    );
   }
 
   return (
@@ -131,7 +147,11 @@ const AdminUsers = () => {
         />
         <button onClick={handleSearch} className="btn btn-primary">Search</button>
         {searchQuery && (
-          <button onClick={() => { setSearchQuery(''); loadUsers(); }} className="btn btn-outline">
+          <button onClick={() => { 
+            setSearchQuery(''); 
+            setCurrentPage(0);
+            loadUsers(); 
+          }} className="btn btn-outline">
             Clear
           </button>
         )}
@@ -158,7 +178,12 @@ const AdminUsers = () => {
               <tr key={user.id}>
                 <td>#{user.id}</td>
                 <td>
-                  <strong>{user.firstName} {user.lastName}</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <strong>{user.firstName} {user.lastName}</strong>
+                    <span className={`role-badge role-${user.role.toLowerCase()}`}>
+                      {user.role}
+                    </span>
+                  </div>
                 </td>
                 <td>{user.email}</td>
                 <td>{user.phone || 'N/A'}</td>

@@ -35,6 +35,15 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success("Item added to cart", item));
     }
 
+    @PostMapping
+    public ResponseEntity<ApiResponse<CartItemDto>> addToCartSimple(
+            @Valid @RequestBody AddToCartRequest request,
+            Authentication authentication) {
+        String userEmail = authentication.getName();
+        CartItemDto item = cartService.addToCart(userEmail, request);
+        return ResponseEntity.ok(ApiResponse.success("Item added to cart", item));
+    }
+
     @DeleteMapping("/{cartItemId}")
     public ResponseEntity<ApiResponse<Void>> removeFromCart(
             @PathVariable Long cartItemId,

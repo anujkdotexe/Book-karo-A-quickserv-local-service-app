@@ -7,6 +7,7 @@ import com.bookkaro.model.FAQ;
 import com.bookkaro.repository.AnnouncementRepository;
 import com.bookkaro.repository.BannerRepository;
 import com.bookkaro.repository.FAQRepository;
+import com.bookkaro.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ public class ContentManagementController {
     private final FAQRepository faqRepository;
     private final AnnouncementRepository announcementRepository;
     private final BannerRepository bannerRepository;
+    private final NotificationService notificationService;
 
     // ==================== FAQ MANAGEMENT ====================
 
@@ -174,6 +176,17 @@ public class ContentManagementController {
             Authentication authentication) {
         // Set created by from authentication if needed
         Announcement savedAnnouncement = announcementRepository.save(announcement);
+        
+        // Create notifications for target audience if announcement is active
+        if (savedAnnouncement.getIsActive()) {
+            try {
+                notificationService.createAnnouncementNotifications(savedAnnouncement);
+            } catch (Exception e) {
+                // Log error but don't fail announcement creation
+                System.err.println("Failed to create announcement notifications: " + e.getMessage());
+            }
+        }
+        
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Announcement created successfully", savedAnnouncement));
     }
@@ -191,10 +204,11 @@ public class ContentManagementController {
         
         announcement.setTitle(announcementDetails.getTitle());
         announcement.setContent(announcementDetails.getContent());
-        announcement.setType(announcementDetails.getType());
-        announcement.setTargetAudience(announcementDetails.getTargetAudience());
-        announcement.setStartDate(announcementDetails.getStartDate());
-        announcement.setEndDate(announcementDetails.getEndDate());
+        announcement.setAnnouncementType(announcementDetails.getAnnouncementType());
+        announcement.setAudience(announcementDetails.getAudience());
+        announcement.setPriority(announcementDetails.getPriority());
+        announcement.setStartsAt(announcementDetails.getStartsAt());
+        announcement.setEndsAt(announcementDetails.getEndsAt());
         announcement.setIsActive(announcementDetails.getIsActive());
         
         Announcement updatedAnnouncement = announcementRepository.save(announcement);
@@ -247,7 +261,9 @@ public class ContentManagementController {
             @RequestParam(required = false) String position) {
         List<Banner> banners;
         if (position != null && !position.isEmpty()) {
-            banners = bannerRepository.findActiveBannersByPosition(LocalDateTime.now(), position);
+            // repository now exposes findActiveBannersByTarget which uses the same
+            // logical parameter (position in API maps to target in entity)
+            banners = bannerRepository.findActiveBannersByTarget(LocalDateTime.now(), position);
         } else {
             banners = bannerRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
         }
@@ -281,13 +297,12 @@ public class ContentManagementController {
                 .orElseThrow(() -> new RuntimeException("Banner not found"));
         
         banner.setTitle(bannerDetails.getTitle());
-        banner.setDescription(bannerDetails.getDescription());
         banner.setImageUrl(bannerDetails.getImageUrl());
         banner.setLinkUrl(bannerDetails.getLinkUrl());
-        banner.setPosition(bannerDetails.getPosition());
+        banner.setTarget(bannerDetails.getTarget());
         banner.setDisplayOrder(bannerDetails.getDisplayOrder());
-        banner.setStartDate(bannerDetails.getStartDate());
-        banner.setEndDate(bannerDetails.getEndDate());
+        banner.setStartsAt(bannerDetails.getStartsAt());
+        banner.setEndsAt(bannerDetails.getEndsAt());
         banner.setIsActive(bannerDetails.getIsActive());
         
         Banner updatedBanner = bannerRepository.save(banner);
@@ -320,15 +335,15 @@ public class ContentManagementController {
     }
 
     /**
-     * Increment banner click count
+     * Increment banner click count (tracking removed - column doesn't exist in DB)
      * POST /api/v1/admin/content/banners/{id}/click
      */
     @PostMapping("/banners/{id}/click")
     public ResponseEntity<ApiResponse<Void>> incrementBannerClick(@PathVariable Long id) {
-        Banner banner = bannerRepository.findById(id)
+        // Verify banner exists
+        bannerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Banner not found"));
-        banner.setClickCount(banner.getClickCount() + 1);
-        bannerRepository.save(banner);
+        // Click tracking removed - column doesn't exist in database
         return ResponseEntity.ok(ApiResponse.success("Banner click recorded", null));
     }
 }

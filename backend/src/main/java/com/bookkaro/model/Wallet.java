@@ -27,6 +27,10 @@ public class Wallet {
     @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(length = 3)
+    @Builder.Default
+    private String currency = "INR";
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
@@ -34,8 +38,17 @@ public class Wallet {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
     
     // Wallet security fields for fraud prevention
     @Column(name = "daily_topup_total", precision = 10, scale = 2)

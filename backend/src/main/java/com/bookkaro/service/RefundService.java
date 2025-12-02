@@ -2,10 +2,15 @@ package com.bookkaro.service;
 
 import com.bookkaro.dto.RefundRequestDto;
 import com.bookkaro.dto.RefundResponseDto;
+import com.bookkaro.exception.BadRequestException;
+import com.bookkaro.exception.ConflictException;
 import com.bookkaro.exception.ResourceNotFoundException;
+import com.bookkaro.exception.UnauthorizedException;
 import com.bookkaro.model.Booking;
+import com.bookkaro.model.Payment;
 import com.bookkaro.model.Refund;
 import com.bookkaro.repository.BookingRepository;
+import com.bookkaro.repository.PaymentRepository;
 import com.bookkaro.repository.RefundRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,21 +33,36 @@ public class RefundService {
 
     private final RefundRepository refundRepository;
     private final BookingRepository bookingRepository;
+    private final PaymentRepository paymentRepository;
 
+    /**
+     * Calculate refund amount based on payment time
+     * Uses payment completion time instead of request time for fairer refund calculation
+     * - >= 24 hours: 100% refund
+     * - >= 12 hours: 50% refund
+     * - < 12 hours: No refund
+     */
     public BigDecimal calculateRefundAmount(Booking booking) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime bookingDateTime = booking.getBookingDate().atTime(booking.getBookingTime());
-        Duration timeUntilBooking = Duration.between(now, bookingDateTime);
+        LocalDateTime bookingDateTime = booking.getScheduledAt();
         
-        long hoursUntilBooking = timeUntilBooking.toHours();
-        BigDecimal totalAmount = booking.getTotalAmount();
+        // Use payment creation time (when payment was made) for calculation
+        // This is fairer to vendors - 24 hours from payment, not from cancellation request
+        LocalDateTime paymentTime = booking.getPayment() != null && booking.getPayment().getCreatedAt() != null
+                ? booking.getPayment().getCreatedAt()
+                : LocalDateTime.now();
         
-        if (hoursUntilBooking >= 24) {
-            return totalAmount;
-        } else if (hoursUntilBooking >= 12) {
-            return totalAmount.multiply(BigDecimal.valueOf(0.5));
+        Duration timeFromPaymentToBooking = Duration.between(paymentTime, bookingDateTime);
+        long hoursFromPaymentToBooking = timeFromPaymentToBooking.toHours();
+        
+        BigDecimal totalAmount = booking.getPriceTotal();
+        
+        // Calculate refund based on time between payment and scheduled booking
+        if (hoursFromPaymentToBooking >= 24) {
+            return totalAmount; // Full refund if >= 24 hours
+        } else if (hoursFromPaymentToBooking >= 12) {
+            return totalAmount.multiply(BigDecimal.valueOf(0.5)); // 50% refund if >= 12 hours
         } else {
-            return BigDecimal.ZERO;
+            return BigDecimal.ZERO; // No refund if < 12 hours
         }
     }
 
@@ -51,25 +71,25 @@ public class RefundService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
         
         if (!booking.getUser().getEmail().equals(userEmail)) {
-            throw new RuntimeException("You can only request refunds for your own bookings");
+            throw new UnauthorizedException("You can only request refunds for your own bookings");
         }
         
         if (booking.getStatus() == Booking.BookingStatus.CANCELLED) {
-            throw new RuntimeException("Booking is already cancelled");
+            throw new ConflictException("Booking is already cancelled");
         }
         
         if (booking.getStatus() == Booking.BookingStatus.COMPLETED) {
-            throw new RuntimeException("Cannot refund completed bookings");
+            throw new BadRequestException("Cannot refund completed bookings");
         }
         
         refundRepository.findByBookingId(booking.getId()).ifPresent(refund -> {
-            throw new RuntimeException("Refund request already exists for this booking");
+            throw new ConflictException("Refund request already exists for this booking");
         });
         
         BigDecimal refundAmount = calculateRefundAmount(booking);
         
         if (refundAmount.compareTo(BigDecimal.ZERO) == 0) {
-            throw new RuntimeException("No refund available. Cancellations must be made at least 12 hours before booking time.");
+            throw new BadRequestException("No refund available. Cancellations must be made at least 12 hours before booking time.");
         }
         
         Refund refund = new Refund();
@@ -114,31 +134,51 @@ public class RefundService {
                 .orElseThrow(() -> new ResourceNotFoundException("Refund not found"));
         
         if (refund.getStatus() != Refund.RefundStatus.PENDING) {
-            throw new RuntimeException("Only pending refunds can be approved");
+            throw new BadRequestException("Only pending refunds can be approved");
         }
         
-        refund.setStatus(Refund.RefundStatus.PROCESSING);
-        refund.setUpdatedAt(LocalDateTime.now());
-        refundRepository.save(refund);
+        // Make refund approval atomic - update both refund and booking in single transaction
+        // Get the booking before processing
+        Booking booking = refund.getBooking();
         
         try {
+            // Update refund status to PROCESSING
+            refund.setStatus(Refund.RefundStatus.PROCESSING);
+            refund.setUpdatedAt(LocalDateTime.now());
+            refundRepository.save(refund);
+            
+            // Simulate processing delay
             Thread.sleep(1000);
             
+            // Update both entities atomically within the transaction
             refund.setStatus(Refund.RefundStatus.COMPLETED);
             refund.setProcessedAt(LocalDateTime.now());
             refund.setUpdatedAt(LocalDateTime.now());
             
-            Booking booking = refund.getBooking();
             booking.setStatus(Booking.BookingStatus.CANCELLED);
-            bookingRepository.save(booking);
             
+            // CRITICAL FIX #169: Update payment status to REFUNDED
+            Payment payment = refund.getPayment();
+            if (payment != null && "SUCCESS".equals(payment.getPaymentStatus())) {
+                payment.setPaymentStatus("REFUNDED");
+                paymentRepository.save(payment);
+            }
+            
+            // Save both - if either fails, transaction will rollback both
+            bookingRepository.save(booking);
             Refund savedRefund = refundRepository.save(refund);
-            log.info("Refund {} approved by admin {}", refundId, adminEmail);
+            
+            log.info("Refund {} approved by admin {} - booking {} cancelled", refundId, adminEmail, booking.getId());
             
             return mapToDto(savedRefund);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Refund processing interrupted", e);
+            // Transaction will rollback automatically on exception
+            throw new RuntimeException("Refund processing interrupted - no changes made", e);
+        } catch (Exception e) {
+            // Any other exception will also rollback the transaction
+            log.error("Failed to approve refund {} - transaction rolled back", refundId, e);
+            throw new RuntimeException("Failed to process refund - please try again", e);
         }
     }
 
@@ -147,7 +187,7 @@ public class RefundService {
                 .orElseThrow(() -> new ResourceNotFoundException("Refund not found"));
         
         if (refund.getStatus() != Refund.RefundStatus.PENDING) {
-            throw new RuntimeException("Only pending refunds can be rejected");
+            throw new BadRequestException("Only pending refunds can be rejected");
         }
         
         refund.setStatus(Refund.RefundStatus.REJECTED);
@@ -177,7 +217,7 @@ public class RefundService {
         dto.setCreatedAt(refund.getCreatedAt());
         dto.setUpdatedAt(refund.getUpdatedAt());
         dto.setServiceName(booking.getService().getServiceName());
-        dto.setBookingDate(booking.getBookingDate());
+        dto.setBookingDate(booking.getScheduledAt().toLocalDate());
         dto.setCustomerName(booking.getUser().getFirstName() + " " + booking.getUser().getLastName());
         dto.setCustomerEmail(booking.getUser().getEmail());
         

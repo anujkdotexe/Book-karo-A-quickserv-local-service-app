@@ -1,9 +1,12 @@
 package com.bookkaro.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,8 +48,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Extract JWT token
-        jwt = authHeader.substring(7);
-        userEmail = jwtUtil.extractUsername(jwt);
+        jwt = authHeader.substring(7).trim();
+        
+        // Validate token is not empty
+        if (jwt.isEmpty()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        try {
+            userEmail = jwtUtil.extractUsername(jwt);
+        } catch (ExpiredJwtException e) {
+            // Token has expired, return 401 Unauthorized
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Token expired\", \"message\": \"Your session has expired. Please login again.\"}");
+            return;
+        } catch (MalformedJwtException e) {
+            // Malformed token - log and continue without authentication
+            // This allows public endpoints to work even with malformed tokens
+            filterChain.doFilter(request, response);
+            return;
+        } catch (Exception e) {
+            // Any other JWT parsing error - continue without authentication
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Validate token and set authentication
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -60,6 +87,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                // Handle expired token case
+                try {
+                    jwtUtil.validateToken(jwt, userDetails);
+                } catch (ExpiredJwtException e) {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.getWriter().write("JWT token is expired");
+                    return;
+                }
             }
         }
 

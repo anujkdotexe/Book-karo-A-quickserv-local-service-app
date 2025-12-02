@@ -1,21 +1,31 @@
 package com.bookkaro.controller;
 
 import com.bookkaro.dto.*;
+import com.bookkaro.exception.BadRequestException;
+import com.bookkaro.model.Address;
 import com.bookkaro.model.Booking;
 import com.bookkaro.model.Booking.BookingStatus;
+import com.bookkaro.model.Booking.PaymentStatus;
 import com.bookkaro.model.Service;
 import com.bookkaro.model.User;
+import com.bookkaro.repository.AddressRepository;
 import com.bookkaro.repository.BookingRepository;
 import com.bookkaro.repository.ServiceRepository;
 import com.bookkaro.repository.UserRepository;
+import com.bookkaro.service.AuditLogService;
+import com.bookkaro.service.CouponService;
+import com.bookkaro.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -33,8 +43,14 @@ public class BookingController {
     private final BookingRepository bookingRepository;
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
+    private final AddressRepository addressRepository;
+    private final AuditLogService auditLogService;
+    private final CouponService couponService;
+    private final NotificationService notificationService;
+    private final com.bookkaro.repository.VendorAvailabilityRepository vendorAvailabilityRepository;
 
     @PostMapping
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public ResponseEntity<ApiResponse<BookingDto>> createBooking(
             @Valid @RequestBody CreateBookingRequest request,
             Authentication authentication) {
@@ -43,16 +59,53 @@ public class BookingController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Service service = serviceRepository.findByIdWithVendor(request.getServiceId())
+        // Validate and get address
+        Address address = addressRepository.findByIdAndUser(request.getAddressId(), user)
+                .orElseThrow(() -> new RuntimeException("Address not found or does not belong to you"));
+
+        Service selectedService = serviceRepository.findByIdWithVendor(request.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
-        // Validate service is available and approved
+        // NEW LOGIC: User can see and select any service, but booking is forwarded to a vendor in user's city
+        // Find a service in user's city that matches the selected service's category
+        Service localService = null;
+        String userCity = address.getCity() != null ? address.getCity().trim() : null;
+        
+        if (userCity != null && selectedService.getCategoryLegacy() != null) {
+            // Find available services in user's city with same category
+            List<Service> localServices = serviceRepository.findByCategoryAndCityAndIsAvailableTrue(
+                selectedService.getCategoryLegacy(), userCity, org.springframework.data.domain.PageRequest.of(0, 10)
+            ).getContent();
+            
+            // Filter for approved services
+            localService = localServices.stream()
+                .filter(s -> s.getApprovalStatus() == Service.ApprovalStatus.APPROVED)
+                .filter(Service::getIsAvailable)
+                .findFirst()
+                .orElse(null);
+        }
+        
+        // If no local vendor found in user's city, reject booking
+        if (localService == null) {
+            String categoryName = selectedService.getCategoryLegacy() != null ? 
+                selectedService.getCategoryLegacy() : "this category";
+            throw new BadRequestException(String.format(
+                "Sorry, we don't have any vendors offering %s services in %s yet. " +
+                "Please check back later or try a different service category.", 
+                categoryName, userCity != null ? userCity : "your area"
+            ));
+        }
+        
+        // Use the local service for booking (user sees one service, gets local vendor)
+        Service service = localService;
+
+        // Validate service is available and approved (redundant check for safety)
         if (!service.getIsAvailable()) {
-            throw new RuntimeException("Service is not available for booking");
+            throw new BadRequestException("Service is not available for booking");
         }
         
         if (service.getApprovalStatus() != Service.ApprovalStatus.APPROVED) {
-            throw new RuntimeException("Service is not approved for booking");
+            throw new BadRequestException("Service is not approved for booking");
         }
 
         // Parse booking time (supports formats like "10:00 AM", "14:30", "2:30 PM")
@@ -61,7 +114,19 @@ public class BookingController {
         // Validate booking date and time are in the future
         LocalDateTime bookingDateTime = LocalDateTime.of(request.getBookingDate(), bookingTime);
         if (bookingDateTime.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Cannot book in the past. Please select a future date and time");
+            throw new BadRequestException("Cannot book in the past. Please select a future date and time");
+        }
+
+        // Minimum advance booking time (2 hours)
+        LocalDateTime minimumBookingTime = LocalDateTime.now().plusHours(2);
+        if (bookingDateTime.isBefore(minimumBookingTime)) {
+            throw new RuntimeException("Bookings must be made at least 2 hours in advance. Please select a later time.");
+        }
+
+        // Maximum advance booking time (90 days)
+        LocalDateTime maximumBookingTime = LocalDateTime.now().plusDays(90);
+        if (bookingDateTime.isAfter(maximumBookingTime)) {
+            throw new RuntimeException("Bookings can only be made up to 90 days in advance. Please select an earlier date.");
         }
 
         // Validate booking time against service availability
@@ -81,44 +146,124 @@ public class BookingController {
             }
         }
 
-        // Create booking with total amount from service price
+        // Prevent duplicate bookings for same user/service/datetime
+        LocalDateTime scheduledAt = LocalDateTime.of(request.getBookingDate(), bookingTime);
+        List<Booking> existingBookings = bookingRepository.findByUserAndServiceAndScheduledAt(
+            user, service, scheduledAt
+        );
+        if (!existingBookings.isEmpty()) {
+            throw new RuntimeException(
+                "You already have a booking for this service at this date and time"
+            );
+        }
+
+        // Prevent vendor double-booking - check if vendor already booked at this time
+        List<Booking> vendorBookings = bookingRepository.findByVendorAndScheduledAt(
+            service.getVendor(), scheduledAt
+        );
+        // Allow double-booking if all existing bookings are cancelled
+        boolean hasActiveBooking = vendorBookings.stream()
+            .anyMatch(b -> b.getStatus() != BookingStatus.CANCELLED);
+        if (hasActiveBooking) {
+            throw new RuntimeException(
+                "This vendor is already booked at this date and time. Please choose a different time"
+            );
+        }
+
+        // NEW: Check vendor availability from vendor_availabilities table
+        if (!isVendorAvailable(service.getVendor().getId(), request.getBookingDate(), bookingTime)) {
+            throw new BadRequestException(
+                "Vendor is not available at the requested date and time. Please choose a different time slot."
+            );
+        }
+
+        // Create booking with scheduled datetime
+        
+        // Handle coupon application (if provided)
+        BigDecimal finalPrice = service.getPrice();
+        com.bookkaro.model.Coupon usedCoupon = null;
+        BigDecimal discountApplied = BigDecimal.ZERO;
+        
+        if (request.getCouponCode() != null && !request.getCouponCode().trim().isEmpty()) {
+            // Validate and apply coupon
+            com.bookkaro.service.CouponService.CouponValidationResult validationResult = 
+                couponService.validateCoupon(request.getCouponCode(), finalPrice, user.getId());
+            
+            if (!validationResult.isValid()) {
+                throw new RuntimeException("Coupon validation failed: " + validationResult.getMessage());
+            }
+            
+            usedCoupon = validationResult.getCoupon();
+            discountApplied = validationResult.getDiscountAmount();
+            finalPrice = finalPrice.subtract(discountApplied);
+        }
+        
         Booking booking = Booking.builder()
                 .user(user)
+                .vendor(service.getVendor())
                 .service(service)
-                .bookingDate(request.getBookingDate())
-                .bookingTime(bookingTime)
-                .notes(request.getNotes())
-                .totalAmount(service.getPrice())
+                .address(address)
+                .scheduledAt(scheduledAt)
+                .specialRequests(request.getNotes())
+                .priceTotal(finalPrice)  // Price after discount
                 .status(BookingStatus.PENDING)
+                .paymentStatus(PaymentStatus.UNPAID)
                 .build();
 
         booking = bookingRepository.save(booking);
+        
+        // CRITICAL: Record coupon usage after booking is saved
+        if (usedCoupon != null) {
+            couponService.recordUsage(usedCoupon, user, booking, service.getPrice(), discountApplied);
+        }
+        
+        // Audit log for booking creation
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put("serviceId", service.getId());
+        auditData.put("serviceName", service.getServiceName());
+        auditData.put("vendorId", service.getVendor().getId());
+        auditData.put("vendorName", service.getVendor().getBusinessName());
+        auditData.put("scheduledAt", scheduledAt.toString());
+        auditData.put("amount", service.getPrice());
+        auditData.put("status", BookingStatus.PENDING.toString());
+        auditLogService.log("BOOKING", booking.getId(), "CREATE", user.getId(), auditData);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Booking created successfully", convertToDto(booking)));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<BookingDto>>> getUserBookings(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getUserBookings(
             @RequestParam(required = false) BookingStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
         
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Booking> bookings;
+        org.springframework.data.domain.Page<Booking> bookingPage;
         if (status != null) {
-            bookings = bookingRepository.findByUserAndStatus(user, status);
+            bookingPage = bookingRepository.findByUserIdAndStatus(user.getId(), status, 
+                org.springframework.data.domain.PageRequest.of(page, size));
         } else {
-            bookings = bookingRepository.findByUserOrderByBookingDateDesc(user);
+            bookingPage = bookingRepository.findByUserId(user.getId(), 
+                org.springframework.data.domain.PageRequest.of(page, size));
         }
 
-        List<BookingDto> bookingDtos = bookings.stream()
+        List<BookingDto> bookingDtos = bookingPage.getContent().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponse.success("Bookings retrieved successfully", bookingDtos));
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", bookingDtos);
+        response.put("currentPage", bookingPage.getNumber());
+        response.put("totalPages", bookingPage.getTotalPages());
+        response.put("totalElements", bookingPage.getTotalElements());
+        response.put("size", bookingPage.getSize());
+
+        return ResponseEntity.ok(ApiResponse.success("Bookings retrieved successfully", response));
     }
 
     /**
@@ -145,9 +290,11 @@ public class BookingController {
         // Apply filters
         List<Booking> filteredBookings = allBookings.stream()
                 .filter(booking -> status == null || booking.getStatus() == status)
-                .filter(booking -> startDate == null || !booking.getBookingDate().isBefore(startDate))
-                .filter(booking -> endDate == null || !booking.getBookingDate().isAfter(endDate))
-                .filter(booking -> category == null || booking.getService().getCategory().equalsIgnoreCase(category))
+                .filter(booking -> startDate == null || !booking.getScheduledAt().toLocalDate().isBefore(startDate))
+                .filter(booking -> endDate == null || !booking.getScheduledAt().toLocalDate().isAfter(endDate))
+                .filter(booking -> category == null || 
+                    (booking.getService().getCategory() != null && 
+                     booking.getService().getCategory().getName().equalsIgnoreCase(category)))
                 .collect(Collectors.toList());
         
         // Manual pagination
@@ -220,6 +367,11 @@ public class BookingController {
         if (isCustomer && newStatus == BookingStatus.CANCELLED && currentStatus == BookingStatus.PENDING) {
             booking.setStatus(newStatus);
         } else if (isVendor && (newStatus == BookingStatus.CONFIRMED || newStatus == BookingStatus.COMPLETED)) {
+            // Prevent completing booking without payment
+            if (newStatus == BookingStatus.COMPLETED && booking.getPaymentStatus() != PaymentStatus.PAID) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Cannot complete booking - payment not received"));
+            }
             booking.setStatus(newStatus);
         } else {
             return ResponseEntity.badRequest()
@@ -227,6 +379,46 @@ public class BookingController {
         }
 
         booking = bookingRepository.save(booking);
+        
+        // Create notification for customer about status change
+        String notifTitle = "";
+        String notifMessage = "";
+        if (newStatus == BookingStatus.CONFIRMED) {
+            notifTitle = "Booking Confirmed";
+            notifMessage = String.format("Your booking for %s has been confirmed by the vendor. Scheduled for %s.",
+                booking.getService().getServiceName(), booking.getBookingDate());
+        } else if (newStatus == BookingStatus.COMPLETED) {
+            notifTitle = "Booking Completed";
+            notifMessage = String.format("Your booking for %s has been completed. Thank you for using our service!",
+                booking.getService().getServiceName());
+        } else if (newStatus == BookingStatus.CANCELLED) {
+            notifTitle = "Booking Cancelled";
+            notifMessage = String.format("Your booking for %s has been cancelled.",
+                booking.getService().getServiceName());
+        }
+        
+        if (!notifTitle.isEmpty()) {
+            try {
+                notificationService.createBookingNotification(
+                    booking, 
+                    "BOOKING_STATUS", 
+                    notifTitle, 
+                    notifMessage
+                );
+            } catch (Exception e) {
+                // Log but don't fail the status update if notification fails
+                System.err.println("Failed to create notification: " + e.getMessage());
+            }
+        }
+        
+        // Audit log for status update
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put("previousStatus", currentStatus.toString());
+        auditData.put("newStatus", newStatus.toString());
+        auditData.put("updatedBy", isVendor ? "vendor" : "customer");
+        auditData.put("serviceId", booking.getService().getId());
+        auditData.put("serviceName", booking.getService().getServiceName());
+        auditLogService.log("BOOKING", booking.getId(), "UPDATE_STATUS", user.getId(), auditData);
 
         return ResponseEntity.ok(ApiResponse.success("Booking status updated successfully", convertToDto(booking)));
     }
@@ -254,8 +446,30 @@ public class BookingController {
                     .body(ApiResponse.error("Only pending bookings can be cancelled"));
         }
 
+        BookingStatus previousStatus = booking.getStatus();
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+        
+        // Create cancellation notification
+        try {
+            notificationService.createBookingNotification(
+                booking,
+                "BOOKING_CANCELLED",
+                "Booking Cancelled",
+                String.format("Your booking for %s on %s has been cancelled.",
+                    booking.getService().getServiceName(), booking.getBookingDate())
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to create cancellation notification: " + e.getMessage());
+        }
+        
+        // Audit log for cancellation
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put("previousStatus", previousStatus.toString());
+        auditData.put("reason", "Customer cancellation");
+        auditData.put("serviceId", booking.getService().getId());
+        auditData.put("serviceName", booking.getService().getServiceName());
+        auditLogService.log("BOOKING", booking.getId(), "CANCEL", user.getId(), auditData);
 
         return ResponseEntity.ok(ApiResponse.success("Booking cancelled successfully", null));
     }
@@ -290,8 +504,15 @@ public class BookingController {
         }
 
         // Update booking status to cancelled
+        String previousStatus = booking.getStatus().toString();
         booking.setStatus(BookingStatus.CANCELLED);
+        booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        // Log the cancellation
+        auditLogService.logBookingCancellation(id, user.getId(), 
+            request.getReason() != null ? request.getReason() : "Customer cancelled", 
+            previousStatus);
 
         Map<String, Object> response = new HashMap<>();
         response.put("bookingId", booking.getId());
@@ -339,10 +560,12 @@ public class BookingController {
 
         // Check availability (simple check - no double booking on same time)
         final Long bookingId = booking.getId();
+        final LocalDate requestDate = request.getBookingDate();
+        final LocalTime requestTime = request.getBookingTime();
         boolean isSlotAvailable = bookingRepository.findByServiceVendorEntityOrderByBookingDateDesc(booking.getService().getVendor())
                 .stream()
-                .noneMatch(b -> b.getBookingDate().equals(request.getBookingDate()) 
-                        && b.getBookingTime().equals(request.getBookingTime())
+                .noneMatch(b -> b.getScheduledAt().toLocalDate().equals(requestDate) 
+                        && b.getScheduledAt().toLocalTime().equals(requestTime)
                         && !b.getId().equals(bookingId)
                         && (b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.CONFIRMED));
         
@@ -352,8 +575,7 @@ public class BookingController {
         }
 
         // Update booking
-        booking.setBookingDate(request.getBookingDate());
-        booking.setBookingTime(request.getBookingTime());
+        booking.setScheduledAt(newBookingDateTime);
         Booking updatedBooking = bookingRepository.save(booking);
 
         return ResponseEntity.ok(ApiResponse.success("Booking rescheduled successfully", convertToDto(updatedBooking)));
@@ -374,7 +596,7 @@ public class BookingController {
         // Get all bookings for this vendor on the requested date
         List<Booking> existingBookings = bookingRepository.findByServiceVendorEntityOrderByBookingDateDesc(service.getVendor())
                 .stream()
-                .filter(b -> b.getBookingDate().equals(date))
+                .filter(b -> b.getScheduledAt().toLocalDate().equals(date))
                 .filter(b -> b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.CONFIRMED)
                 .collect(Collectors.toList());
 
@@ -385,7 +607,7 @@ public class BookingController {
             LocalTime nextSlot = slotTime.plusHours(1);
             
             boolean isBooked = existingBookings.stream()
-                    .anyMatch(b -> b.getBookingTime().equals(slotTime));
+                    .anyMatch(b -> b.getScheduledAt().toLocalTime().equals(slotTime));
             
             slots.add(AvailableSlot.builder()
                     .startTime(slotTime)
@@ -470,14 +692,17 @@ public class BookingController {
         }
 
         // Clone the booking with new date/time
+        LocalDateTime newScheduledAt = LocalDateTime.of(request.getBookingDate(), bookingTime);
+        
         Booking newBooking = Booking.builder()
                 .user(user)
+                .vendor(service.getVendor())
                 .service(service)
-                .bookingDate(request.getBookingDate())
-                .bookingTime(bookingTime)
-                .notes(request.getNotes() != null ? request.getNotes() : originalBooking.getNotes())
-                .totalAmount(service.getPrice()) // Use current price
+                .scheduledAt(newScheduledAt)
+                .specialRequests(request.getNotes() != null ? request.getNotes() : originalBooking.getNotes())
+                .priceTotal(service.getPrice()) // Use current price
                 .status(BookingStatus.PENDING)
+                .paymentStatus(PaymentStatus.UNPAID)
                 .build();
 
         newBooking = bookingRepository.save(newBooking);
@@ -489,16 +714,39 @@ public class BookingController {
     private BookingDto convertToDto(Booking booking) {
         BookingDto dto = new BookingDto();
         dto.setId(booking.getId());
-        dto.setUserId(booking.getUser().getId());
-        dto.setUserName(booking.getUser().getFullName());
-        dto.setUserEmail(booking.getUser().getEmail());
-        dto.setServiceId(booking.getService().getId());
-        dto.setServiceName(booking.getService().getServiceName());
-        dto.setVendorName(booking.getService().getVendor().getBusinessName());
-        dto.setBookingDate(booking.getBookingDate());
-        dto.setBookingTime(booking.getBookingTime());
+        dto.setBookingReference(booking.getBookingReference());
+        
+        // Null-safe user handling
+        if (booking.getUser() != null) {
+            dto.setUserId(booking.getUser().getId());
+            dto.setUserName(booking.getUser().getFullName());
+            dto.setUserEmail(booking.getUser().getEmail());
+        }
+        
+        // Null-safe service handling
+        if (booking.getService() != null) {
+            dto.setServiceId(booking.getService().getId());
+            dto.setServiceName(booking.getServiceNameAtBooking() != null ? 
+                booking.getServiceNameAtBooking() : booking.getService().getServiceName());
+        }
+        
+        // Null-safe vendor handling
+        if (booking.getVendor() != null) {
+            dto.setVendorId(booking.getVendor().getId());
+            dto.setVendorName(booking.getVendor().getBusinessName());
+        }
+        dto.setScheduledAt(booking.getScheduledAt());
+        // Legacy fields for backward compatibility
+        if (booking.getScheduledAt() != null) {
+            dto.setBookingDate(booking.getScheduledAt().toLocalDate());
+            dto.setBookingTime(booking.getScheduledAt().toLocalTime());
+        }
         dto.setStatus(booking.getStatus().toString());
-        dto.setTotalAmount(booking.getTotalAmount());
+        dto.setPaymentStatus(booking.getPaymentStatus() != null ? 
+            booking.getPaymentStatus().toString() : "UNPAID");
+        dto.setPriceTotal(booking.getPriceTotal());
+        dto.setTotalAmount(booking.getPriceTotal()); // Legacy field
+        dto.setPriceCurrency(booking.getPriceCurrency());
         dto.setNotes(booking.getNotes());
         dto.setCreatedAt(booking.getCreatedAt());
         dto.setUpdatedAt(booking.getUpdatedAt());
@@ -510,6 +758,55 @@ public class BookingController {
      * - "10:00 AM" or "2:30 PM" (12-hour format with AM/PM)
      * - "14:30" or "09:00" (24-hour format)
      */
+    /**
+     * Check if vendor is available at the requested date and time
+     * Checks both recurring weekly availability and one-off availability slots
+     */
+    private boolean isVendorAvailable(Long vendorId, java.time.LocalDate bookingDate, LocalTime bookingTime) {
+        // Get day of week (0=Sunday, 6=Saturday)
+        short dayOfWeek = (short) bookingDate.getDayOfWeek().getValue();
+        if (dayOfWeek == 7) dayOfWeek = 0; // Convert Sunday from 7 to 0
+        
+        // Check recurring weekly availability
+        List<com.bookkaro.model.VendorAvailability> recurringAvailabilities = 
+            vendorAvailabilityRepository.findRecurringAvailabilitiesByDay(vendorId, dayOfWeek);
+        
+        for (com.bookkaro.model.VendorAvailability availability : recurringAvailabilities) {
+            if (availability.getIsAvailable() && 
+                availability.getStartTime() != null && 
+                availability.getEndTime() != null) {
+                // Check if booking time falls within available time slot
+                if (!bookingTime.isBefore(availability.getStartTime()) && 
+                    !bookingTime.isAfter(availability.getEndTime())) {
+                    return true;
+                }
+            }
+        }
+        
+        // Check one-off availability slots
+        LocalDateTime bookingDateTime = LocalDateTime.of(bookingDate, bookingTime);
+        LocalDateTime dayStart = bookingDate.atStartOfDay();
+        LocalDateTime dayEnd = bookingDate.atTime(23, 59, 59);
+        
+        List<com.bookkaro.model.VendorAvailability> oneOffAvailabilities = 
+            vendorAvailabilityRepository.findOneOffAvailabilities(vendorId, dayStart, dayEnd);
+        
+        for (com.bookkaro.model.VendorAvailability availability : oneOffAvailabilities) {
+            if (availability.getIsAvailable() && 
+                availability.getStartTs() != null && 
+                availability.getEndTs() != null) {
+                // Check if booking time falls within available time slot
+                if (!bookingDateTime.isBefore(availability.getStartTs()) && 
+                    !bookingDateTime.isAfter(availability.getEndTs())) {
+                    return true;
+                }
+            }
+        }
+        
+        // If no availability found, return false
+        return false;
+    }
+
     private LocalTime parseBookingTime(String timeStr) {
         if (timeStr == null || timeStr.trim().isEmpty()) {
             throw new IllegalArgumentException("Booking time cannot be empty");

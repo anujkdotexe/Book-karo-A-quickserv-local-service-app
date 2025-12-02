@@ -4,6 +4,7 @@ import com.bookkaro.dto.AdminDashboardStats;
 import com.bookkaro.dto.ApiResponse;
 import com.bookkaro.dto.BookingDto;
 import com.bookkaro.dto.PagedResponse;
+import com.bookkaro.dto.PlatformAnalyticsDto;
 import com.bookkaro.dto.ServiceDto;
 import com.bookkaro.dto.UserDto;
 import com.bookkaro.dto.VendorDto;
@@ -43,6 +44,26 @@ public class AdminController {
     public ResponseEntity<ApiResponse<AdminDashboardStats>> getDashboardStats() {
         AdminDashboardStats stats = adminService.getDashboardStats();
         return ResponseEntity.ok(ApiResponse.success("Dashboard stats retrieved successfully", stats));
+    }
+
+    /**
+     * Get admin dashboard statistics (alternative endpoint)
+     * GET /api/v1/admin/dashboard/stats
+     */
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<ApiResponse<AdminDashboardStats>> getDashboardStatsAlias() {
+        AdminDashboardStats stats = adminService.getDashboardStats();
+        return ResponseEntity.ok(ApiResponse.success("Dashboard stats retrieved successfully", stats));
+    }
+
+    /**
+     * Get comprehensive platform analytics
+     * GET /api/v1/admin/analytics/platform
+     */
+    @GetMapping("/analytics/platform")
+    public ResponseEntity<ApiResponse<PlatformAnalyticsDto>> getPlatformAnalytics() {
+        PlatformAnalyticsDto analytics = adminService.getPlatformAnalytics();
+        return ResponseEntity.ok(ApiResponse.success("Platform analytics retrieved successfully", analytics));
     }
 
     // ==================== USER MANAGEMENT ====================
@@ -173,9 +194,10 @@ public class AdminController {
     @PutMapping("/vendors/{id}/reject")
     public ResponseEntity<ApiResponse<VendorDto>> rejectVendor(
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            @RequestHeader(value = "X-User-Id", required = false) Long adminId) {
         String reason = request.get("reason");
-        Vendor vendor = adminService.rejectVendor(id, reason);
+        Vendor vendor = adminService.rejectVendor(id, reason, adminId != null ? adminId : 0L);
         VendorDto vendorDto = VendorDto.fromEntity(vendor);
         return ResponseEntity.ok(ApiResponse.success("Vendor rejected successfully", vendorDto));
     }
@@ -187,11 +209,25 @@ public class AdminController {
     @PutMapping("/vendors/{id}/suspend")
     public ResponseEntity<ApiResponse<VendorDto>> suspendVendor(
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            @RequestHeader(value = "X-User-Id", required = false) Long adminId) {
         String reason = request.get("reason");
-        Vendor vendor = adminService.suspendVendor(id, reason);
+        Vendor vendor = adminService.suspendVendor(id, reason, adminId != null ? adminId : 0L);
         VendorDto vendorDto = VendorDto.fromEntity(vendor);
         return ResponseEntity.ok(ApiResponse.success("Vendor suspended successfully", vendorDto));
+    }
+
+    /**
+     * Reactivate vendor (unsuspend/uneject)
+     * PUT /api/v1/admin/vendors/{id}/reactivate
+     */
+    @PutMapping("/vendors/{id}/reactivate")
+    public ResponseEntity<ApiResponse<VendorDto>> reactivateVendor(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Id", required = false) Long adminId) {
+        Vendor vendor = adminService.reactivateVendor(id, adminId != null ? adminId : 0L);
+        VendorDto vendorDto = VendorDto.fromEntity(vendor);
+        return ResponseEntity.ok(ApiResponse.success("Vendor reactivated successfully", vendorDto));
     }
 
     // ==================== SERVICE MANAGEMENT ====================
@@ -408,20 +444,46 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("Booking status updated successfully", convertToDto(booking)));
     }
 
+    /**
+     * Revert completed booking (admin override)
+     * POST /api/v1/admin/bookings/{id}/revert
+     */
+    @PostMapping("/bookings/{id}/revert")
+    public ResponseEntity<ApiResponse<BookingDto>> revertBooking(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        String newStatus = request.get("newStatus");
+        String reason = request.get("reason");
+        com.bookkaro.model.Booking booking = adminService.revertBooking(id, newStatus, reason);
+        return ResponseEntity.ok(ApiResponse.success("Booking reverted successfully", convertToDto(booking)));
+    }
+
     // Helper method to convert Booking entity to DTO
     private BookingDto convertToDto(com.bookkaro.model.Booking booking) {
         BookingDto dto = new BookingDto();
         dto.setId(booking.getId());
+        dto.setBookingReference(booking.getBookingReference());
         dto.setUserId(booking.getUser().getId());
         dto.setUserName(booking.getUser().getFullName());
         dto.setUserEmail(booking.getUser().getEmail());
         dto.setServiceId(booking.getService().getId());
-        dto.setServiceName(booking.getService().getServiceName());
-        dto.setVendorName(booking.getService().getVendor().getBusinessName());
-        dto.setBookingDate(booking.getBookingDate());
-        dto.setBookingTime(booking.getBookingTime());
+        dto.setServiceName(booking.getServiceNameAtBooking() != null ? 
+            booking.getServiceNameAtBooking() : booking.getService().getServiceName());
+        dto.setVendorId(booking.getVendor() != null ? booking.getVendor().getId() : null);
+        dto.setVendorName(booking.getVendor() != null ? 
+            booking.getVendor().getBusinessName() : "Unknown");
+        dto.setScheduledAt(booking.getScheduledAt());
+        // Legacy fields for backward compatibility
+        if (booking.getScheduledAt() != null) {
+            dto.setBookingDate(booking.getScheduledAt().toLocalDate());
+            dto.setBookingTime(booking.getScheduledAt().toLocalTime());
+        }
         dto.setStatus(booking.getStatus().toString());
-        dto.setTotalAmount(booking.getTotalAmount());
+        dto.setPaymentStatus(booking.getPaymentStatus() != null ? 
+            booking.getPaymentStatus().toString() : "UNPAID");
+        dto.setPriceTotal(booking.getPriceTotal());
+        dto.setTotalAmount(booking.getPriceTotal()); // Legacy field
+        dto.setPriceCurrency(booking.getPriceCurrency());
         dto.setNotes(booking.getNotes());
         dto.setCreatedAt(booking.getCreatedAt());
         dto.setUpdatedAt(booking.getUpdatedAt());

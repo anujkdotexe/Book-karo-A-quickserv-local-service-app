@@ -1,11 +1,13 @@
-/* bookkaro Global Styles - Following PRD Color Theme */
+/* bookkaro Global Styles - Following Official UI/UX Guidelines */
+
+@import './styles/modern-select.css';
 
 :root {
-  /* Brand Colors */
-  --navy-blue: #1a2332;
+  /* Brand Colors - Official Theme */
+  --navy-blue: #1e3a8a;
   --royal-blue: #2563eb;
   --white: #ffffff;
-  --light-gray: #e5e7eb;
+  --light-gray: #f3f4f6;
   --dark-gray: #6b7280;
   
   /* Extended Color Palette */
@@ -24,9 +26,9 @@
   --primary-color: var(--royal-blue);
   --secondary-color: var(--navy-blue);
   --background-color: var(--white);
-  --text-primary: var(--navy-blue);
-  --text-secondary: #4b5563; /* Darker for WCAG AA compliance (4.5:1 on white) */
-  --border-color: var(--light-gray);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
 
   /* Spacing */
   --spacing-xs: 0.25rem;

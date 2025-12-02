@@ -2,7 +2,10 @@ package com.bookkaro.service;
 
 import com.bookkaro.dto.AddToCartRequest;
 import com.bookkaro.dto.CartItemDto;
+import com.bookkaro.dto.VendorInfoDto;
+import com.bookkaro.exception.BadRequestException;
 import com.bookkaro.exception.ResourceNotFoundException;
+import com.bookkaro.exception.UnauthorizedException;
 import com.bookkaro.model.CartItem;
 import com.bookkaro.model.Service;
 import com.bookkaro.model.User;
@@ -44,16 +47,16 @@ public class CartService {
         
         // Validate service is available and approved
         if (!service.getIsAvailable()) {
-            throw new RuntimeException("Service is not available");
+            throw new BadRequestException("Service is not available");
         }
         
         if (service.getApprovalStatus() != Service.ApprovalStatus.APPROVED) {
-            throw new RuntimeException("Service is not approved for booking");
+            throw new BadRequestException("Service is not approved for booking");
         }
         
-        // Validate quantity
-        if (request.getQuantity() <= 0) {
-            throw new RuntimeException("Quantity must be greater than 0");
+        // Validate quantity (both DTO validation and runtime check)
+        if (request.getQuantity() == null || request.getQuantity() <= 0) {
+            throw new BadRequestException("Quantity must be greater than 0");
         }
         
         // Check if item already exists in cart
@@ -86,7 +89,7 @@ public class CartService {
         
         // Verify the cart item belongs to the user
         if (!cartItem.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized access to cart item");
+            throw new UnauthorizedException("Unauthorized access to cart item");
         }
         
         cartItemRepository.delete(cartItem);
@@ -109,13 +112,32 @@ public class CartService {
 
     private CartItemDto mapToDto(CartItem cartItem) {
         CartItemDto dto = new CartItemDto();
+        Service service = cartItem.getService();
+        
         dto.setId(cartItem.getId());
-        dto.setServiceId(cartItem.getService().getId());
-        dto.setServiceName(cartItem.getService().getServiceName());
-        dto.setCategory(cartItem.getService().getCategory());
-        dto.setPrice(cartItem.getService().getPrice().doubleValue());
+        dto.setServiceId(service.getId());
+        dto.setServiceName(service.getServiceName());
+        dto.setName(service.getServiceName()); // For frontend compatibility
+        dto.setDescription(service.getDescription());
+        dto.setCategory(service.getCategory() != null ? 
+            service.getCategory().getName() : 
+            service.getCategoryLegacy());
+        dto.setCity(service.getCity());
+        dto.setState(service.getState());
+        dto.setPrice(service.getPrice().doubleValue());
         dto.setQuantity(cartItem.getQuantity());
-        dto.setSubtotal(cartItem.getService().getPrice().doubleValue() * cartItem.getQuantity());
+        dto.setSubtotal(service.getPrice().doubleValue() * cartItem.getQuantity());
+        
+        // Add vendor information
+        if (service.getVendor() != null && service.getVendor().getUser() != null) {
+            VendorInfoDto vendorInfo = new VendorInfoDto();
+            vendorInfo.setId(service.getVendor().getId());
+            vendorInfo.setBusinessName(service.getVendor().getBusinessName());
+            vendorInfo.setFirstName(service.getVendor().getUser().getFirstName());
+            vendorInfo.setLastName(service.getVendor().getUser().getLastName());
+            dto.setVendor(vendorInfo);
+        }
+        
         return dto;
     }
 }

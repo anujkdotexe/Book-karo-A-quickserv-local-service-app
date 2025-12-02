@@ -1,29 +1,71 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorModal from '../../components/ErrorModal/ErrorModal';
 import { useModal } from '../../components/Modal/Modal';
 import './VendorBookings.css';
 
 const VendorBookings = () => {
+  const location = useLocation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('ALL');
+  const [filter, setFilter] = useState(location.state?.filter || 'ALL');
+  const [statusCounts, setStatusCounts] = useState({
+    ALL: 0,
+    PENDING: 0,
+    CONFIRMED: 0,
+    COMPLETED: 0,
+    CANCELLED: 0
+  });
   const modal = useModal();
 
   useEffect(() => {
     loadBookings();
   }, [filter]);
+  
+  // Update filter when navigating from dashboard
+  useEffect(() => {
+    if (location.state?.filter) {
+      setFilter(location.state.filter);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    loadStatusCounts();
+  }, []);
+
+  useEffect(() => {
+    loadStatusCounts();
+  }, []);
+
+  const loadStatusCounts = async () => {
+    try {
+      const statuses = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
+      const counts = {};
+      
+      for (const status of statuses) {
+        const statusFilter = status === 'ALL' ? null : status;
+        const data = await vendorAPI.getBookings(statusFilter);
+        counts[status] = Array.isArray(data) ? data.length : 0;
+      }
+      
+      setStatusCounts(counts);
+    } catch (err) {
+      console.error('Failed to load status counts:', err);
+    }
+  };
 
   const loadBookings = async () => {
     try {
       setLoading(true);
+      setError(null);
       const statusFilter = filter === 'ALL' ? null : filter;
       const data = await vendorAPI.getBookings(statusFilter);
       setBookings(Array.isArray(data) ? data : []);
-      setError(null);
     } catch (err) {
-      modal.error(err.response?.data?.message || 'Failed to load bookings');
+      setError(err.response?.data?.message || 'Failed to load bookings. Please try again.');
       setBookings([]);
     } finally {
       setLoading(false);
@@ -50,6 +92,7 @@ const VendorBookings = () => {
             await vendorAPI.updateBookingStatus(bookingId, newStatus);
             modal.success('Booking status updated successfully');
             await loadBookings();
+            await loadStatusCounts(); // Reload counts after status change
           } catch (err) {
             modal.error(err.response?.data?.message || 'Failed to update booking status');
           } finally {
@@ -71,10 +114,17 @@ const VendorBookings = () => {
   };
 
   if (loading) {
+    return <LoadingSpinner message="Loading bookings..." fullScreen />;
+  }
+
+  if (error && bookings.length === 0) {
     return (
-      <div className="vendor-bookings">
-        <LoadingSpinner message="Loading bookings..." />
-      </div>
+      <ErrorModal
+        title="Failed to Load Bookings"
+        message={error}
+        onRefresh={loadBookings}
+        onClose={() => setError(null)}
+      />
     );
   }
 
@@ -92,31 +142,31 @@ const VendorBookings = () => {
           className={`filter-tab ${filter === 'ALL' ? 'active' : ''}`}
           onClick={() => setFilter('ALL')}
         >
-          All Bookings
+          All Bookings ({statusCounts.ALL})
         </button>
         <button 
           className={`filter-tab ${filter === 'PENDING' ? 'active' : ''}`}
           onClick={() => setFilter('PENDING')}
         >
-          Pending
+          Pending ({statusCounts.PENDING})
         </button>
         <button 
           className={`filter-tab ${filter === 'CONFIRMED' ? 'active' : ''}`}
           onClick={() => setFilter('CONFIRMED')}
         >
-          Confirmed
+          Confirmed ({statusCounts.CONFIRMED})
         </button>
         <button 
           className={`filter-tab ${filter === 'COMPLETED' ? 'active' : ''}`}
           onClick={() => setFilter('COMPLETED')}
         >
-          Completed
+          Completed ({statusCounts.COMPLETED})
         </button>
         <button 
           className={`filter-tab ${filter === 'CANCELLED' ? 'active' : ''}`}
           onClick={() => setFilter('CANCELLED')}
         >
-          Cancelled
+          Cancelled ({statusCounts.CANCELLED})
         </button>
       </div>
 
@@ -141,24 +191,23 @@ const VendorBookings = () => {
               </tr>
             </thead>
             <tbody>
-              {bookings.map(booking => (
+              {bookings?.length > 0 && bookings.map(booking => (
                 <tr key={booking.id}>
                   <td>#{booking.id}</td>
                   <td>
                     <div className="customer-info">
-                      <strong>{booking.user?.firstName} {booking.user?.lastName}</strong>
-                      <span className="customer-email">{booking.user?.email}</span>
-                      {booking.user?.phone && <span className="customer-phone">{booking.user?.phone}</span>}
+                      <strong>{booking.userName || 'N/A'}</strong>
+                      <span className="customer-email">{booking.userEmail || ''}</span>
                     </div>
                   </td>
-                  <td>{booking.service?.serviceName}</td>
+                  <td>{booking.serviceName || booking.service?.serviceName || 'N/A'}</td>
                   <td>
                     <div className="booking-datetime">
                       <span className="booking-date">{new Date(booking.bookingDate).toLocaleDateString()}</span>
                       <span className="booking-time">{booking.bookingTime}</span>
                     </div>
                   </td>
-                  <td className="booking-price">Rs.{booking.price?.toLocaleString()}</td>
+                  <td className="booking-price">Rs.{booking.totalAmount?.toLocaleString() || '0'}</td>
                   <td>
                     <span className={`status-badge ${getStatusColor(booking.status)}`}>
                       {booking.status}

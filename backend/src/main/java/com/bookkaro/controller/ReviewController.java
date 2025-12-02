@@ -1,5 +1,4 @@
 package com.bookkaro.controller;
-
 import com.bookkaro.dto.ApiResponse;
 import com.bookkaro.dto.CreateReviewRequest;
 import com.bookkaro.dto.ReviewDto;
@@ -13,18 +12,21 @@ import com.bookkaro.repository.ReviewRepository;
 import com.bookkaro.repository.ServiceRepository;
 import com.bookkaro.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReviewController {
 
     private final ReviewRepository reviewRepository;
@@ -33,6 +35,7 @@ public class ReviewController {
     private final UserRepository userRepository;
 
     @PostMapping
+    @Transactional
     public ResponseEntity<ApiResponse<ReviewDto>> createReview(
             @Valid @RequestBody CreateReviewRequest request,
             Authentication authentication) {
@@ -65,9 +68,11 @@ public class ReviewController {
         Review review = Review.builder()
                 .user(user)
                 .service(booking.getService())
+                .vendor(booking.getService().getVendor())
                 .booking(booking)
                 .rating(request.getRating())
                 .comment(request.getComment())
+                .isVerified(true) // Mark as verified since booking is completed
                 .build();
 
         review = reviewRepository.save(review);
@@ -81,12 +86,18 @@ public class ReviewController {
 
     @GetMapping("/service/{serviceId}")
     public ResponseEntity<ApiResponse<List<ReviewDto>>> getServiceReviews(
-            @PathVariable Long serviceId) {
+            @PathVariable Long serviceId,
+            @RequestParam(required = false) Integer rating) {
         
         Service service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
-        List<Review> reviews = reviewRepository.findByServiceOrderByCreatedAtDesc(service);
+        List<Review> reviews;
+        if (rating != null && rating >= 1 && rating <= 5) {
+            reviews = reviewRepository.findByServiceAndRatingOrderByCreatedAtDesc(service, rating);
+        } else {
+            reviews = reviewRepository.findByServiceOrderByCreatedAtDesc(service);
+        }
 
         List<ReviewDto> reviewDtos = reviews.stream()
                 .map(this::convertToDto)
@@ -168,6 +179,30 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.success("Review deleted successfully", null));
     }
 
+    @PostMapping("/{id}/helpful")
+    @Transactional
+    public ResponseEntity<ApiResponse<Integer>> markHelpful(
+            @PathVariable Long id,
+            Authentication authentication) {
+        
+        // Verify user is authenticated
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+        
+        // Log the helpful vote for audit trail
+        log.info("User {} (ID: {}) marked review {} as helpful for service {}", 
+                user.getFullName(), user.getId(), review.getId(), review.getService().getId());
+        
+        review.setHelpfulCount(review.getHelpfulCount() + 1);
+        reviewRepository.save(review);
+        
+        return ResponseEntity.ok(ApiResponse.success("Marked as helpful", review.getHelpfulCount()));
+    }
+
     private void updateServiceAverageRating(Long serviceId) {
         Service service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Service not found"));
@@ -189,9 +224,15 @@ public class ReviewController {
         dto.setUserName(review.getUser().getFullName());
         dto.setServiceId(review.getService().getId());
         dto.setServiceName(review.getService().getServiceName());
+        dto.setVendorId(review.getVendor().getId());
+        dto.setVendorName(review.getVendor().getBusinessName());
         dto.setBookingId(review.getBooking().getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
+        dto.setHelpfulCount(review.getHelpfulCount());
+        dto.setIsVerified(review.getIsVerified());
+        dto.setVendorResponse(review.getVendorResponse());
+        dto.setResponseAt(review.getResponseAt());
         dto.setCreatedAt(review.getCreatedAt());
         dto.setUpdatedAt(review.getUpdatedAt());
         return dto;
