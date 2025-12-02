@@ -4,20 +4,22 @@
 
 .notification-bell-button {
   position: relative;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-md);
   cursor: pointer;
   padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--white);
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .notification-bell-button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
 }
 
 .notification-bell-button svg {

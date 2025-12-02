@@ -6,7 +6,6 @@ import com.bookkaro.model.User;
 import com.bookkaro.repository.UserRepository;
 import com.bookkaro.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

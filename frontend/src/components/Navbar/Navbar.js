@@ -268,8 +268,8 @@ const Navbar = () => {
         </button>
 
         {/* Logo (Center on Mobile, Left on Desktop) */}
-        <Link to={getLogoDestination()} className="navbar-brand" aria-label="Book-Karo Home">
-          <span className="brand-name">BOOK-KARO</span>
+        <Link to="/" className="navbar-brand" aria-label="BOOKKARO Home">
+          <span className="brand-name">BOOKKARO</span>
         </Link>
 
         {/* Mobile Right Icons */}
@@ -1044,7 +1044,7 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="btn btn-primary" aria-label="Log in to your account">Login</Link>
+              <Link to="/login" className="btn btn-outline" aria-label="Log in to your account">Login</Link>
               <Link to="/register" className="btn btn-primary" aria-label="Create a new account">Sign Up</Link>
             </>
           )}
