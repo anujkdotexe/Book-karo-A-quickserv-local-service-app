@@ -27,7 +27,7 @@
 ### reset_user_account.sql
 **Purpose**: Reset a specific user account password/status  
 
-### FIX_SEQUENCES.ps1 ⚡ NEW
+### FIX_SEQUENCES.ps1 (NEW)
 **Purpose**: Fix database sequence issues that cause duplicate key errors  
 **Usage**: `.\FIX_SEQUENCES.ps1`  
 **When to use**: 
@@ -47,10 +47,10 @@
 ## Current Data Status (October 31, 2025)
 
 Successfully loaded:
-- ✅ 100 Users
-- ✅ 7 Categories
-- ✅ 6 Vendors
-- ✅ 7 Services
+- 100 Users
+- 7 Categories
+- 6 Vendors
+- 7 Services
 
 ## CSV Files Location
 

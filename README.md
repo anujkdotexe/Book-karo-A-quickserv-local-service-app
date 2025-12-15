@@ -25,11 +25,11 @@
 **BOOK-KARO** is a scalable service booking platform enabling seamless connections between customers and local service providers. The platform features a robust three-role system (User, Vendor, Admin) with complete booking lifecycle management, payment processing, and refund workflows.
 
 **Key Highlights:**
-- 🚀 **Optimized Performance**: 5-10 second startup time, 60% faster than standard Spring Boot
-- 🌆 **Multi-City Coverage**: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai
-- 💰 **Complete Payment Flow**: Mock gateway integration with 95% success simulation
-- 🔄 **Refund Management**: Time-based policy with admin approval workflow
-- 🔒 **Enterprise Security**: JWT authentication, BCrypt hashing, role-based access control
+- **Optimized Performance**: 5-10 second startup time, 60% faster than standard Spring Boot
+- **Multi-City Coverage**: Mumbai, Pune, Delhi, Bangalore, Thane, Navi Mumbai
+- **Complete Payment Flow**: Mock gateway integration with 95% success simulation
+- **Refund Management**: Time-based policy with admin approval workflow
+- **Enterprise Security**: JWT authentication, BCrypt hashing, role-based access control
 
 ---
 
@@ -76,24 +76,24 @@
 
 ## Features
 
-### 🔐 User Authentication
+### User Authentication
 - Registration with email/password validation
 - JWT-based login with 24-hour token expiration
 - BCrypt password hashing (strength 10)
 - Role-based access control (USER, VENDOR, ADMIN)
 
-### 👤 Profile Management
+### Profile Management
 - View and update personal information
 - Secure password changes
 - Profile photo upload (planned)
 
-### 🔍 Service Discovery
+### Service Discovery
 - Browse all available services
 - Advanced search with filters (category, city, price range)
 - Pagination support
 - Service details with ratings and reviews
 
-### 📅 Booking System
+### Booking System
 - Create bookings with date/time selection
 - **Address selection at checkout** - Choose service delivery location
 - Real-time availability checking
@@ -101,19 +101,19 @@
 - Booking status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED)
 - Email notifications (planned)
 
-### 💳 Payment Processing
+### Payment Processing
 - Mock payment gateway integration
 - Multiple payment methods (UPI, Card, Wallet)
 - Payment status tracking
 - Transaction history
 
-### 🔄 Refund Management
+### Refund Management
 - User-initiated refund requests
 - Time-based refund policy (90%/50%/0%)
 - Admin approval workflow
 - Automatic booking cancellation
 
-### ⭐ Reviews & Ratings
+### Reviews & Ratings
 - 5-star rating system
 - **Service-specific reviews** - Each service has unique, contextual reviews
 - **Real reviewer names** - Personalized reviews with authentic Indian names
@@ -122,19 +122,19 @@
 - Review submission post-booking
 - Vendor response capability
 
-### ❤️ Favorites & Cart
+### Favorites & Cart
 - Add/remove services to favorites
 - Shopping cart functionality
 - Quick access to preferred services
 
-### 📍 Address Management
+### Address Management
 - Multiple saved addresses (HOME, WORK, OTHER)
 - Default address selection
 - **Address selection at checkout** - Required for booking validation
 - Full address CRUD operations
 - City-based service filtering
 
-### 👔 Vendor Features
+### Vendor Features
 - **Service Management**: Create, update, delete services with full CRUD operations
 - **Booking Management**: View, accept, reject, and manage booking requests
 - **Analytics Dashboard**: Revenue tracking, booking statistics, performance metrics
@@ -142,7 +142,7 @@
 - **Review Management**: View and respond to customer reviews
 - **Profile Management**: Update business information and service areas
 
-### 🛡️ Admin Features
+### Admin Features
 - **User Management**: View, edit, activate/deactivate users
 - **Vendor Management**: Approve/reject vendors, manage vendor profiles
 - **Service Moderation**: Approve/reject services, manage categories
@@ -253,7 +253,7 @@ npm start
 - **Frontend**: v1.0.0
 - **Database**: Fully populated with mock data
 
-### Completed Features ✅
+### Completed Features
 - **Authentication System**: JWT-based login/register with role-based access (USER, VENDOR, ADMIN)
 - **Service Marketplace**: Browse 580+ services across 6 categories with advanced filtering
 - **Booking System**: Complete booking lifecycle with address selection and status tracking
@@ -272,13 +272,13 @@ npm start
 - **System Settings**: Dynamic platform configuration management
 - **Multi-City Support**: Services across 7+ major Indian cities
 
-### In Progress 🚧
+### In Progress
 - **Email Notifications**: SMTP integration for booking confirmations
 - **Push Notifications**: Real-time browser notifications
 - **Advanced Analytics**: Enhanced reporting and data visualization
 - **Mobile Optimization**: Progressive Web App (PWA) features
 
-### Planned 📋
+### Planned
 - **Payment Gateway**: Razorpay/Stripe integration for real payments
 - **SMS Notifications**: OTP verification and booking updates
 - **Mobile App**: React Native iOS/Android applications
