@@ -13,6 +13,6 @@ FROM eclipse-temurin:21-jre-alpine
 
 VOLUME /tmp
 
-COPY --from=build /app/target/bookaro-backend-1.0.3.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 ENTRYPOINT ["java","-jar","/app.jar"]
