@@ -6,7 +6,7 @@ COPY pom.xml .
 RUN mvn -B -q dependency:go-offline
 
 COPY src ./src
-RUN mvn -B clean package -DskipTests -Dproject.build.finalName=app
+RUN mvn -B clean package -DskipTests && cp target/*.jar target/app.jar
 
 FROM eclipse-temurin:21-jre-alpine
 

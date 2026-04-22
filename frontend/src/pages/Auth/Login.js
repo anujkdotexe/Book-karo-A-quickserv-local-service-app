@@ -258,7 +258,7 @@ const Login = () => {
 
           <details open style={{ marginTop: '24px', padding: '16px', background: '#f0f9ff', borderRadius: '12px', border: '2px solid #2563eb' }}>
             <summary style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '700', color: '#1e3a8a', userSelect: 'none' }}>
-              🔑 Quick Login — Test Accounts
+              Quick Login — Test Accounts
             </summary>
             <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexDirection: 'column' }}>
               <button
@@ -266,34 +266,38 @@ const Login = () => {
                 disabled={loading}
                 style={{ padding: '10px 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '600', opacity: loading ? 0.6 : 1 }}
               >
-                👤 Login as User
+                Login as User
               </button>
               <button
                 onClick={() => handleQuickLogin('admin@bookkaro.com', 'Password@123')}
                 disabled={loading}
                 style={{ padding: '10px 14px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '600', opacity: loading ? 0.6 : 1 }}
               >
-                🛡️ Login as Admin
+                Login as Admin
               </button>
               <button
                 onClick={() => handleQuickLogin('mumbai@bookkaro.com', 'Password@123')}
                 disabled={loading}
                 style={{ padding: '10px 14px', background: '#059669', color: '#fff', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '600', opacity: loading ? 0.6 : 1 }}
               >
-                🏪 Login as Vendor (Mumbai)
+                Login as Vendor (Mumbai)
               </button>
               <button
                 onClick={() => handleQuickLogin('pune@bookkaro.com', 'Password@123')}
                 disabled={loading}
                 style={{ padding: '10px 14px', background: '#059669', color: '#fff', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '600', opacity: loading ? 0.6 : 1 }}
               >
-                🏪 Login as Vendor (Pune)
+                Login as Vendor (Pune)
               </button>
             </div>
-            <p style={{ marginTop: '12px', fontSize: '11px', color: '#6b7280', fontStyle: 'italic' }}>
+            <p style={{ marginTop: '10px', fontSize: '11px', color: '#6b7280', fontStyle: 'italic', marginBottom: 0 }}>
               All accounts use password: <strong>Password@123</strong>
             </p>
           </details>
+
+          <div style={{ marginTop: '16px', padding: '12px 16px', background: '#fffbeb', borderRadius: '8px', border: '1px solid #f59e0b', fontSize: '13px', color: '#92400e', lineHeight: '1.6' }}>
+            <strong>Please note:</strong> The backend is hosted on a free tier and may take <strong>50 seconds or more</strong> to respond on first load. If login appears stuck, please wait — the server is waking up.
+          </div>
 
           <p className="auth-footer" style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#6b7280' }}>
             Don't have an account?{' '}
