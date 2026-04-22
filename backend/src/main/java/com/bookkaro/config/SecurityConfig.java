@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/faqs/**").permitAll()
                         .requestMatchers("/coupons/**").permitAll() // Public access to coupon endpoints
                         .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/reviews/service/**").permitAll() // Public read access to service reviews
                         .requestMatchers("/settings/shared-settings").permitAll() // Public access to system settings
                         
