@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -21,26 +21,7 @@ const VendorBookings = () => {
   });
   const modal = useModal();
 
-  useEffect(() => {
-    loadBookings();
-  }, [filter]);
-  
-  // Update filter when navigating from dashboard
-  useEffect(() => {
-    if (location.state?.filter) {
-      setFilter(location.state.filter);
-    }
-  }, [location.state]);
-
-  useEffect(() => {
-    loadStatusCounts();
-  }, []);
-
-  useEffect(() => {
-    loadStatusCounts();
-  }, []);
-
-  const loadStatusCounts = async () => {
+  const loadStatusCounts = useCallback(async () => {
     try {
       const statuses = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
       const counts = {};
@@ -55,9 +36,9 @@ const VendorBookings = () => {
     } catch (err) {
       console.error('Failed to load status counts:', err);
     }
-  };
+  }, []);
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -70,7 +51,22 @@ const VendorBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
+  
+  // Update filter when navigating from dashboard
+  useEffect(() => {
+    if (location.state?.filter) {
+      setFilter(location.state.filter);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    loadStatusCounts();
+  }, [loadStatusCounts]);
 
   const handleStatusUpdate = async (bookingId, newStatus) => {
     const statusActions = {

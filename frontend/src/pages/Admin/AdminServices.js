@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { adminAPI } from '../../services/adminAPI';
 import { useModal } from '../../components/Modal/Modal';
@@ -18,15 +18,7 @@ const AdminServices = () => {
   const [totalServices, setTotalServices] = useState(0);
   const modal = useModal();
 
-  useEffect(() => {
-    if (activeTab === 'pending') {
-      loadPendingServices();
-    } else {
-      loadServices();
-    }
-  }, [activeTab, currentPage]);
-
-  const loadServices = async () => {
+  const loadServices = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -40,9 +32,9 @@ const AdminServices = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage]);
 
-  const loadPendingServices = async () => {
+  const loadPendingServices = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -54,7 +46,15 @@ const AdminServices = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'pending') {
+      loadPendingServices();
+    } else {
+      loadServices();
+    }
+  }, [activeTab, currentPage, loadPendingServices, loadServices]);
 
   const handleApprove = async (serviceId) => {
     modal.confirm(

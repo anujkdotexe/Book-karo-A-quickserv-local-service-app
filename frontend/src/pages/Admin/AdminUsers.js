@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { adminAPI } from '../../services/adminAPI';
 import { useModal } from '../../components/Modal/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
@@ -14,11 +14,7 @@ const AdminUsers = () => {
   const [totalPages, setTotalPages] = useState(0);
   const modal = useModal();
 
-  useEffect(() => {
-    loadUsers();
-  }, [currentPage]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -30,7 +26,11 @@ const AdminUsers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
