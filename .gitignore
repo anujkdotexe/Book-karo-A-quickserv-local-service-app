@@ -169,3 +169,5 @@ database_backups/CREATE_PERFORMANCE_INDEXES.sql
 database_backups/mock_data_backup_20251031_192547.sql
 package-lock.json
 package.json
+.vercel
+.env*.local

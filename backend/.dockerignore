@@ -1,0 +1,10 @@
+target/
+*.jar
+*.jar.original
+*.md
+*.iml
+*.log
+.git
+.gitignore
+.vscode/
+node_modules
