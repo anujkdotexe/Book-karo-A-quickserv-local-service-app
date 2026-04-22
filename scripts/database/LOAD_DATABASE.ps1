@@ -6,11 +6,13 @@
 $TRUNCATE_BEFORE_LOAD = $true
 
 $ErrorActionPreference = "Continue"
-$env:PGPASSWORD = "root"
-$psql = "C:\Program Files\PostgreSQL\15\bin\psql.exe"
-$csvPath = "d:\Springboard\csv files"
-$db = "bookkarodb"
-$user = "postgres"
+$dbHost = if ($env:PGHOST) { $env:PGHOST } else { "localhost" }
+$dbPort = if ($env:PGPORT) { $env:PGPORT } else { "5432" }
+$db = if ($env:PGDATABASE) { $env:PGDATABASE } else { "bookkarodb" }
+$user = if ($env:PGUSER) { $env:PGUSER } else { "postgres" }
+$env:PGPASSWORD = if ($env:PGPASSWORD) { $env:PGPASSWORD } else { "root" }
+$psql = if (Test-Path "C:\Program Files\PostgreSQL\15\bin\psql.exe") { "C:\Program Files\PostgreSQL\15\bin\psql.exe" } else { "psql" }
+$csvPath = if ($env:CSV_PATH) { $env:CSV_PATH } else { "d:\Springboard\csv files" }
 $tempDir = "$csvPath\temp"
 
 # Create temp directory for transformed CSVs
@@ -21,6 +23,22 @@ if (-not (Test-Path $tempDir)) {
 Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║   BOOKARO DATABASE LOADER v3.1         ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "`n[CONFIG] Target database connection" -ForegroundColor Yellow
+Write-Host "  Host: $dbHost" -ForegroundColor Gray
+Write-Host "  Port: $dbPort" -ForegroundColor Gray
+Write-Host "  Database: $db" -ForegroundColor Gray
+Write-Host "  User: $user" -ForegroundColor Gray
+Write-Host "  CSV Path: $csvPath" -ForegroundColor Gray
+
+# Validate DB connectivity early
+$connectionCheck = & $psql -h $dbHost -p $dbPort -U $user -d $db -t -c "SELECT 1;" 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "`n✗ ERROR: Unable to connect to PostgreSQL target database." -ForegroundColor Red
+    Write-Host "  Check PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD environment variables." -ForegroundColor DarkYellow
+    Write-Host "  Details: $connectionCheck" -ForegroundColor DarkRed
+    exit 1
+}
+Write-Host "  ✓ Database connection successful" -ForegroundColor Green
 
 # Validate CSV directory exists
 if (-not (Test-Path $csvPath)) {
@@ -68,7 +86,7 @@ TRUNCATE TABLE
     services, vendors, categories, faqs, users
 RESTART IDENTITY CASCADE;
 "@
-    & $psql -h localhost -p 5432 -U $user -d $db -c $truncateSQL 2>&1 | Out-Null
+    & $psql -h $dbHost -p $dbPort -U $user -d $db -c $truncateSQL 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✓ All tables truncated" -ForegroundColor Green
     } else {
@@ -96,12 +114,12 @@ function Import-TableData {
     $copyCmd = "\copy $tableName($columns) FROM '$fullPath' WITH (FORMAT csv, HEADER true, DELIMITER ',', ENCODING 'UTF8', NULL '');"
     
     # Execute
-    $output = & $psql -h localhost -p 5432 -U $user -d $db -c $copyCmd 2>&1
+    $output = & $psql -h $dbHost -p $dbPort -U $user -d $db -c $copyCmd 2>&1
     
     if ($LASTEXITCODE -eq 0) {
         # Get row count
         $countSQL = "SELECT COUNT(*) FROM $tableName;"
-        $count = & $psql -h localhost -p 5432 -U $user -d $db -t -c $countSQL 2>&1
+        $count = & $psql -h $dbHost -p $dbPort -U $user -d $db -t -c $countSQL 2>&1
         $count = $count.Trim()
         Write-Host "  ✓ $tableName" -NoNewline -ForegroundColor Green
         Write-Host " ($count rows)" -ForegroundColor Gray
@@ -516,7 +534,7 @@ Write-Host "$failed tables" -ForegroundColor Red
 
 if ($success -gt 0) {
     $totalSQL = "SELECT SUM(n_live_tup) FROM pg_stat_user_tables WHERE schemaname='public';"
-    $total = & $psql -h localhost -p 5432 -U $user -d $db -t -c $totalSQL 2>&1
+    $total = & $psql -h $dbHost -p $dbPort -U $user -d $db -t -c $totalSQL 2>&1
     $total = $total.Trim()
     Write-Host "`n  Total Records: " -NoNewline -ForegroundColor White
     Write-Host "$total" -ForegroundColor Cyan
@@ -524,7 +542,7 @@ if ($success -gt 0) {
     # Show loaded tables
     Write-Host "`n  Loaded Tables:" -ForegroundColor Cyan
     $tablesSQL = "SELECT schemaname||'.'||relname as table_name, n_live_tup as rows FROM pg_stat_user_tables WHERE n_live_tup > 0 ORDER BY n_live_tup DESC;"
-    & $psql -h localhost -p 5432 -U $user -d $db -c $tablesSQL
+    & $psql -h $dbHost -p $dbPort -U $user -d $db -c $tablesSQL
 }
 
 # Cleanup temp directory
