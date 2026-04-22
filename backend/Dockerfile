@@ -6,7 +6,7 @@ COPY pom.xml .
 RUN mvn -B -q dependency:go-offline
 
 COPY src ./src
-RUN mvn -B clean package -DskipTests
+RUN mvn -B clean package -DskipTests -Dproject.build.finalName=app
 
 FROM eclipse-temurin:21-jre-alpine
 
@@ -14,7 +14,7 @@ WORKDIR /app
 
 ENV PORT=8081
 
-COPY --from=build /app/target/bookkaro-backend-1.0.4.jar app.jar
+COPY --from=build /app/target/app.jar app.jar
 
 EXPOSE 8081
 
