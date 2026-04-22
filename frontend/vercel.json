@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "book-karo-frontend",
   "builds": [
     {
       "src": "package.json",
@@ -27,8 +26,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "REACT_APP_API_URL": "@api_url"
-  }
+  ]
 }
