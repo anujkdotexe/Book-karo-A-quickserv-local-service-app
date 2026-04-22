@@ -386,8 +386,8 @@
 
 
 
-/* Button Styles */
-.btn {
+/* Button Styles - Scoped to navbar auth buttons only (Login/Sign Up) */
+.navbar-menu .btn {
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
   font-weight: 600;
@@ -399,32 +399,33 @@
   white-space: nowrap;
 }
 
-.btn:focus-visible {
+.navbar-menu .btn:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.8);
   outline-offset: 2px;
 }
 
-.btn-primary {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: var(--white);
-  border-color: rgba(255, 255, 255, 0.3);
+.navbar-menu .btn-primary {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: var(--white) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-.btn-primary:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+.navbar-menu .btn-primary:hover {
+  background-color: rgba(255, 255, 255, 0.3) !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.btn-outline {
-  background-color: transparent;
-  color: var(--white);
-  border-color: rgba(255, 255, 255, 0.5);
+.navbar-menu .btn-outline {
+  background-color: transparent !important;
+  color: var(--white) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
-.btn-outline:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: var(--white);
+.navbar-menu .btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--white) !important;
+  color: var(--white) !important;
   transform: translateY(-2px);
 }
 

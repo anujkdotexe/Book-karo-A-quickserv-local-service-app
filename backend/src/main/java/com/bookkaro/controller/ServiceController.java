@@ -26,10 +26,12 @@ public class ServiceController {
 
     private final ServiceRepository serviceRepository;
     private final SearchAnalyticsService searchAnalyticsService;
+    private final com.bookkaro.service.EnhancedSearchService enhancedSearchService;
 
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> getAllServices(
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String location,
@@ -81,8 +83,15 @@ public class ServiceController {
         
         Page<Service> servicesPage;
         
+        // Use enhanced search with fuzzy matching if search keyword is provided
+        if (search != null && !search.trim().isEmpty()) {
+            Pageable pageable = PageRequest.of(page, size, 
+                sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending());
+            servicesPage = enhancedSearchService.fuzzySearch(
+                search, category, city, location, minPrice, maxPrice, minRating, pageable);
+        } 
         // Use advanced search if any filter is provided
-        if (minPrice != null || maxPrice != null || minRating != null || 
+        else if (minPrice != null || maxPrice != null || minRating != null || 
             (category != null && !category.isEmpty()) || 
             (city != null && !city.isEmpty()) || 
             (location != null && !location.isEmpty())) {
@@ -303,5 +312,62 @@ public class ServiceController {
             case "category", "city", "state", "price" -> propertyName; // Same in DB
             default -> "created_at"; // Safe default instead of passing through untrusted input
         };
+    }
+
+    /**
+     * Search services by location with radius
+     */
+    @GetMapping("/nearby")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> searchNearbyServices(
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam(defaultValue = "10.0") double radiusKm,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) java.math.BigDecimal minPrice,
+            @RequestParam(required = false) java.math.BigDecimal maxPrice,
+            @RequestParam(required = false) java.math.BigDecimal minRating,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        try {
+            // Validate coordinates
+            if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+                return ResponseEntity.badRequest().body(
+                    ApiResponse.error("Invalid coordinates")
+                );
+            }
+            
+            // Validate radius
+            if (radiusKm <= 0 || radiusKm > 100) {
+                return ResponseEntity.badRequest().body(
+                    ApiResponse.error("Radius must be between 0 and 100 km")
+                );
+            }
+            
+            Pageable pageable = PageRequest.of(page, size, Sort.by("averageRating").descending());
+            Page<Service> servicesPage = enhancedSearchService.searchNearby(
+                latitude, longitude, radiusKm, category, minPrice, maxPrice, minRating, pageable);
+            
+            List<ServiceDto> serviceDtos = servicesPage.getContent().stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+            
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("services", serviceDtos);
+            response.put("currentPage", servicesPage.getNumber());
+            response.put("totalPages", servicesPage.getTotalPages());
+            response.put("totalElements", servicesPage.getTotalElements());
+            response.put("pageSize", servicesPage.getSize());
+            response.put("hasNext", servicesPage.hasNext());
+            response.put("hasPrevious", servicesPage.hasPrevious());
+            
+            return ResponseEntity.ok(ApiResponse.success("Nearby services found", response));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(
+                ApiResponse.error("Failed to search nearby services: " + e.getMessage())
+            );
+        }
     }
 }

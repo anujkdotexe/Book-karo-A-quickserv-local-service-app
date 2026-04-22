@@ -1,0 +1,11 @@
+id,title,content,type,priority,is_active,start_date,end_date,created_by,created_at,updated_at
+1,Announcement 1,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+2,Announcement 2,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+3,Announcement 3,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+4,Announcement 4,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+5,Announcement 5,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+6,Announcement 6,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+7,Announcement 7,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+8,Announcement 8,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+9,Announcement 9,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00
+10,Announcement 10,Important update,INFO,1,true,2025-11-28 12:00:00,2025-11-27 12:00:00,1,2025-11-07 12:00:00,2025-11-07 12:00:00

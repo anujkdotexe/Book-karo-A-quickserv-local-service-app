@@ -27,7 +27,7 @@ const Bookings = () => {
       for (const status of statuses) {
         const statusFilter = status === 'ALL' ? null : status;
         const response = await bookingAPI.getUserBookings(statusFilter);
-        const bookingsData = response.data.data || [];
+        const bookingsData = response.data.data?.content || [];
         counts[status] = bookingsData.length;
       }
       
@@ -44,7 +44,7 @@ const Bookings = () => {
       const response = await bookingAPI.getUserBookings(
         statusFilter === 'ALL' ? null : statusFilter
       );
-      const bookingsData = response.data.data || [];
+      const bookingsData = response.data.data?.content || [];
       // Deduplicate bookings by ID
       const uniqueBookings = Array.from(
         new Map(bookingsData.map(b => [b.id, b])).values()

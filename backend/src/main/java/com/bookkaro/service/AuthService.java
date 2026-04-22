@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,14 +27,17 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final AuditLogService auditLogService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthService(UserRepository userRepository,
                       JwtUtil jwtUtil, AuthenticationManager authenticationManager,
-                      AuditLogService auditLogService) {
+                      AuditLogService auditLogService,
+                      PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.auditLogService = auditLogService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public ApiResponse<AuthResponse> register(RegisterRequest request) {
@@ -47,13 +51,9 @@ public class AuthService {
             return ApiResponse.error("This phone number is already registered. Please use a different number.");
         }
 
-        // IMPORTANT: Password stored as plain text for testing/demo purposes
-        // In production, this should use BCryptPasswordEncoder:
-        // user.setPassword(passwordEncoder.encode(request.getPassword()));
-        // Also update SecurityConfig to use BCryptPasswordEncoder instead of NoOpPasswordEncoder
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword()); // Plain text - TESTING ONLYY
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         
         // Handle names properly
         String firstName = request.getFirstName() != null ? request.getFirstName().trim() : "";
@@ -183,9 +183,7 @@ public class AuthService {
             throw new BadRequestException("Reset token has expired. Please request a new one");
         }
 
-        // IMPORTANT: Password stored as plain text for testing/demo purposes
-        // In production: user.setPassword(passwordEncoder.encode(newPassword));
-        user.setPassword(newPassword); // Plain text - TESTING ONLY
+        user.setPassword(passwordEncoder.encode(newPassword));
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
         userRepository.save(user);

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { handleSessionExpired } from './navigationService';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api/v1';
 
@@ -38,33 +39,8 @@ api.interceptors.response.use(
     }
     
     if (error.response?.status === 401) {
-      // Session expired or unauthorized - clear all user data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('cart');
-      
-      // Dispatch logout event for other contexts
-      try {
-        window.dispatchEvent(new CustomEvent('user-logout'));
-      } catch (e) {
-        // Ignore if event dispatch fails
-      }
-      
-      // Try to show toast notification if available
-      try {
-        const event = new CustomEvent('session-expired', {
-          detail: { message: 'Your session has expired. Please log in again.' }
-        });
-        window.dispatchEvent(event);
-      } catch (e) {
-        // Fallback: silently redirect
-      }
-      
-      // Redirect to login after a brief delay to allow toast to display
-      const REDIRECT_DELAY = 2000; // 2 seconds - configurable constant
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, REDIRECT_DELAY);
+      // Session expired or unauthorized - use navigation service
+      handleSessionExpired();
     }
     
     // Add user-friendly error messages
@@ -186,6 +162,46 @@ export const searchAPI = {
   autocomplete: (query, limit = 10) => 
     api.get('/services/autocomplete', { params: { q: query, limit } }),
   getTrending: () => api.get('/services/trending'),
+};
+
+export const notificationAPI = {
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  getRecent: (limit = 10) => api.get('/notifications/recent', { params: { limit } }),
+  getAll: (page = 0, size = 20) => api.get('/notifications', { params: { page, size } }),
+  getById: (notificationId) => api.get(`/notifications/${notificationId}`),
+  markAsRead: (notificationId) => api.put(`/notifications/${notificationId}/read`),
+  markAllAsRead: () => api.put('/notifications/read-all'),
+  deleteNotification: (notificationId) => api.delete(`/notifications/${notificationId}`),
+  deleteAllNotifications: () => api.delete('/notifications/clear-all'),
+};
+
+export const contentAPI = {
+  // Announcements
+  getAllAnnouncements: () => api.get('/admin/content/announcements'),
+  getActiveAnnouncements: () => api.get('/admin/content/announcements/active'),
+  getAnnouncementsByAudience: (audience) => api.get('/admin/content/announcements/audience', { params: { audience } }),
+  createAnnouncement: (data) => api.post('/admin/content/announcements', data),
+  updateAnnouncement: (id, data) => api.put(`/admin/content/announcements/${id}`, data),
+  deleteAnnouncement: (id) => api.delete(`/admin/content/announcements/${id}`),
+  toggleAnnouncementStatus: (id) => api.put(`/admin/content/announcements/${id}/toggle`),
+  resendAnnouncementNotifications: (id) => api.post(`/admin/content/announcements/${id}/resend-notifications`),
+  
+  // FAQs
+  getAllFAQs: () => api.get('/admin/content/faqs'),
+  getActiveFAQs: (category) => api.get('/admin/content/faqs/active', { params: { category } }),
+  getPublicFAQs: (category) => api.get('/faqs', { params: { category } }),
+  createFAQ: (data) => api.post('/admin/content/faqs', data),
+  updateFAQ: (id, data) => api.put(`/admin/content/faqs/${id}`, data),
+  deleteFAQ: (id) => api.delete(`/admin/content/faqs/${id}`),
+  toggleFAQStatus: (id) => api.put(`/admin/content/faqs/${id}/toggle`),
+  
+  // Banners
+  getAllBanners: () => api.get('/admin/content/banners'),
+  getActiveBanners: () => api.get('/admin/content/banners/active'),
+  createBanner: (data) => api.post('/admin/content/banners', data),
+  updateBanner: (id, data) => api.put(`/admin/content/banners/${id}`, data),
+  deleteBanner: (id) => api.delete(`/admin/content/banners/${id}`),
+  toggleBannerStatus: (id) => api.put(`/admin/content/banners/${id}/toggle`),
 };
 
 export default api;

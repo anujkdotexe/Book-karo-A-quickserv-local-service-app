@@ -52,11 +52,14 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-lg);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  z-index: 1001;
+  z-index: 10001;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: slideDown 0.2s ease-out;
+  isolation: isolate;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 .notification-header {
@@ -119,7 +122,7 @@
   font-size: 0.95rem;
 }
 
-.notification-item {
+.notification-dropdown .notification-item {
   display: flex;
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
@@ -129,19 +132,19 @@
   position: relative;
 }
 
-.notification-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.notification-dropdown .notification-item:hover {
+  background-color: rgba(59, 130, 246, 0.15);
 }
 
-.notification-item.unread {
+.notification-dropdown .notification-item.unread {
   background-color: rgba(37, 99, 235, 0.2);
 }
 
-.notification-item.unread:hover {
+.notification-dropdown .notification-item.unread:hover {
   background-color: rgba(37, 99, 235, 0.3);
 }
 
-.notification-icon {
+.notification-dropdown .notification-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
   width: 32px;
@@ -153,16 +156,16 @@
   border-radius: 50%;
 }
 
-.notification-item.unread .notification-icon {
+.notification-dropdown .notification-item.unread .notification-icon {
   background-color: rgba(37, 99, 235, 0.4);
 }
 
-.notification-content {
+.notification-dropdown .notification-content {
   flex: 1;
   min-width: 0;
 }
 
-.notification-title {
+.notification-dropdown .notification-title {
   font-weight: 600;
   color: var(--white);
   font-size: 0.95rem;
@@ -170,7 +173,7 @@
   line-height: 1.3;
 }
 
-.notification-message {
+.notification-dropdown .notification-message {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.4;
@@ -183,12 +186,12 @@
   margin-bottom: 4px;
 }
 
-.notification-time {
+.notification-dropdown .notification-time {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.6);
 }
 
-.notification-delete {
+.notification-dropdown .notification-delete {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -208,11 +211,11 @@
   opacity: 0;
 }
 
-.notification-item:hover .notification-delete {
+.notification-dropdown .notification-item:hover .notification-delete {
   opacity: 1;
 }
 
-.notification-delete:hover {
+.notification-dropdown .notification-delete:hover {
   background-color: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }

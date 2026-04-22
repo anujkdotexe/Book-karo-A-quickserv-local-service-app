@@ -48,7 +48,7 @@ const VendorBookings = () => {
       for (const status of statuses) {
         const statusFilter = status === 'ALL' ? null : status;
         const data = await vendorAPI.getBookings(statusFilter);
-        counts[status] = Array.isArray(data) ? data.length : 0;
+        counts[status] = data.totalElements || 0;
       }
       
       setStatusCounts(counts);
@@ -63,7 +63,7 @@ const VendorBookings = () => {
       setError(null);
       const statusFilter = filter === 'ALL' ? null : filter;
       const data = await vendorAPI.getBookings(statusFilter);
-      setBookings(Array.isArray(data) ? data : []);
+      setBookings(data.content || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load bookings. Please try again.');
       setBookings([]);

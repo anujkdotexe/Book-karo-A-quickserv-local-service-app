@@ -1,9 +1,9 @@
 # BOOK-KARO API Documentation
 
-**Last Updated:** December 1, 2025  
+**Last Updated:** December 3, 2025  
 **Backend Version:** 1.0.4  
 **Frontend Version:** 1.0.0  
-**Status:** ✅ Production Ready  
+**Status:** Production Ready (Dev Configuration)  
 **API Endpoints:** 150+ with complete CRUD operations  
 **Recent Updates:** All major bug fixes applied, system fully operational
 
@@ -23,21 +23,23 @@ Authorization: Bearer <token>
 - User: `user@bookkaro.com` / `Password@123`
 - Vendor: `mumbai@bookkaro.com` / `Password@123`
 
+> **Note:** The system now uses bcrypt password hashing. Seed passwords are imported as hashes, and the allowed frontend origin is configured via `FRONTEND_URL`.
+
 ---
 
 ## Phase 1 - User Module Endpoints
 
-### System Capabilities (December 1, 2025)
-- ✅ **Complete Service Marketplace:** 580 services across 6 categories with advanced filtering
-- ✅ **Multi-Role System:** USER, VENDOR, ADMIN with role-based access control
-- ✅ **Booking Lifecycle:** Complete booking management with status tracking
-- ✅ **Address System:** Multiple address types (HOME, WORK, OFFICE, OTHER) with validation
-- ✅ **Review System:** 762+ authentic reviews with 5-star rating system
-- ✅ **Payment Integration:** Mock gateway with multiple payment methods
-- ✅ **Admin Panel:** Comprehensive platform management with analytics
-- ✅ **Vendor Dashboard:** Complete business management tools
-- ✅ **Content Management:** Dynamic FAQs, announcements, and banners
-- ✅ **Audit System:** Complete activity tracking and logging
+### System Capabilities (December 3, 2025)
+- **Complete Service Marketplace:** 580 services across 6 categories with advanced filtering
+- **Multi-Role System:** USER, VENDOR, ADMIN with role-based access control
+- **Booking Lifecycle:** Complete booking management with status tracking
+- **Address System:** Multiple address types (HOME, WORK, OFFICE, OTHER) with validation
+- **Review System:** 762+ authentic reviews with 5-star rating system
+- **Payment Integration:** Mock gateway with multiple payment methods
+- **Admin Panel:** Comprehensive platform management with analytics
+- **Vendor Dashboard:** Complete business management tools
+- **Content Management:** Dynamic FAQs, announcements, and banners
+- **Audit System:** Complete activity tracking and logging
 
 ### Authentication
 
@@ -546,162 +548,34 @@ Response 200 OK:
 
 ---
 
-## Authentication Endpoints
+## Planned API Enhancements
 
-### User Login
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
+### Blind Booking / Auto-Assignment
+**Goal:** Hide specific vendor details and auto-assign local vendors.
 
-{
-  "email": "john.doe@example.com",
-  "password": "password123"
-}
-
-Response 200 OK:
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": 1,
-      "firstName": "John",
-      "lastName": "Doe",
-      "email": "john.doe@example.com",
-      "phoneNumber": "+91-9876543210",
-      "userType": "CUSTOMER"
-    }
-  }
-}
-```
-
-### User Registration
-```http
-POST /api/v1/auth/register
-Content-Type: application/json
-
-{
-  "firstName": "Jane",
-  "lastName": "Smith",
-  "email": "jane.smith@example.com",
-  "phoneNumber": "+91-9876543211", 
-  "password": "password123",
-  "userType": "CUSTOMER"
-}
-
-Response 201 Created:
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "id": 87,
-    "firstName": "Jane",
-    "email": "jane.smith@example.com",
-    "userType": "CUSTOMER"
-  }
-}
-
-User Types: CUSTOMER, VENDOR, ADMIN
-```
-
----
-
-## Booking Management
-
-### Create Booking
-```http
-POST /api/v1/bookings
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "serviceId": 1,
-  "addressId": 227,
-  "scheduledDate": "2025-12-15",
-  "scheduledTime": "10:00:00",
-  "notes": "Please call before arriving"
-}
-
-Response 201 Created:
-{
-  "success": true,
-  "message": "Booking created successfully",
-  "data": {
-    "id": 974,
-    "service": {
-      "id": 1,
-      "serviceName": "Professional Plumbing Service"
-    },
-    "scheduledDate": "2025-12-15",
-    "scheduledTime": "10:00:00",
-    "status": "PENDING",
-    "totalAmount": 500.00
-  }
-}
-
-Booking Status: PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED
-```
-
-### Get User Bookings
-```http
-GET /api/v1/bookings?page=0&size=10&status=PENDING
-Authorization: Bearer <token>
-
-Response 200 OK:
-{
-  "success": true,
-  "data": {
-    "content": [
-      {
-        "id": 974,
-        "service": {
-          "serviceName": "Professional Plumbing Service",
-          "category": "Plumbing"
-        },
-        "scheduledDate": "2025-12-15",
-        "status": "PENDING",
-        "totalAmount": 500.00
-      }
-    ],
-    "totalElements": 45,
-    "totalPages": 5,
-    "currentPage": 0
-  }
-}
-```
-
----
-    "totalReviews": 45
-  }
-}
-```
-
-## Error Responses
-
-### Standard Error Format
+#### 1. Generic Service Listing
+**Endpoint:** `GET /api/v1/services/generic`
+**Description:** Returns generic service categories (e.g., "Standard Plumbing") without vendor info.
+**Response:**
 ```json
 {
-  "success": false,
-  "message": "Error description",
-  "errors": [
-    {
-      "field": "email",
-      "message": "Email already exists"
-    }
-  ],
-  "timestamp": "2025-10-15T10:30:00"
+  "id": "generic-plumbing",
+  "name": "Standard Plumbing Service",
+  "basePrice": 500.00
 }
 ```
 
-### Common HTTP Status Codes
-- `200 OK` - Success
-- `201 Created` - Resource created
-- `400 Bad Request` - Validation error
-- `401 Unauthorized` - Authentication required
-- `403 Forbidden` - Insufficient permissions
-- `404 Not Found` - Resource not found
-- `500 Internal Server Error` - Server error
+#### 2. Auto-Assign Booking
+**Endpoint:** `POST /api/v1/bookings/auto-assign`
+**Description:** Creates a booking for a generic service. System automatically selects the best available vendor in the user's city.
+**Body:**
+```json
+{
+  "genericServiceId": "generic-plumbing",
+  "addressId": 123,
+  "scheduledTime": "..."
+}
+```
 
 ---
 
@@ -777,11 +651,11 @@ The categories endpoint now returns all 6 categories. If frontend still shows on
 
 ## System Information
 
-**Backend Version**: 1.0.4 (Built: December 1, 2025)  
+**Backend Version**: 1.0.4 (Built: December 3, 2025)  
 **Frontend Version**: 1.0.0 (React 18.2.0)  
 **Database**: PostgreSQL 15.13 with HikariCP connection pooling  
 **Current Data**: 87 users, 26 vendors, 580 services, 973 bookings, 762 reviews, 488 favorites, 226 addresses  
-**Authentication**: JWT Bearer tokens (24h expiration, BCrypt password hashing)  
+**Authentication**: JWT Bearer tokens (24h expiration, NoOp password encoder)  
 **API Rate Limiting**: Not implemented (suitable for development/small scale)  
 **Health Check**: `/api/v1/actuator/health` (minimal actuator endpoints)  
 **Environment**: Production-ready with optimized startup and lazy initialization  
@@ -798,51 +672,3 @@ The categories endpoint now returns all 6 categories. If frontend still shows on
 **Frontend:**  
 - React 18.2.0 + React Router 6.20.0
 - Axios 1.6.2 for API calls
-- CSS Modules with modern styling
-- Context API for state management
-- Production build ready
-
-### Deployment Configuration
-- **Development API**: `http://localhost:8081/api/v1`
-- **Production API**: Ready for deployment (Render/Vercel/AWS)
-- **Startup Optimization**: Lazy initialization enabled (5-10 second startup)
-- **Connection Pool**: HikariCP (max 5 connections, optimized for development)
-- **Schema Management**: `none` mode (production safe, externally managed)
-- **Build Optimization**: Maven multi-threaded builds (8-10 seconds)
-- **Memory Usage**: ~300MB runtime (33% optimized)  
-
----
-
-*Last Updated: December 1, 2025*
-# BOOK-KARO - Service Marketplace Platform
-
-## Overview
-BOOK-KARO is a robust, scalable, and production-ready web application for a service marketplace platform. It connects customers with service providers, enabling seamless service discovery, booking, and reviews.
-
-## Project Structure
-```
-BOOK-KARO/
-├── backend/          # Spring Boot REST API
-├── frontend/         # React application
-├── docs/             # Project documentation
-└── README.md
-```
-
-## Technology Stack
-- **Backend:** Java 21, Spring Boot 3.5.0, Spring Security, Hibernate (JPA), PostgreSQL 15.13
-- **Frontend:** React 18+, React Router, Axios
-- **Authentication:** JWT with Spring Security
-- **Database:** PostgreSQL
-
-## Current Phase
-Phase 1 - User Module (Customer Side) - Production Ready
-
-## Getting Started
-See `/docs/important` folder for detailed setup and API documentation.
-
-## Brand Colors
-- Deep Navy Blue: `#1e3a8a`
-- Bright Royal Blue: `#2563eb`
-- White: `#ffffff`
-- Light Gray: `#f3f4f6`
-

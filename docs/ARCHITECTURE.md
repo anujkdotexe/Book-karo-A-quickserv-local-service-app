@@ -1,13 +1,13 @@
 # BOOK-KARO Architecture Documentation
 
 **Version**: 1.0.4  
-**Last Updated**: December 1, 2025  
-**Environment**: Production Ready  
-**Build Status**: ✅ Backend JAR built, ✅ Frontend optimized  
+**Last Updated**: December 3, 2025  
+**Environment**: Production Ready (Dev Mode)  
+**Build Status**: Backend JAR built, Frontend optimized  
 
 ## Current System Overview
 
-### Live System Statistics (December 1, 2025)
+### Live System Statistics (December 3, 2025)
 - **Total Users**: 87 (1 admin + 26 vendors + 60 customers)
 - **Active Vendors**: 26 service providers across 7 cities
 - **Available Services**: 580 across 6 categories (Electrical, Home Services, IT & Software, Logistics, Painting, Plumbing)
@@ -19,7 +19,7 @@
 - **Active Coupons**: 24 discount codes with usage tracking
 - **Content Items**: 12 announcements, 8 FAQs, 6 promotional banners
 
-### Production Features (All Implemented ✅)
+### Production Features (All Implemented)
 - **Authentication System**: JWT-based with 24h token expiration, role-based access control
 - **Service Marketplace**: 580+ services with advanced search, filtering, and pagination
 - **Booking Management**: Complete lifecycle from creation to completion with status tracking
@@ -40,7 +40,7 @@
 - **Backend**: Spring Boot 3.5.0 with lazy initialization and optimized startup (5-10 seconds)
 - **Database**: PostgreSQL 15.13 with HikariCP connection pooling (max 5 connections)
 - **Frontend**: React 18.2.0 with production build optimization and CSS modules
-- **Security**: JWT authentication (24h expiration), BCrypt password hashing (strength 10), CORS configuration
+- **Security**: JWT authentication (24h expiration), BCrypt password hashing, configurable CORS configuration
 - **API Performance**: 150+ endpoints with proper pagination, filtering, and error handling
 - **Data Volume**: 24+ tables with complete relationships and constraints
 - **Build Performance**: Maven multi-threaded builds (8-10 seconds full build)
@@ -98,7 +98,7 @@ com.bookkaro
 **users**
 - id (PK)
 - email (unique)
-- password (hashed)
+- password (bcrypt hash)
 - first_name
 - last_name
 - phone
@@ -151,7 +151,7 @@ com.bookkaro
 
 ### Authentication Flow
 1. User submits credentials to `/api/auth/login`
-2. Backend validates credentials
+2. Backend validates credentials (using NoOp encoder for dev)
 3. JWT token generated and returned
 4. Client stores token (localStorage/sessionStorage)
 5. Token sent in Authorization header for subsequent requests
@@ -172,11 +172,22 @@ com.bookkaro
 - Input validation
 - Error handling
 
+## Planned Architecture Enhancements
+
+### "Uber-like" Dispatcher System
+To support the blind booking model, a new "Dispatcher Service" logic is planned:
+1.  **Generic Service Abstraction**: Decouple the user-facing "Service Listing" from the specific "Vendor Service Implementation".
+2.  **Auto-Assignment Engine**: A logic layer in `BookingService` that selects the optimal vendor based on:
+    *   **Location**: Proximity to user (using PostGIS in future).
+    *   **Availability**: Real-time slot checking.
+    *   **Rating**: Prioritizing higher-rated vendors.
+    *   **Load Balancing**: Distributing jobs fairly among vendors.
+
 ## Non-Functional Requirements
 
 - **Performance:** Response time < 200ms for most endpoints
 - **Scalability:** Stateless architecture for horizontal scaling
-- **Security:** HTTPS, JWT, password hashing (BCrypt), input validation
+- **Security:** HTTPS, JWT, input validation (Dev mode: NoOp passwords)
 - **Maintainability:** Clean code, documentation, unit tests
 - **Availability:** 99.9% uptime target
 
@@ -307,19 +318,18 @@ frontend/
 
 | Component | Version | Status | Notes |
 |-----------|---------|--------|-------|
-| **Backend** | 1.0.4 | ✅ Production | Optimized JAR build |
-| **Frontend** | 1.0.0 | ✅ Production | React production build |
-| **Java** | 21 (LTS) | ✅ Current | OpenJDK compatible |
-| **Spring Boot** | 3.5.0 | ✅ Latest | With lazy initialization |
-| **PostgreSQL** | 15.13 | ✅ Current | With HikariCP pooling |
-| **React** | 18.2.0 | ✅ Latest | With React Router 6.20.0 |
-| **Maven** | 3.9+ | ✅ Current | Multi-threaded builds |
-| **Node.js** | 18+ | ✅ Current | NPM 9+ compatible |
-| **JWT Library** | 0.11.5 | ✅ Stable | JJWT implementation |
-| **Axios** | 1.6.2 | ✅ Latest | HTTP client |
-| **Lombok** | Latest | ✅ Active | Code generation |
-| **Commons CSV** | 1.10.0 | ✅ Stable | Data import utility |
+| **Backend** | 1.0.4 | Production | Optimized JAR build |
+| **Frontend** | 1.0.0 | Production | React production build |
+| **Java** | 21 (LTS) | Current | OpenJDK compatible |
+| **Spring Boot** | 3.5.0 | Latest | With lazy initialization |
+| **PostgreSQL** | 15.13 | Current | With HikariCP pooling |
+| **React** | 18.2.0 | Latest | With React Router 6.20.0 |
+| **Maven** | 3.9+ | Current | Multi-threaded builds |
+| **Node.js** | 18+ | Current | NPM 9+ compatible |
+| **JWT Library** | 0.11.5 | Stable | JJWT implementation |
+| **Axios** | 1.6.2 | Latest | HTTP client |
+| **Lombok** | Latest | Active | Code generation |
+| **Commons CSV** | 1.10.0 | Stable | Data import utility |
 
 ---
-*Last Updated: December 1, 2025 - Production Ready System*
-
+*Last Updated: December 3, 2025 - Production Ready System*

@@ -1,42 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
+import { contentAPI } from '../../services/api';
+import { useModal } from '../../components/Modal/Modal';
 import './AdminAnnouncements.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
-
 const AdminAnnouncements = () => {
+  const modal = useModal();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
+  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
-  const [filterAudience, setFilterAudience] = useState('ALL');
+  const [filterPriority, setFilterPriority] = useState('ALL');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     announcementType: 'INFO',
     audience: 'ALL',
+    priority: 0,
     startsAt: '',
     endsAt: '',
     isActive: true
   });
 
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
-
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/api/v1/admin/content/announcements`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAnnouncements(response.data.data);
-      setLoading(false);
+      setLoading(true);
+      setError(null);
+      const response = await contentAPI.getAllAnnouncements();
+      setAnnouncements(response.data.data || []);
     } catch (error) {
       console.error('Error fetching announcements:', error);
+      setError(error.response?.data?.message || 'Failed to load announcements');
+      modal.error('Failed to load announcements. Please try again.');
+    } finally {
       setLoading(false);
     }
-  };
+  }, [modal]);
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [fetchAnnouncements]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -51,24 +55,24 @@ const AdminAnnouncements = () => {
     
     // Validate form
     if (!formData.title.trim()) {
-      alert('Title is required');
+      modal.error('Title is required');
       return;
     }
     if (formData.title.trim().length < 5) {
-      alert('Title must be at least 5 characters');
+      modal.error('Title must be at least 5 characters');
       return;
     }
     if (!formData.content.trim()) {
-      alert('Content is required');
+      modal.error('Content is required');
       return;
     }
     if (formData.content.trim().length < 10) {
-      alert('Content must be at least 10 characters');
+      modal.error('Content must be at least 10 characters');
       return;
     }
     if (formData.startsAt && formData.endsAt) {
       if (new Date(formData.startsAt) >= new Date(formData.endsAt)) {
-        alert('Start date must be before end date');
+        modal.error('Start date must be before end date');
         return;
       }
     }
@@ -77,23 +81,18 @@ const AdminAnnouncements = () => {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       if (editingAnnouncement) {
-        await axios.put(
-          `${API_BASE_URL}/api/v1/admin/content/announcements/${editingAnnouncement.id}`,
-          formData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await contentAPI.updateAnnouncement(editingAnnouncement.id, formData);
+        modal.success('Announcement updated successfully');
       } else {
-        await axios.post(`${API_BASE_URL}/api/v1/admin/content/announcements`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await contentAPI.createAnnouncement(formData);
+        modal.success('Announcement created successfully');
       }
-      fetchAnnouncements();
+      await fetchAnnouncements();
       closeModal();
     } catch (error) {
       console.error('Error saving announcement:', error);
-      alert(error.response?.data?.message || 'Failed to save announcement. Please try again.');
+      modal.error(error.response?.data?.message || 'Failed to save announcement. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -106,6 +105,7 @@ const AdminAnnouncements = () => {
       content: announcement.content,
       announcementType: announcement.announcementType,
       audience: announcement.audience,
+      priority: announcement.priority || 0,
       startsAt: announcement.startsAt ? announcement.startsAt.substring(0, 16) : '',
       endsAt: announcement.endsAt ? announcement.endsAt.substring(0, 16) : '',
       isActive: announcement.isActive
@@ -113,32 +113,46 @@ const AdminAnnouncements = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this announcement?')) {
-      try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`${API_BASE_URL}/api/v1/admin/content/announcements/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        fetchAnnouncements();
-      } catch (error) {
-        console.error('Error deleting announcement:', error);
-        alert('Failed to delete announcement');
+  const handleDelete = (id) => {
+    modal.confirm('Are you sure you want to delete this announcement?', {
+      onConfirm: async () => {
+        try {
+          await contentAPI.deleteAnnouncement(id);
+          modal.success('Announcement deleted successfully');
+          await fetchAnnouncements();
+        } catch (error) {
+          console.error('Error deleting announcement:', error);
+          modal.error(error.response?.data?.message || 'Failed to delete announcement');
+        }
       }
-    }
+    });
   };
 
   const handleToggleStatus = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`/api/v1/admin/content/announcements/${id}/toggle`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchAnnouncements();
+      await contentAPI.toggleAnnouncementStatus(id);
+      await fetchAnnouncements();
     } catch (error) {
       console.error('Error toggling announcement status:', error);
-      alert('Failed to toggle announcement status');
+      modal.error(error.response?.data?.message || 'Failed to toggle announcement status');
     }
+  };
+
+  const handleResendNotifications = (announcement) => {
+    modal.confirm(
+      `Resend notifications for "${announcement.title}" to ${announcement.audience === 'ALL' ? 'all users' : announcement.audience.toLowerCase()}?`,
+      {
+        onConfirm: async () => {
+          try {
+            await contentAPI.resendAnnouncementNotifications(announcement.id);
+            modal.success('Notifications sent successfully');
+          } catch (error) {
+            console.error('Error resending notifications:', error);
+            modal.error(error.response?.data?.message || 'Failed to send notifications');
+          }
+        }
+      }
+    );
   };
 
   const openModal = () => {
@@ -161,7 +175,7 @@ const AdminAnnouncements = () => {
   };
 
   const filteredAnnouncements = announcements.filter(
-    (announcement) => filterAudience === 'ALL' || announcement.audience === filterAudience
+    (announcement) => filterPriority === 'ALL' || announcement.priority === parseInt(filterPriority)
   );
 
   const getTypeColor = (announcementType) => {
@@ -190,7 +204,7 @@ const AdminAnnouncements = () => {
       <div className="announcements-filters">
         <label>
           Filter by Priority:
-          <select value={filterAudience} onChange={(e) => setFilterAudience(e.target.value)}>
+          <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
             <option value="ALL">All Priorities</option>
             <option value="0">Normal (0)</option>
             <option value="1">Medium (1)</option>
@@ -208,6 +222,7 @@ const AdminAnnouncements = () => {
               <th>Title</th>
               <th>Type</th>
               <th>Audience</th>
+              <th>Priority</th>
               <th>Start Date</th>
               <th>End Date</th>
               <th>Status</th>
@@ -217,7 +232,7 @@ const AdminAnnouncements = () => {
           <tbody>
             {filteredAnnouncements.length === 0 ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: 'center' }}>
+                <td colSpan="9" style={{ textAlign: 'center' }}>
                   No announcements found
                 </td>
               </tr>
@@ -235,6 +250,11 @@ const AdminAnnouncements = () => {
                     </span>
                   </td>
                   <td>{announcement.audience}</td>
+                  <td>
+                    <span className={`priority-badge priority-${announcement.priority || 0}`}>
+                      {announcement.priority || 0}
+                    </span>
+                  </td>
                   <td>{announcement.startsAt ? new Date(announcement.startsAt).toLocaleDateString() : '-'}</td>
                   <td>{announcement.endsAt ? new Date(announcement.endsAt).toLocaleDateString() : '-'}</td>
                   <td>
@@ -251,6 +271,17 @@ const AdminAnnouncements = () => {
                       onClick={() => handleToggleStatus(announcement.id)}
                     >
                       {announcement.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button 
+                      className="btn-resend"
+                      onClick={() => handleResendNotifications(announcement)}
+                      title="Resend notifications to target audience"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                      </svg>
+                      Resend
                     </button>
                     <button className="btn-delete" onClick={() => handleDelete(announcement.id)}>
                       Delete
@@ -315,6 +346,16 @@ const AdminAnnouncements = () => {
                     <option value="ADMINS">Admins</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label>Priority *</label>
+                <select name="priority" value={formData.priority} onChange={handleInputChange} required>
+                  <option value="0">Normal (0)</option>
+                  <option value="1">Medium (1)</option>
+                  <option value="2">High (2)</option>
+                  <option value="3">Urgent (3)</option>
+                </select>
               </div>
 
               <div className="form-row">

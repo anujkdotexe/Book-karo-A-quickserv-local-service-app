@@ -215,32 +215,17 @@
   opacity: 1 !important;
 }
 
-/* Ensure buttons are always visible */
-.btn.btn-outline {
-  background-color: var(--royal-blue) !important;
-  color: var(--white) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-}
-
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-xl);
   margin-bottom: var(--spacing-2xl);
-  max-width: 1600px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 }
 
 /* Responsive grid */
-@media (max-width: 1400px) {
-  .services-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 @media (max-width: 1000px) {
   .services-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -255,6 +240,7 @@
 
 .service-card-wrapper {
   position: relative;
+  height: 400px;
 }
 
 .service-card {
@@ -269,8 +255,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  min-height: 360px;
-  height: 100%;
+  height: 400px;
   position: relative;
 }
 
@@ -345,7 +330,8 @@
   line-clamp: 2;
   -webkit-box-orient: vertical;
   line-height: 1.4;
-  max-height: 3.5em;
+  height: 3.5em;
+  min-height: 3.5em;
 }
 
 .service-category {
@@ -362,13 +348,14 @@
 .service-description {
   color: var(--text-secondary);
   line-height: 1.6;
-  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
   -webkit-box-orient: vertical;
+  height: 4.8em;
+  min-height: 4.8em;
 }
 
 .service-details {

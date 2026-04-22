@@ -11,6 +11,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +30,7 @@ public class CSVImportService {
     private final UserRepository userRepository;
     private final VendorRepository vendorRepository;
     private final ServiceRepository serviceRepository;
+    private final PasswordEncoder passwordEncoder;
     
     /**
      * Import users from CSV file
@@ -62,7 +64,7 @@ public class CSVImportService {
                     user.setLastName(csvRecord.get("lastName"));
                     user.setFullName(csvRecord.get("firstName") + " " + csvRecord.get("lastName"));
                     user.setEmail(email);
-                    user.setPassword(csvRecord.get("password")); // Plain text - no encoding
+                    user.setPassword(passwordEncoder.encode(csvRecord.get("password")));
                     user.setPhone(csvRecord.get("phone"));
                     user.setAddress(csvRecord.get("address"));
                     user.setCity(csvRecord.get("city"));

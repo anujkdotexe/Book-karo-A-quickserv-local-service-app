@@ -240,6 +240,26 @@ public class ContentManagementController {
         return ResponseEntity.ok(ApiResponse.success("Announcement status toggled successfully", updatedAnnouncement));
     }
 
+    /**
+     * Resend announcement notifications
+     * POST /api/v1/admin/content/announcements/{id}/resend-notifications
+     */
+    @PostMapping("/announcements/{id}/resend-notifications")
+    public ResponseEntity<ApiResponse<Void>> resendAnnouncementNotifications(@PathVariable Long id) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Announcement not found"));
+        
+        try {
+            notificationService.createAnnouncementNotifications(announcement);
+            return ResponseEntity.ok(ApiResponse.success("Notifications sent successfully to " + 
+                announcement.getAudience() + " users", null));
+        } catch (Exception e) {
+            System.err.println("Failed to resend announcement notifications: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Failed to send notifications"));
+        }
+    }
+
     // ==================== BANNER MANAGEMENT ====================
 
     /**

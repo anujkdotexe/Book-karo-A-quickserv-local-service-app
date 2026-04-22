@@ -67,6 +67,36 @@ public class NotificationController {
     }
 
     /**
+     * Get all notifications (paginated)
+     * GET /api/v1/notifications/all
+     */
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<NotificationDto>>> getAllNotifications(
+            @RequestParam(defaultValue = "1000") int limit,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        List<NotificationDto> notifications = notificationService.getAllNotifications(user.getId(), limit);
+        return ResponseEntity.ok(ApiResponse.success("All notifications retrieved", notifications));
+    }
+
+    /**
+     * Get notification by ID
+     * GET /api/v1/notifications/{id}
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<NotificationDto>> getNotificationById(
+            @PathVariable Long id,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        NotificationDto notification = notificationService.getNotificationById(id, user.getId());
+        if (notification == null) {
+            return ResponseEntity.status(404)
+                    .body(ApiResponse.error("Notification not found"));
+        }
+        return ResponseEntity.ok(ApiResponse.success("Notification retrieved", notification));
+    }
+
+    /**
      * Mark notification as read
      * PUT /api/v1/notifications/{id}/read
      */

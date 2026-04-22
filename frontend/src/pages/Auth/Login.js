@@ -257,7 +257,7 @@ const Login = () => {
           </form>
 
           {(process.env.NODE_ENV === 'development' && process.env.REACT_APP_ENABLE_QUICK_LOGIN !== 'false') && (
-            <details style={{ marginTop: '24px', padding: '16px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+            <details open style={{ marginTop: '24px', padding: '16px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
               <summary style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#6b7280', userSelect: 'none' }}>
                 Development: Quick Login
               </summary>
@@ -265,24 +265,48 @@ const Login = () => {
                 <button
                   onClick={() => handleQuickLogin('user@bookkaro.com', 'Password@123')}
                   disabled={loading}
-                  className="btn btn-outline"
-                  style={{ fontSize: '13px', padding: '8px 12px' }}
+                  className="btn btn-primary"
+                  style={{ 
+                    fontSize: '13px', 
+                    padding: '8px 12px',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    opacity: '1',
+                    visibility: 'visible'
+                  }}
                 >
                   User Account
                 </button>
                 <button
                   onClick={() => handleQuickLogin('mumbai@bookkaro.com', 'Password@123')}
                   disabled={loading}
-                  className="btn btn-outline"
-                  style={{ fontSize: '13px', padding: '8px 12px' }}
+                  className="btn btn-primary"
+                  style={{ 
+                    fontSize: '13px', 
+                    padding: '8px 12px',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    opacity: '1',
+                    visibility: 'visible'
+                  }}
                 >
                   Vendor Account
                 </button>
                 <button
                   onClick={() => handleQuickLogin('admin@bookkaro.com', 'Password@123')}
                   disabled={loading}
-                  className="btn btn-outline"
-                  style={{ fontSize: '13px', padding: '8px 12px' }}
+                  className="btn btn-primary"
+                  style={{ 
+                    fontSize: '13px', 
+                    padding: '8px 12px',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    opacity: '1',
+                    visibility: 'visible'
+                  }}
                 >
                   Admin Account
                 </button>

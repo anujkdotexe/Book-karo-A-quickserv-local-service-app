@@ -221,12 +221,14 @@ const Profile = () => {
 
   const handleCancelEdit = () => {
     if (hasUnsavedChanges) {
-      if (window.confirm('You have unsaved changes. Are you sure you want to cancel?')) {
-        setFormData(originalData);
-        setFieldErrors({});
-        setIsEditing(false);
-        setHasUnsavedChanges(false);
-      }
+      modal.confirm('You have unsaved changes. Are you sure you want to cancel?', {
+        onConfirm: () => {
+          setFormData(originalData);
+          setFieldErrors({});
+          setIsEditing(false);
+          setHasUnsavedChanges(false);
+        }
+      });
     } else {
       setIsEditing(false);
       setFieldErrors({});

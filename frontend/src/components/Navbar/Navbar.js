@@ -234,18 +234,6 @@ const Navbar = () => {
     setSelectedSuggestionIndex(-1);
   };
 
-  // Get logo destination based on role
-  const getLogoDestination = () => {
-    if (!isAuthenticated || userRole === 'USER') {
-      return '/';
-    } else if (userRole === 'ADMIN') {
-      return '/admin/dashboard';
-    } else if (userRole === 'VENDOR') {
-      return '/vendor/dashboard';
-    }
-    return '/';
-  };
-
   return (
     <nav className="navbar" role="navigation" aria-label="Main navigation">
       {/* Skip to Main Content Link for Accessibility */}

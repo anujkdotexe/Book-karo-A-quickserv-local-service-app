@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useModal } from '../../components/Modal/Modal';
 import './VendorAvailability.css';
 
 const VendorAvailability = () => {
@@ -16,6 +17,7 @@ const VendorAvailability = () => {
     isAvailable: true,
     specialNote: ''
   });
+  const modal = useModal();
 
   const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
   const dayLabels = {
@@ -140,15 +142,16 @@ const VendorAvailability = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this availability slot?')) {
-      return;
-    }
-    try {
-      await vendorAPI.deleteAvailability(id);
-      await loadAvailabilities();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete availability');
-    }
+    modal.confirm('Are you sure you want to delete this availability slot?', {
+      onConfirm: async () => {
+        try {
+          await vendorAPI.deleteAvailability(id);
+          await loadAvailabilities();
+        } catch (err) {
+          setError(err.response?.data?.message || 'Failed to delete availability');
+        }
+      }
+    });
   };
 
   const handleToggleStatus = async (availability) => {

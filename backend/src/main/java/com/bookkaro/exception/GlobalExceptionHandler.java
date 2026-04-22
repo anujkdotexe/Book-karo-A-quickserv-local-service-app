@@ -257,4 +257,58 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    /**
+     * Handle BookingException
+     */
+    @ExceptionHandler(BookingException.class)
+    public ResponseEntity<ErrorResponse> handleBookingException(
+            BookingException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                false,
+                ex.getMessage(),
+                null,
+                LocalDateTime.now(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handle AvailabilityException
+     */
+    @ExceptionHandler(AvailabilityException.class)
+    public ResponseEntity<ErrorResponse> handleAvailabilityException(
+            AvailabilityException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                false,
+                ex.getMessage(),
+                null,
+                LocalDateTime.now(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handle CouponException
+     */
+    @ExceptionHandler(CouponException.class)
+    public ResponseEntity<ErrorResponse> handleCouponException(
+            CouponException ex, WebRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                false,
+                ex.getMessage(),
+                null,
+                LocalDateTime.now(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }

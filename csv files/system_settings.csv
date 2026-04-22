@@ -1,0 +1,5 @@
+id,setting_key,setting_value,setting_type,description,category,is_public,created_at,updated_at
+1,contact.email,support@bookkaro.com,EMAIL,Support email address,CONTACT,t,2025-11-18 21:37:44.00345,2025-11-18 21:37:44.00345
+2,contact.phone,+1 (555) 123-4567,PHONE,Support phone number,CONTACT,t,2025-11-18 21:37:44.00345,2025-11-18 21:37:44.00345
+3,pricing.service_fee,99,NUMBER,Service fee per booking (in rupees),PRICING,f,2025-11-18 21:37:44.00345,2025-11-18 21:37:44.00345
+4,general.platform_name,BOOK-KARO,TEXT,Platform name,GENERAL,t,2025-11-18 21:37:44.00345,2025-11-18 21:37:44.00345

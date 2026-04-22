@@ -83,6 +83,35 @@ public class NotificationService {
     }
 
     /**
+     * Get all notifications (paginated)
+     */
+    public List<NotificationDto> getAllNotifications(Long userId, int limit) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Notification> allNotifications = notificationRepository
+            .findByUserAndDeletedAtIsNullOrderByCreatedAtDesc(user);
+        return allNotifications.stream().limit(limit).map(this::toDto).collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Get notification by ID for specific user
+     */
+    public NotificationDto getNotificationById(Long notificationId, Long userId) {
+        // Validate user exists
+        userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        Notification notification = notificationRepository.findById(notificationId)
+            .orElse(null);
+        
+        if (notification == null || !notification.getUser().getId().equals(userId) || notification.getDeletedAt() != null) {
+            return null;
+        }
+        
+        return toDto(notification);
+    }
+
+    /**
      * Get recent unread notifications (for dropdown)
      */
     public List<NotificationDto> getRecentUnread(Long userId, int limit) {

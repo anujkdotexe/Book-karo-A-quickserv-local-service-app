@@ -1,30 +1,116 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { notificationAPI } from '../../services/api';
+import NotificationModal from '../NotificationModal/NotificationModal';
 import './NotificationBell.css';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [error, setError] = useState(null);
+  const [selectedNotification, setSelectedNotification] = useState(null);
   const dropdownRef = useRef(null);
+  const pollingIntervalRef = useRef(null);
 
-  useEffect(() => {
-    fetchUnreadCount();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+  // Fetch unread count
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const response = await notificationAPI.getUnreadCount();
+      setUnreadCount(response.data.data || 0);
+      setError(null);
+    } catch (error) {
+      // Silently handle 401 (user not logged in)
+      if (error.response?.status === 401) {
+        setUnreadCount(0);
+        return;
+      }
+      console.error('Error fetching unread count:', error);
+      setError('Failed to load notification count');
+    }
   }, []);
 
+  // Fetch recent notifications
+  const fetchRecentNotifications = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await notificationAPI.getRecent(10);
+      setNotifications(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setError('Failed to load notifications');
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Mark notification as read
+  const markAsRead = useCallback(async (notificationId) => {
+    try {
+      await notificationAPI.markAsRead(notificationId);
+      setNotifications(notifications.map(n => 
+        n.id === notificationId ? { ...n, isRead: true } : n
+      ));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  }, [notifications]);
+
+  // Delete notification
+  const deleteNotification = useCallback(async (notificationId, event) => {
+    event.stopPropagation();
+    try {
+      await notificationAPI.deleteNotification(notificationId);
+      const notification = notifications.find(n => n.id === notificationId);
+      setNotifications(notifications.filter(n => n.id !== notificationId));
+      if (notification && !notification.isRead) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  }, [notifications]);
+
+  // Mark all as read
+  const markAllAsRead = useCallback(async () => {
+    try {
+      await notificationAPI.markAllAsRead();
+      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  }, [notifications]);
+
+  // Setup polling for unread count
+  useEffect(() => {
+    fetchUnreadCount();
+    // Poll every 30 seconds
+    pollingIntervalRef.current = setInterval(fetchUnreadCount, 30000);
+    
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [fetchUnreadCount]);
+
+  // Fetch notifications when dropdown opens
   useEffect(() => {
     if (showDropdown) {
       fetchRecentNotifications();
     }
-  }, [showDropdown]);
+  }, [showDropdown, fetchRecentNotifications]);
 
+  // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -36,105 +122,79 @@ const NotificationBell = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchUnreadCount = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      
-      const response = await axios.get(`${API_BASE_URL}/api/v1/notifications/unread-count`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUnreadCount(response.data.data || 0);
-    } catch (error) {
-      console.error('Error fetching unread count:', error);
-    }
-  };
-
-  const fetchRecentNotifications = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/api/v1/notifications/recent?limit=10`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(response.data.data || []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markAsRead = async (notificationId) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_BASE_URL}/api/v1/notifications/${notificationId}/read`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(notifications.map(n => 
-        n.id === notificationId ? { ...n, isRead: true } : n
-      ));
-      setUnreadCount(Math.max(0, unreadCount - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const deleteNotification = async (notificationId, event) => {
-    event.stopPropagation();
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/api/v1/notifications/${notificationId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const notification = notifications.find(n => n.id === notificationId);
-      setNotifications(notifications.filter(n => n.id !== notificationId));
-      if (!notification.isRead) {
-        setUnreadCount(Math.max(0, unreadCount - 1));
-      }
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_BASE_URL}/api/v1/notifications/read-all`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Error marking all as read:', error);
-    }
-  };
-
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'BOOKING_CREATED':
       case 'BOOKING_CONFIRMED':
       case 'BOOKING_COMPLETED':
-        return '📅';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        );
       case 'BOOKING_CANCELLED':
-        return '❌';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        );
       case 'ANNOUNCEMENT':
-        return '📢';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        );
       case 'PAYMENT_SUCCESS':
-        return '✅';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        );
       case 'PAYMENT_FAILED':
-        return '⚠️';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        );
       case 'REFUND_INITIATED':
       case 'REFUND_COMPLETED':
-        return '💰';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        );
       case 'VENDOR_APPROVED':
       case 'SERVICE_APPROVED':
-        return '✓';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        );
       case 'VENDOR_REJECTED':
       case 'SERVICE_REJECTED':
-        return '✗';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        );
       default:
-        return '🔔';
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        );
     }
   };
 
@@ -196,7 +256,13 @@ const NotificationBell = () => {
                 <div 
                   key={notification.id}
                   className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
-                  onClick={() => !notification.isRead && markAsRead(notification.id)}
+                  onClick={() => {
+                    if (!notification.isRead) {
+                      markAsRead(notification.id);
+                    }
+                    setSelectedNotification(notification);
+                    setShowDropdown(false);
+                  }}
                 >
                   <div className="notification-icon">
                     {getNotificationIcon(notification.type)}
@@ -226,6 +292,14 @@ const NotificationBell = () => {
             </div>
           )}
         </div>
+      )}
+
+      {selectedNotification && (
+        <NotificationModal
+          notification={selectedNotification}
+          onClose={() => setSelectedNotification(null)}
+          onDelete={deleteNotification}
+        />
       )}
     </div>
   );
