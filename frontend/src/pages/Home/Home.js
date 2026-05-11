@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useModal } from '../../components/Modal/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Home.css';
 
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const { info } = useModal();
+  const noticeShownRef = useRef(false);
 
   useEffect(() => {
     // Redirect admin and vendor to their dashboards immediately
@@ -19,6 +22,34 @@ const Home = () => {
       // USER role stays on home page
     }
   }, [isAuthenticated, user, navigate]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    console.log('Home useEffect 2 running - checking modal conditions');
+
+    // Skip the notice for admin/vendor users because they are redirected away.
+    if (isAuthenticated && user?.role && (user.role === 'ADMIN' || user.role === 'VENDOR')) {
+      console.log('Skipping modal for admin/vendor');
+      return;
+    }
+
+    if (noticeShownRef.current) {
+      console.log('Modal already shown');
+      return;
+    }
+
+    noticeShownRef.current = true;
+
+    info(
+      'The backend is hosted on a free tier and may take 60 seconds or more to restart after inactivity. Thanks for your patience while the service wakes up.',
+      {
+        title: 'Heads up',
+        confirmText: 'Got it',
+        autoDismiss: false,
+      }
+    );
+  }, [isAuthenticated, user?.role]);
 
   // Don't render home page if user is admin or vendor (they'll be redirected)
   if (isAuthenticated && user?.role && (user.role === 'ADMIN' || user.role === 'VENDOR')) {
@@ -56,6 +87,12 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      <div className="scrolling-banner">
+        <div className="banner-text">
+          Backend running on free tier • may take 60+ seconds to restart after inactivity • Backend running on free tier • may take 60+ seconds to restart after inactivity •
+        </div>
+      </div>
 
       <section className="features-section">
         <div className="container">
