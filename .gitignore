@@ -69,6 +69,11 @@ logs/
 *.db
 *.sqlite
 
+# Generated CSV exports / snapshots
+csv files/*.csv
+database_backups/local_csv_export_*/
+database_backups/*.csv
+
 # Spring Boot
 application-*.properties
 !application.properties
