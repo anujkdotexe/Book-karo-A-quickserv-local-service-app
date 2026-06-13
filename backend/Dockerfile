@@ -24,5 +24,8 @@ COPY --from=build /app/extracted/application/ ./
 
 EXPOSE 8081
 
+# JVM Optimizations for Render Free Tier (Fast startup, IPv4 forced, memory capped)
+ENV JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Djava.net.preferIPv4Stack=true -Xmx384m -Xms128m"
+
 # Spring Boot 3.3+ generates a slim jar that automatically loads from the lib directory next to it
 ENTRYPOINT ["sh", "-c", "exec java ${JAVA_OPTS:-} -jar *.jar"]
