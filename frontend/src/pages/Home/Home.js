@@ -6,7 +6,7 @@ import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Home.css';
 
 const Home = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
   const { info } = useModal();
   const noticeShownRef = useRef(false);
@@ -25,12 +25,13 @@ const Home = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (loading) return; // Wait until auth state is known
 
     console.log('Home useEffect 2 running - checking modal conditions');
 
-    // Skip the notice for admin/vendor users because they are redirected away.
-    if (isAuthenticated && user?.role && (user.role === 'ADMIN' || user.role === 'VENDOR')) {
-      console.log('Skipping modal for admin/vendor');
+    // Skip the notice if the user is authenticated
+    if (isAuthenticated) {
+      console.log('Skipping modal for authenticated user');
       return;
     }
 
