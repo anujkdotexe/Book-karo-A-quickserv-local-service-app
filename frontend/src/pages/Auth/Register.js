@@ -166,7 +166,7 @@ const Register = () => {
     if (!email || !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) return;
     
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8081'}/api/v1/auth/check-email?email=${encodeURIComponent(email)}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8081'}/api/v1/auth/check-email?email=${encodeURIComponent(email)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });

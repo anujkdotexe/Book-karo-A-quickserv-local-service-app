@@ -22,8 +22,8 @@
         <java.version>24</java.version>
         <jjwt.version>0.11.5</jjwt.version>
         <!-- Compilation Performance -->
-        <maven.compiler.fork>true</maven.compiler.fork>
-        <maven.compiler.maxmem>1024m</maven.compiler.maxmem>
+        <maven.compiler.fork>false</maven.compiler.fork>
+        <maven.compiler.maxmem>512m</maven.compiler.maxmem>
     </properties>
 
     <dependencies>

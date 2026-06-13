@@ -3,6 +3,7 @@ FROM maven:3.9.11-eclipse-temurin-24 AS build
 WORKDIR /app
 
 COPY pom.xml .
+ENV MAVEN_OPTS="-Xmx384m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 RUN mvn -B -q dependency:go-offline
 
 COPY src ./src

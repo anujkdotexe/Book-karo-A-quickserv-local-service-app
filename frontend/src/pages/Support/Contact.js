@@ -78,7 +78,7 @@ const Contact = () => {
       // Submit contact form to backend
       // Note: Backend endpoint needs to be created at /api/v1/contact
       // For now, this will gracefully handle missing endpoint
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
       
       const response = await fetch(`${API_BASE_URL}/api/v1/contact`, {
         method: 'POST',
