@@ -37,21 +37,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
+        String authHeader = request.getHeader("Authorization");
+        String jwt = null;
         final String userEmail;
 
         // Check if Authorization header exists and starts with "Bearer "
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7).trim();
+        } else if (request.getParameter("token") != null) {
+            // Support token as query parameter for Server-Sent Events (SSE)
+            jwt = request.getParameter("token").trim();
         }
 
-        // Extract JWT token
-        jwt = authHeader.substring(7).trim();
-        
-        // Validate token is not empty
-        if (jwt.isEmpty()) {
+        if (jwt == null || jwt.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }

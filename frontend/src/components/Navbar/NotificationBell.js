@@ -90,13 +90,42 @@ const NotificationBell = () => {
     }
   }, [notifications]);
 
-  // Setup polling for unread count
+  // Setup SSE for real-time notifications
   useEffect(() => {
     fetchUnreadCount();
-    // Poll every 30 seconds
-    pollingIntervalRef.current = setInterval(fetchUnreadCount, 30000);
     
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+    // Append token to URL so JwtAuthenticationFilter can authorize the SSE connection
+    const eventSource = new EventSource(`${API_BASE_URL}/api/v1/notifications/stream?token=${token}`);
+
+    eventSource.addEventListener('NOTIFICATION', (event) => {
+      try {
+        const newNotification = JSON.parse(event.data);
+        setNotifications(prev => [newNotification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      } catch (err) {
+        console.error('Error parsing notification event', err);
+      }
+    });
+
+    eventSource.addEventListener('INIT', (event) => {
+      console.log('SSE Connected:', event.data);
+    });
+
+    eventSource.onerror = (error) => {
+      console.error('SSE Error:', error);
+      eventSource.close();
+      // Fallback to polling if SSE fails
+      if (!pollingIntervalRef.current) {
+        pollingIntervalRef.current = setInterval(fetchUnreadCount, 30000);
+      }
+    };
+
     return () => {
+      eventSource.close();
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }

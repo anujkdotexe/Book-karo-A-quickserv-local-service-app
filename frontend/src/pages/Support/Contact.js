@@ -76,8 +76,6 @@ const Contact = () => {
     
     try {
       // Submit contact form to backend
-      // Note: Backend endpoint needs to be created at /api/v1/contact
-      // For now, this will gracefully handle missing endpoint
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
       
       const response = await fetch(`${API_BASE_URL}/api/v1/contact`, {
@@ -103,17 +101,6 @@ const Contact = () => {
           subject: '',
           message: ''
         });
-      } else if (response.status === 404) {
-        // Endpoint not implemented yet - show friendly message
-        modal.warning('Contact form submission recorded. Our team will reach out to you soon.');
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          subject: '',
-          message: ''
-        });
-        console.log('Contact form data (endpoint not available):', formData);
       } else {
         const errorData = await response.json();
         modal.error(errorData.message || 'Failed to submit contact form. Please try again.');

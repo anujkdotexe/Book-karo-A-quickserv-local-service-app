@@ -8,6 +8,7 @@ RUN mvn -B -q dependency:go-offline
 
 COPY src ./src
 RUN mvn -B clean package -DskipTests && cp target/*.jar target/app.jar
+RUN java -Djarmode=tools -jar target/app.jar extract --layers --destination extracted
 
 FROM eclipse-temurin:24-jre-alpine
 
@@ -15,8 +16,12 @@ WORKDIR /app
 
 ENV PORT=8081
 
-COPY --from=build /app/target/app.jar app.jar
+# Copy layers sequentially for maximum caching
+COPY --from=build /app/extracted/dependencies/ ./
+COPY --from=build /app/extracted/spring-boot-loader/ ./
+COPY --from=build /app/extracted/snapshot-dependencies/ ./
+COPY --from=build /app/extracted/application/ ./
 
 EXPOSE 8081
 
-ENTRYPOINT ["sh", "-c", "exec java ${JAVA_OPTS:-} -jar /app/app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java ${JAVA_OPTS:-} org.springframework.boot.loader.launch.JarLauncher"]

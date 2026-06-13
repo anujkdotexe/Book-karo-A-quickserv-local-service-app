@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 
@@ -40,6 +42,16 @@ public class NotificationController {
         List<NotificationDto> notifications = notificationService.getUserNotificationsAsDto(
             user.getId(), PageRequest.of(page, size));
         return ResponseEntity.ok(ApiResponse.success("Notifications retrieved successfully", notifications));
+    }
+
+    /**
+     * Subscribe to real-time notifications stream (SSE)
+     * GET /api/v1/notifications/stream
+     */
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribeToNotifications(Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        return notificationService.subscribe(user.getId());
     }
 
     /**

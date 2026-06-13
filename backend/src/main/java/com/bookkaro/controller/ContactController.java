@@ -4,6 +4,9 @@ import com.bookkaro.dto.ApiResponse;
 import com.bookkaro.dto.ContactInquiryRequest;
 import com.bookkaro.model.ContactInquiry;
 import com.bookkaro.repository.ContactInquiryRepository;
+import com.bookkaro.repository.UserRepository;
+import com.bookkaro.service.NotificationService;
+import com.bookkaro.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,8 @@ import java.util.Map;
 public class ContactController {
 
     private final ContactInquiryRepository contactInquiryRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     /**
      * Public endpoint - Submit contact inquiry
@@ -56,6 +61,18 @@ public class ContactController {
             ContactInquiry savedInquiry = contactInquiryRepository.save(inquiry);
             
             log.info("Contact inquiry saved with ID: {}", savedInquiry.getId());
+            
+            // Notify all admins
+            userRepository.findByRole(User.UserRole.ADMIN).forEach(admin -> {
+                notificationService.createNotification(
+                    admin.getId(),
+                    "CONTACT_INQUIRY",
+                    "New Contact Inquiry",
+                    "Received new inquiry from " + request.getName() + " regarding: " + request.getSubject(),
+                    null,
+                    null
+                );
+            });
             
             Map<String, Object> response = new HashMap<>();
             response.put("inquiryId", savedInquiry.getId());

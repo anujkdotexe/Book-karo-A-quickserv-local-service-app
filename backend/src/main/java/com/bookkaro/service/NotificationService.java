@@ -13,7 +13,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +26,46 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    
+    // Store active SSE connections
+    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+
+    /**
+     * Subscribe to real-time notifications via SSE
+     */
+    public SseEmitter subscribe(Long userId) {
+        SseEmitter emitter = new SseEmitter(60 * 60 * 1000L); // 1 hour timeout
+        emitters.put(userId, emitter);
+        
+        emitter.onCompletion(() -> emitters.remove(userId));
+        emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onError((e) -> emitters.remove(userId));
+        
+        // Send initial connection event
+        try {
+            emitter.send(SseEmitter.event().name("INIT").data("Connected to notifications"));
+        } catch (IOException e) {
+            emitters.remove(userId);
+        }
+        
+        return emitter;
+    }
+
+    /**
+     * Push event to client
+     */
+    private void pushEvent(Long userId, NotificationDto dto) {
+        SseEmitter emitter = emitters.get(userId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                    .name("NOTIFICATION")
+                    .data(dto));
+            } catch (IOException e) {
+                emitters.remove(userId);
+            }
+        }
+    }
 
     /**
      * Convert Notification entity to DTO
@@ -177,7 +221,9 @@ public class NotificationService {
             .isRead(false)
             .build();
 
-        return notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+        pushEvent(userId, toDto(saved));
+        return saved;
     }
 
     /**
@@ -210,7 +256,8 @@ public class NotificationService {
                 .announcement(announcement)
                 .isRead(false)
                 .build();
-            notificationRepository.save(notification);
+            Notification saved = notificationRepository.save(notification);
+            pushEvent(user.getId(), toDto(saved));
         }
     }
 
@@ -227,6 +274,7 @@ public class NotificationService {
             .booking(booking)
             .isRead(false)
             .build();
-        notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+        pushEvent(booking.getUser().getId(), toDto(saved));
     }
 }
