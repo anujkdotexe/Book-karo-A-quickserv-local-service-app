@@ -17,12 +17,12 @@ WORKDIR /app
 ENV PORT=8081
 
 # Copy layers sequentially for maximum caching
-COPY --from=build /app/extracted/dependencies/ ./dependencies/
-COPY --from=build /app/extracted/spring-boot-loader/ ./spring-boot-loader/
-COPY --from=build /app/extracted/snapshot-dependencies/ ./snapshot-dependencies/
-COPY --from=build /app/extracted/application/ ./application/
+COPY --from=build /app/extracted/dependencies/ ./
+COPY --from=build /app/extracted/spring-boot-loader/ ./
+COPY --from=build /app/extracted/snapshot-dependencies/ ./
+COPY --from=build /app/extracted/application/ ./
 
 EXPOSE 8081
 
-# Spring Boot 3.3+ generates a slim jar in the application folder that loads from the dependencies folder automatically
-ENTRYPOINT ["sh", "-c", "exec java ${JAVA_OPTS:-} -jar application/*.jar"]
+# Spring Boot 3.3+ generates a slim jar that automatically loads from the lib directory next to it
+ENTRYPOINT ["sh", "-c", "exec java ${JAVA_OPTS:-} -jar *.jar"]
