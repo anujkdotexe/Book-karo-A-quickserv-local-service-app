@@ -161,16 +161,18 @@ const Register = () => {
     return { score, label: 'Strong', color: '#10b981' };
   };
 
-  // Check email availability with backend
   const checkEmailAvailability = async (email) => {
     if (!email || !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) return;
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8081'}/api/v1/auth/check-email?email=${encodeURIComponent(email)}`, {
+      // Fix duplicate /api/v1 by replacing it if it already exists in the base URL
+      const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:8081';
+      const response = await fetch(`${baseUrl}/api/v1/auth/check-email?email=${encodeURIComponent(email)}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      
       if (response.ok) {
         const data = await response.json();
         if (data.exists || data.data?.exists) {

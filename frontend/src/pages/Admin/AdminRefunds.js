@@ -3,7 +3,7 @@ import axios from 'axios';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import './AdminRefunds.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+const API_BASE_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:8081';
 
 const AdminRefunds = () => {
   const [refunds, setRefunds] = useState([]);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../services/adminAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -351,24 +352,24 @@ const AdminDashboard = () => {
         {stats?.revenueData && stats.revenueData.length > 0 && (
           <div className="section full-width">
             <h2>Revenue Trend (Last 7 Days)</h2>
-            <div className="revenue-chart">
-              {(() => {
-                const maxRevenue = Math.max(...stats.revenueData.map(d => Number(d.revenue)), 1);
-                return stats.revenueData.map(data => {
-                  const heightPercent = maxRevenue > 0 ? (Number(data.revenue) / maxRevenue) * 100 : 0;
-                  return (
-                    <div key={data.date} className="chart-bar">
-                      <div 
-                        className="bar" 
-                        style={{ height: `${heightPercent}%` }}
-                      >
-                        <span className="bar-value">Rs.{Number(data.revenue) || 0}</span>
-                      </div>
-                      <span className="bar-label">{new Date(data.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                    </div>
-                  );
-                });
-              })()}
+            <div className="revenue-chart" style={{ height: '350px', padding: '20px 0' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.revenueData.map(d => ({
+                  ...d,
+                  day: new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' }),
+                  revenueNum: Number(d.revenue) || 0
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="day" tick={{fill: '#6b7280'}} tickLine={false} axisLine={false} />
+                  <YAxis tick={{fill: '#6b7280'}} tickLine={false} axisLine={false} tickFormatter={(value) => `Rs.${value}`} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                    cursor={{ fill: '#f3f4f6' }}
+                    formatter={(value) => [`Rs.${value}`, 'Revenue']}
+                  />
+                  <Bar dataKey="revenueNum" name="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import adminAPI from '../../services/adminAPI';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import './PlatformAnalytics.css';
 
 const PlatformAnalytics = () => {
@@ -394,27 +395,19 @@ const OverviewTab = ({
       {/* User Growth Trend Chart */}
       <div className="analytics-card">
         <h3>User Growth Trend (Last 30 Days)</h3>
-        <div className="trends-chart">
-          <div className="chart-bars">
-            {(() => {
-              const userGrowth = userAnalytics.userGrowthTimeline || [];
-              const maxUsers = Math.max(...userGrowth.map(d => d.newUsers || 0), 1);
-              return userGrowth.slice(-30).map((day, index) => {
-                const height = ((day.newUsers || 0) / maxUsers) * 100;
-                return (
-                  <div key={index} className="chart-bar-item">
-                    <div 
-                      className="chart-bar-fill" 
-                      style={{ height: `${height}%` }}
-                    >
-                      <span className="bar-value">{day.newUsers || 0}</span>
-                    </div>
-                    <div className="chart-bar-label">{day.date || `Day ${index + 1}`}</div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
+        <div className="trends-chart" style={{ height: '300px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={(userAnalytics.userGrowthTimeline || []).slice(-30)}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#6b7280'}} tickLine={false} axisLine={false} />
+              <YAxis tick={{fontSize: 12, fill: '#6b7280'}} tickLine={false} axisLine={false} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                cursor={{ stroke: '#f3f4f6', strokeWidth: 2 }}
+              />
+              <Line type="monotone" dataKey="newUsers" name="New Users" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
         <div className="chart-summary">
           New Users This Month: <strong>{formatNumber(userAnalytics.newUsersThisMonth)}</strong>
@@ -426,27 +419,19 @@ const OverviewTab = ({
       {/* Booking Volume Trend Chart */}
       <div className="analytics-card">
         <h3>Booking Volume Trend (Last 30 Days)</h3>
-        <div className="trends-chart">
-          <div className="chart-bars">
-            {(() => {
-              const bookingTrends = bookingAnalytics.bookingTrends || [];
-              const maxBookings = Math.max(...bookingTrends.map(d => d.count || 0), 1);
-              return bookingTrends.slice(-30).map((day, index) => {
-                const height = ((day.count || 0) / maxBookings) * 100;
-                return (
-                  <div key={index} className="chart-bar-item">
-                    <div 
-                      className="chart-bar-fill" 
-                      style={{ height: `${height}%` }}
-                    >
-                      <span className="bar-value">{day.count || 0}</span>
-                    </div>
-                    <div className="chart-bar-label">{day.date || `Day ${index + 1}`}</div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
+        <div className="trends-chart" style={{ height: '300px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={(bookingAnalytics.bookingTrends || []).slice(-30)}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#6b7280'}} tickLine={false} axisLine={false} />
+              <YAxis tick={{fontSize: 12, fill: '#6b7280'}} tickLine={false} axisLine={false} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                cursor={{ fill: '#f3f4f6' }}
+              />
+              <Bar dataKey="count" name="Bookings" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
         <div className="chart-summary">
           Total Bookings: <strong>{formatNumber(bookingAnalytics.totalBookings)}</strong>
@@ -660,43 +645,34 @@ const OverviewTab = ({
           {/* Customer Reviews Distribution */}
           <div className="analytics-card">
             <h3>Customer Reviews Distribution</h3>
-            <div>
-              <div className="rating-bars">
-                {[5, 4, 3, 2, 1].map(stars => {
-                  const count = customerExperience.ratingDistribution?.[
-                    `${['five', 'four', 'three', 'two', 'one'][5-stars]}Star`
-                  ] || 0;
-                  const total = (customerExperience.ratingDistribution?.fiveStar || 0) + 
-                               (customerExperience.ratingDistribution?.fourStar || 0) + 
-                               (customerExperience.ratingDistribution?.threeStar || 0) + 
-                               (customerExperience.ratingDistribution?.twoStar || 0) + 
-                               (customerExperience.ratingDistribution?.oneStar || 0) || 1;
-                  const percentage = ((count / total) * 100);
-                  const colors = ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'];
-                  
-                  return (
-                    <div key={stars} className="rating-bar-row">
-                      <div className="rating-stars">
-                        {'★'.repeat(stars)} ({stars})
-                      </div>
-                      <div className="rating-bar-container">
-                        <div 
-                          className="rating-bar" 
-                          style={{ 
-                            width: `${percentage}%`,
-                            background: colors[5-stars]
-                          }}
-                        >
-                          {count > 0 && <span className="rating-count">{count}</span>}
-                        </div>
-                      </div>
-                      <div className="rating-percentage">{percentage.toFixed(0)}%</div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div style={{ height: '280px', marginTop: '10px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  layout="vertical"
+                  data={[
+                    { stars: '5 Stars', count: customerExperience.ratingDistribution?.fiveStar || 0, fill: '#10b981' },
+                    { stars: '4 Stars', count: customerExperience.ratingDistribution?.fourStar || 0, fill: '#3b82f6' },
+                    { stars: '3 Stars', count: customerExperience.ratingDistribution?.threeStar || 0, fill: '#f59e0b' },
+                    { stars: '2 Stars', count: customerExperience.ratingDistribution?.twoStar || 0, fill: '#f97316' },
+                    { stars: '1 Star', count: customerExperience.ratingDistribution?.oneStar || 0, fill: '#ef4444' }
+                  ]}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="stars" type="category" axisLine={false} tickLine={false} tick={{fill: '#4b5563', fontWeight: 500}} />
+                  <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                  <Bar dataKey="count" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: '#6b7280' }}>
+                    {
+                      [0,1,2,3,4].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'][index]} />
+                      ))
+                    }
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="chart-summary">
+            <div className="chart-summary" style={{ marginTop: '15px' }}>
               Average: <strong>{(customerExperience.averageRating || 0).toFixed(1)} / 5.0</strong> 
               {' • '}
               Total: <strong>{(customerExperience.ratingDistribution?.fiveStar || 0) + 
@@ -710,40 +686,34 @@ const OverviewTab = ({
           {/* Booking Status Breakdown */}
           <div className="analytics-card">
             <h3>Booking Status Breakdown</h3>
-            <div>
-              <div className="status-breakdown">
-                {[
-                  { status: 'Completed', key: 'completed', color: '#10b981', icon: '✓' },
-                  { status: 'Confirmed', key: 'confirmed', color: '#3b82f6', icon: '◉' },
-                  { status: 'Pending', key: 'pending', color: '#f59e0b', icon: '⏱' },
-                  { status: 'Cancelled', key: 'cancelled', color: '#ef4444', icon: '✕' }
-                ].map(item => {
-                  const count = bookingAnalytics.statusBreakdown?.[item.key] || 0;
-                  const percentage = ((count / (bookingAnalytics.totalBookings || 1)) * 100);
-                  
-                  return (
-                    <div key={item.status} className="status-bar">
-                      <div className="status-header">
-                        <span className="status-icon" style={{ color: item.color }}>{item.icon}</span>
-                        <span className="status-label">{item.status}</span>
-                        <span className="status-count">{count}</span>
-                      </div>
-                      <div className="status-bar-container">
-                        <div 
-                          className="status-bar-fill" 
-                          style={{ 
-                            width: `${percentage}%`,
-                            background: item.color
-                          }}
-                        ></div>
-                      </div>
-                      <div className="status-percentage">{percentage.toFixed(1)}%</div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div style={{ height: '280px', marginTop: '10px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Completed', value: bookingAnalytics.statusBreakdown?.completed || 0 },
+                      { name: 'Confirmed', value: bookingAnalytics.statusBreakdown?.confirmed || 0 },
+                      { name: 'Pending', value: bookingAnalytics.statusBreakdown?.pending || 0 },
+                      { name: 'Cancelled', value: bookingAnalytics.statusBreakdown?.cancelled || 0 }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    <Cell fill="#10b981" />
+                    <Cell fill="#3b82f6" />
+                    <Cell fill="#f59e0b" />
+                    <Cell fill="#ef4444" />
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                  <Legend layout="horizontal" verticalAlign="bottom" align="center" iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-            <div className="chart-summary">
+            <div className="chart-summary" style={{ marginTop: '15px' }}>
               Total Bookings: <strong>{bookingAnalytics.totalBookings || 0}</strong>
               {' • '}
               Cancellation Rate: <strong>{(bookingAnalytics.cancellationRate || 0).toFixed(1)}%</strong>

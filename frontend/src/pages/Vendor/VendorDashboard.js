@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { vendorAPI } from '../../services/vendorAPI';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorModal from '../../components/ErrorModal/ErrorModal';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './VendorDashboard.css';
 
 const VendorDashboard = () => {
@@ -322,22 +323,23 @@ const VendorDashboard = () => {
       {stats?.weeklyRevenue && stats.weeklyRevenue.length > 0 && (
         <div className="section">
           <h2>Weekly Revenue</h2>
-          <div className="revenue-chart">
-            {stats.weeklyRevenue.map(data => {
-              const maxAmount = Math.max(...stats.weeklyRevenue.map(d => d.amount), 1); // Prevent division by zero
-              const heightPercent = maxAmount > 0 ? (data.amount / maxAmount) * 100 : 0;
-              return (
-                <div key={data.date} className="chart-bar">
-                  <div 
-                    className="bar" 
-                    style={{ height: `${heightPercent}%` }}
-                  >
-                    <span className="bar-value">Rs.{data.amount || 0}</span>
-                  </div>
-                  <span className="bar-label">{new Date(data.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                </div>
-              );
-            })}
+          <div className="revenue-chart" style={{ height: '350px', padding: '20px 0' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.weeklyRevenue.map(d => ({
+                ...d,
+                day: new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' })
+              }))}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="day" tick={{fill: '#6b7280'}} tickLine={false} axisLine={false} />
+                <YAxis tick={{fill: '#6b7280'}} tickLine={false} axisLine={false} tickFormatter={(value) => `Rs.${value}`} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  cursor={{ fill: '#f3f4f6' }}
+                  formatter={(value) => [`Rs.${value}`, 'Revenue']}
+                />
+                <Bar dataKey="amount" name="Revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}

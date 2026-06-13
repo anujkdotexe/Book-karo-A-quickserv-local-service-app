@@ -76,9 +76,9 @@ const Contact = () => {
     
     try {
       // Submit contact form to backend
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+      const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:8081';
       
-      const response = await fetch(`${API_BASE_URL}/api/v1/contact`, {
+      const response = await fetch(`${baseUrl}/api/v1/public/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

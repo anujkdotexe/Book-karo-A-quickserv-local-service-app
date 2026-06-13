@@ -44,25 +44,20 @@ public class RefundService {
      */
     public BigDecimal calculateRefundAmount(Booking booking) {
         LocalDateTime bookingDateTime = booking.getScheduledAt();
+        LocalDateTime cancellationTime = LocalDateTime.now();
         
-        // Use payment creation time (when payment was made) for calculation
-        // This is fairer to vendors - 24 hours from payment, not from cancellation request
-        LocalDateTime paymentTime = booking.getPayment() != null && booking.getPayment().getCreatedAt() != null
-                ? booking.getPayment().getCreatedAt()
-                : LocalDateTime.now();
-        
-        Duration timeFromPaymentToBooking = Duration.between(paymentTime, bookingDateTime);
-        long hoursFromPaymentToBooking = timeFromPaymentToBooking.toHours();
+        Duration timeUntilService = Duration.between(cancellationTime, bookingDateTime);
+        long hoursUntilService = timeUntilService.toHours();
         
         BigDecimal totalAmount = booking.getPriceTotal();
         
-        // Calculate refund based on time between payment and scheduled booking
-        if (hoursFromPaymentToBooking >= 24) {
-            return totalAmount; // Full refund if >= 24 hours
-        } else if (hoursFromPaymentToBooking >= 12) {
-            return totalAmount.multiply(BigDecimal.valueOf(0.5)); // 50% refund if >= 12 hours
+        // Calculate refund based on time between cancellation request and scheduled service
+        if (hoursUntilService >= 24) {
+            return totalAmount; // Full refund if >= 24 hours notice
+        } else if (hoursUntilService >= 12) {
+            return totalAmount.multiply(BigDecimal.valueOf(0.5)); // 50% refund if >= 12 hours notice
         } else {
-            return BigDecimal.ZERO; // No refund if < 12 hours
+            return BigDecimal.ZERO; // No refund if < 12 hours notice
         }
     }
 
@@ -74,6 +69,12 @@ public class RefundService {
             throw new UnauthorizedException("You can only request refunds for your own bookings");
         }
         
+        // Ensure booking has a successful payment before allowing refund
+        if (booking.getPaymentStatus() != Booking.PaymentStatus.PAID && 
+            booking.getPaymentStatus() != Booking.PaymentStatus.REFUNDED) {
+            throw new BadRequestException("Cannot request a refund for an unpaid booking");
+        }
+        
         if (booking.getStatus() == Booking.BookingStatus.CANCELLED) {
             throw new ConflictException("Booking is already cancelled");
         }
@@ -81,6 +82,9 @@ public class RefundService {
         if (booking.getStatus() == Booking.BookingStatus.COMPLETED) {
             throw new BadRequestException("Cannot refund completed bookings");
         }
+        
+        Payment payment = paymentRepository.findByBookingId(booking.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("No payment found for this booking to refund"));
         
         refundRepository.findByBookingId(booking.getId()).ifPresent(refund -> {
             throw new ConflictException("Refund request already exists for this booking");
@@ -94,6 +98,7 @@ public class RefundService {
         
         Refund refund = new Refund();
         refund.setBooking(booking);
+        refund.setPayment(payment);
         refund.setAmount(refundAmount);
         refund.setReason(request.getReason());
         refund.setStatus(Refund.RefundStatus.PENDING);
@@ -159,9 +164,12 @@ public class RefundService {
             
             // CRITICAL FIX #169: Update payment status to REFUNDED
             Payment payment = refund.getPayment();
-            if (payment != null && "SUCCESS".equals(payment.getPaymentStatus())) {
+            if (payment != null) {
                 payment.setPaymentStatus("REFUNDED");
                 paymentRepository.save(payment);
+                
+                // Also update the booking payment status to reflect the refund
+                booking.setPaymentStatus(Booking.PaymentStatus.REFUNDED);
             }
             
             // Save both - if either fails, transaction will rollback both
@@ -213,6 +221,9 @@ public class RefundService {
         dto.setAmount(refund.getAmount().doubleValue());
         dto.setReason(refund.getReason());
         dto.setStatus(refund.getStatus().name());
+        if (refund.getPayment() != null) {
+            dto.setPaymentId(refund.getPayment().getId());
+        }
         dto.setProcessedAt(refund.getProcessedAt());
         dto.setCreatedAt(refund.getCreatedAt());
         dto.setUpdatedAt(refund.getUpdatedAt());

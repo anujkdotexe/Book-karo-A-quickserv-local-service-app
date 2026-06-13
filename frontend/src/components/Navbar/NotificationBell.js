@@ -97,9 +97,9 @@ const NotificationBell = () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:8081';
     // Append token to URL so JwtAuthenticationFilter can authorize the SSE connection
-    const eventSource = new EventSource(`${API_BASE_URL}/api/v1/notifications/stream?token=${token}`);
+    const eventSource = new EventSource(`${baseUrl}/api/v1/notifications/stream?token=${token}`);
 
     eventSource.addEventListener('NOTIFICATION', (event) => {
       try {

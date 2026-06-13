@@ -12,6 +12,7 @@ public class RefundResponseDto {
     private Double amount;
     private String reason;
     private String status;
+    private Long paymentId;
     private LocalDateTime processedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

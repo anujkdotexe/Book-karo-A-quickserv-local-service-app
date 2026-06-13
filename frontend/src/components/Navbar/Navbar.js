@@ -139,7 +139,7 @@ const Navbar = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8081'}/api/services/autocomplete?q=${encodeURIComponent(query)}&limit=8`,
+        `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:8081'}/api/v1/services/autocomplete?q=${encodeURIComponent(query)}&limit=8`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
