@@ -176,3 +176,6 @@ package-lock.json
 package.json
 .vercel
 .env*.local
+*.backup
+testcases.txt
+frontend/fix-env.js
