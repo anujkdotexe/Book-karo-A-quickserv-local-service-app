@@ -225,8 +225,13 @@
 }
 
 .default-badge::before {
-  content: "★";
-  font-size: 0.9rem;
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  margin-right: 4px;
 }
 
 /* Address Details Section */

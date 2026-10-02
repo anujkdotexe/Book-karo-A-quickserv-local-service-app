@@ -1,4 +1,6 @@
+# ==========================================
 # Java / Maven
+# ==========================================
 target/
 !.mvn/wrapper/maven-wrapper.jar
 *.class
@@ -6,40 +8,52 @@ target/
 *.jar
 *.war
 *.ear
-*.zip
-*.tar.gz
-*.rar
 .mvn/
 mvnw
 mvnw.cmd
 
-#Folders
-/AmazonQ
-/copilot
-
-# Node / React
+# ==========================================
+# Node / React / Vite
+# ==========================================
 node_modules/
-build/
+frontend/build/
+frontend/dist/
 dist/
-.env
-.env.*
-.env.local
-.env.development.local
-.env.test.local
-**/.env
-**/.env.*
-!**/.env.example
-!**/.env*.example
+build/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/package.json
-/package-lock.json
+.eslintcache
+.cache
 
-# MCP Servers (local only)
-mcp/
+# ==========================================
+# Environment & Secrets (Never commit)
+# ==========================================
+.env
+.env.*
+.env.local
+.env.*.local
+frontend/.env.local
+frontend/.env.*.local
+!**/.env.example
+*.pem
+*.key
+*.crt
+secrets/
+backend/src/main/resources/application-postgres.properties
+backend/src/main/resources/application-prod.properties
 
-# IDEs
+# ==========================================
+# Database Snapshots & Local CSVs
+# ==========================================
+csv files/
+database_backups/
+testcases.txt
+*.backup
+
+# ==========================================
+# IDEs & OS
+# ==========================================
 .idea/
 *.iml
 *.iws
@@ -49,133 +63,25 @@ mcp/
 .classpath
 .settings/
 *.sw?
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Logs
+# ==========================================
+# Python
+# ==========================================
+.venv/
+__pycache__/
+*.pyc
+
+# ==========================================
+# Temporary & Log Files
+# ==========================================
 logs/
 *.log
-
-# Temporary files
 *.tmp
 *.bak
 *.swp
-*~.nib
-*.orig
-
-# Database
-*.db
-*.sqlite
-
-# Generated CSV exports / snapshots
-csv files/*.csv
-database_backups/local_csv_export_*/
-database_backups/*.csv
-
-# Spring Boot
-application-*.properties
-!application.properties
-
-# Security (DO NOT COMMIT)
-*.pem
-*.key
-*.crt
-secrets/
-# Test coverage
 coverage/
 .nyc_output/
-
-# Package files
-*.tgz
-
-# Debug files
-npm-debug.log
-yarn-debug.log
-lerna-debug.log
-
-# Optional files
-.eslintcache
-.cache
-
-# Documentation (Archive)
-docs/archive/
-documentation/
-
-# Old test scripts
-test_user_module.ps1
-test_user_features.ps1
-
-# Internal development documentation (NOT for GitHub)
-.github/copilot-instructions.md
-PROPER_TESTING_RESULTS.md
-FINAL_STATUS_REPORT.md
-PRODUCTION_READY_STATUS.md
-PROJECT_STATUS.md
-AUTOMATED_TEST_RESULTS.md
-COMPREHENSIVE_TEST_RESULTS.md
-*_RESULTS.md
-*_STATUS*.md
-
-# Build artifacts (keep JAR for production)
-backend/target/bookaro-backend-*.jar.original
-backend/target/classes/
-backend/target/generated-sources/
-backend/target/generated-test-sources/
-backend/target/maven-archiver/
-backend/target/maven-status/
-backend/target/test-classes/
-!backend/target/bookaro-backend-*.jar
-
-# Frontend build artifacts
-frontend/build/
-frontend/.env.local
-frontend/npm-debug.log*
-frontend/yarn-error.log*
-SESSION_COMPLETE_REPORT.md
-TESTING_GUIDE.md
-.github/copilot-instructions.md
-UI_UX_ENHANCEMENT_SUMMARY.md
-.github/copilot-instructions.md
-.github/copilot-instructions.md
-NAVBAR_REDESIGN.md
-SESSION_4_CART_IMPLEMENTATION.md
-SESSION_5_COMPLETE.md
-.github/copilot-instructions.md
-DEPLOYMENT_GUIDE.md
-QUICK_DEPLOY.md
-.github/copilot-instructions.md
-COMPLETE_TODO_IMPLEMENTATION_SUMMARY.md
-.gitignore
-CONTENT_MANAGEMENT_SETUP.md
-IMPLEMENTATION_COMPLETE.md
-.gitignore
-OPTIMIZATION_COMPLETE.md
-COMPREHENSIVE_FEATURES_SUMMARY.md
-CONTENT_MANAGEMENT_TESTING.md
-SESSION_COMPLETION_REPORT.md
-TODO_COMPLETE_SUMMARY.md
-backend/DEPLOYMENT_OPTIMIZATION.md
-backend/BUILD_OPTIMIZATION.md
-CLEANUP_REPORT.md
-FINAL_CLEANUP_REPORT.md
-ISSUES_FIXED_SUMMARY.md
-TESTSPRITE_TESTING_GUIDE.md
-TESTSPRITE_SUMMARY.md
-BUG_FIXES_APPLIED.md
-.github/instructions/copilot-instructions.md
-changes.txt
-.amazonq/rules/bookkaro-rule.md
-backendoutput.md
-bugslist.md
-database_backups/contact_inquiries_table.sql
-database_backups/CREATE_PERFORMANCE_INDEXES.sql
-database_backups/mock_data_backup_20251031_192547.sql
-package-lock.json
-package.json
 .vercel
-.env*.local
-*.backup
-testcases.txt
-frontend/fix-env.js
+.github/java-upgrade/

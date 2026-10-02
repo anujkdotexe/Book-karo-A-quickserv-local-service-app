@@ -87,8 +87,6 @@ export const CartProvider = ({ children }) => {
       try {
         const response = await cartAPI.addToCart(service.id, 1);
         
-        console.log('Add to cart response:', response.data);
-        
         // Check if the backend returned success
         if (response.data && response.data.success === true) {
           // Refresh cart after successful addition

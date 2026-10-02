@@ -11,22 +11,29 @@ const Breadcrumb = ({ customItems }) => {
       <nav aria-label="Breadcrumb" className="breadcrumb-nav">
         <ol className="breadcrumb">
           <li className="breadcrumb-item">
-            <Link to="/">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <Link to="/" aria-label="Home">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
-              Home
+              <span>Home</span>
             </Link>
           </li>
           {customItems.map((item, index) => (
-            <li key={index} className="breadcrumb-item" aria-current={index === customItems.length - 1 ? 'page' : undefined}>
-              {item.path && index < customItems.length - 1 ? (
-                <Link to={item.path}>{item.label}</Link>
-              ) : (
-                <span>{item.label}</span>
-              )}
-            </li>
+            <React.Fragment key={index}>
+              <li className="breadcrumb-separator" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </li>
+              <li className="breadcrumb-item" aria-current={index === customItems.length - 1 ? 'page' : undefined}>
+                {item.path && index < customItems.length - 1 ? (
+                  <Link to={item.path}>{item.label}</Link>
+                ) : (
+                  <span>{item.label}</span>
+                )}
+              </li>
+            </React.Fragment>
           ))}
         </ol>
       </nav>
@@ -41,6 +48,7 @@ const Breadcrumb = ({ customItems }) => {
 
   const breadcrumbNameMap = {
     'services': 'Services',
+    'categories': 'Categories',
     'bookings': 'My Bookings',
     'cart': 'Cart',
     'favorites': 'Favorites',
@@ -57,12 +65,12 @@ const Breadcrumb = ({ customItems }) => {
     <nav aria-label="Breadcrumb" className="breadcrumb-nav">
       <ol className="breadcrumb">
         <li className="breadcrumb-item">
-          <Link to="/">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <Link to="/" aria-label="Home">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
-            Home
+            <span>Home</span>
           </Link>
         </li>
         {pathnames.map((name, index) => {
@@ -71,13 +79,20 @@ const Breadcrumb = ({ customItems }) => {
           const displayName = breadcrumbNameMap[name] || name.charAt(0).toUpperCase() + name.slice(1);
 
           return (
-            <li key={routeTo} className="breadcrumb-item" aria-current={isLast ? 'page' : undefined}>
-              {isLast ? (
-                <span>{displayName}</span>
-              ) : (
-                <Link to={routeTo}>{displayName}</Link>
-              )}
-            </li>
+            <React.Fragment key={routeTo}>
+              <li className="breadcrumb-separator" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </li>
+              <li className="breadcrumb-item" aria-current={isLast ? 'page' : undefined}>
+                {isLast ? (
+                  <span>{displayName}</span>
+                ) : (
+                  <Link to={routeTo}>{displayName}</Link>
+                )}
+              </li>
+            </React.Fragment>
           );
         })}
       </ol>

@@ -78,26 +78,7 @@ public class AdminController {
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<User> users = adminService.getAllUsers(pageable);
-        Page<UserDto> userDtos = users.map(user -> {
-            UserDto dto = new UserDto();
-            dto.setId(user.getId());
-            dto.setEmail(user.getEmail());
-            dto.setFullName(user.getFirstName() + " " + user.getLastName());
-            dto.setFirstName(user.getFirstName());
-            dto.setLastName(user.getLastName());
-            dto.setPhone(user.getPhone());
-            dto.setAddress(user.getAddress());
-            dto.setCity(user.getCity());
-            dto.setState(user.getState());
-            dto.setPostalCode(user.getPostalCode());
-            dto.setLatitude(user.getLatitude());
-            dto.setLongitude(user.getLongitude());
-            dto.setRole(user.getRole() != null ? user.getRole().name() : null);
-            dto.setIsActive(user.getIsActive());
-            dto.setCreatedAt(user.getCreatedAt());
-            dto.setUpdatedAt(user.getUpdatedAt());
-            return dto;
-        });
+        Page<UserDto> userDtos = users.map(this::convertToUserDto);
         PagedResponse<UserDto> pagedResponse = PagedResponse.from(userDtos);
         return ResponseEntity.ok(ApiResponse.success("Users retrieved successfully", pagedResponse));
     }
@@ -107,9 +88,10 @@ public class AdminController {
      * GET /api/v1/admin/users/search?q=john
      */
     @GetMapping("/users/search")
-    public ResponseEntity<ApiResponse<List<User>>> searchUsers(@RequestParam String q) {
+    public ResponseEntity<ApiResponse<List<UserDto>>> searchUsers(@RequestParam String q) {
         List<User> users = adminService.searchUsers(q);
-        return ResponseEntity.ok(ApiResponse.success("Search results retrieved successfully", users));
+        List<UserDto> userDtos = users.stream().map(this::convertToUserDto).toList();
+        return ResponseEntity.ok(ApiResponse.success("Search results retrieved successfully", userDtos));
     }
 
     /**
@@ -117,12 +99,12 @@ public class AdminController {
      * PUT /api/v1/admin/users/{id}/role
      */
     @PutMapping("/users/{id}/role")
-    public ResponseEntity<ApiResponse<User>> updateUserRole(
+    public ResponseEntity<ApiResponse<UserDto>> updateUserRole(
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
         User.UserRole newRole = User.UserRole.valueOf(request.get("role"));
         User user = adminService.updateUserRole(id, newRole);
-        return ResponseEntity.ok(ApiResponse.success("User role updated successfully", user));
+        return ResponseEntity.ok(ApiResponse.success("User role updated successfully", convertToUserDto(user)));
     }
 
     /**
@@ -130,9 +112,35 @@ public class AdminController {
      * PUT /api/v1/admin/users/{id}/toggle-status
      */
     @PutMapping("/users/{id}/toggle-status")
-    public ResponseEntity<ApiResponse<User>> toggleUserStatus(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserDto>> toggleUserStatus(@PathVariable Long id) {
         User user = adminService.toggleUserStatus(id);
-        return ResponseEntity.ok(ApiResponse.success("User status updated successfully", user));
+        return ResponseEntity.ok(ApiResponse.success("User status updated successfully", convertToUserDto(user)));
+    }
+
+    private UserDto convertToUserDto(User user) {
+        if (user == null) return null;
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        String name = user.getFullName();
+        if (name == null || name.isBlank()) {
+            name = (user.getFirstName() + " " + user.getLastName()).trim();
+        }
+        dto.setFullName(name);
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setPhone(user.getPhone());
+        dto.setAddress(user.getAddress());
+        dto.setCity(user.getCity());
+        dto.setState(user.getState());
+        dto.setPostalCode(user.getPostalCode());
+        dto.setLatitude(user.getLatitude());
+        dto.setLongitude(user.getLongitude());
+        dto.setRole(user.getRole() != null ? user.getRole().name() : null);
+        dto.setIsActive(user.getIsActive());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setUpdatedAt(user.getUpdatedAt());
+        return dto;
     }
 
     /**

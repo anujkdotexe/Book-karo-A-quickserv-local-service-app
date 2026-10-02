@@ -29,7 +29,7 @@ const Cart = lazy(() => import('../../pages/Cart/Cart'));
 const CartCheckout = lazy(() => import('../../pages/Cart/CartCheckout'));
 const Payment = lazy(() => import('../../pages/Payment/Payment'));
 const CartPayment = lazy(() => import('../../pages/Payment/CartPayment'));
-const RefundRequest = lazy(() => import('../../pages/RefundRequest'));
+const RefundRequest = lazy(() => import('../../pages/Refunds/RefundRequest'));
 
 // Vendor Pages (Lazy loaded)
 const VendorDashboard = lazy(() => import('../../pages/Vendor/VendorDashboard'));
@@ -109,21 +109,9 @@ const AppRoutes = () => {
             <NotificationList />
           </ProtectedRoute>
         } />
-        <Route path="/services" element={
-          <ProtectedRoute>
-            <Services />
-          </ProtectedRoute>
-        } />
-        <Route path="/categories" element={
-          <ProtectedRoute>
-            <CategoryBrowse />
-          </ProtectedRoute>
-        } />
-        <Route path="/services/:id" element={
-          <ProtectedRoute>
-            <ServiceDetail />
-          </ProtectedRoute>
-        } />
+        <Route path="/services" element={<Services />} />
+        <Route path="/categories" element={<CategoryBrowse />} />
+        <Route path="/services/:id" element={<ServiceDetail />} />
         <Route path="/bookings" element={
           <ProtectedRoute allowedRoles={['USER']}>
             <Bookings />

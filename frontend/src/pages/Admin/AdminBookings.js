@@ -13,6 +13,8 @@ const AdminBookings = () => {
   const [filter, setFilter] = useState('ALL');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [sortKey, setSortKey] = useState('id');
+  const [sortDir, setSortDir] = useState('ASC');
   const [statusCounts, setStatusCounts] = useState({
     ALL: 0,
     PENDING: 0,
@@ -20,6 +22,55 @@ const AdminBookings = () => {
     COMPLETED: 0,
     CANCELLED: 0
   });
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortKey(key);
+      setSortDir('ASC');
+    }
+  };
+
+  const renderSortIndicator = (key) => {
+    if (sortKey !== key) return <span className="sort-indicator neutral" aria-hidden="true">↕</span>;
+    return <span className="sort-indicator active" aria-hidden="true">{sortDir === 'ASC' ? '▲' : '▼'}</span>;
+  };
+
+  const getSortedBookings = () => {
+    if (!bookings || !Array.isArray(bookings)) return [];
+    return [...bookings].sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'customer') {
+        aVal = (a.userName || '').toLowerCase();
+        bVal = (b.userName || '').toLowerCase();
+      } else if (sortKey === 'vendor') {
+        aVal = (a.vendorName || '').toLowerCase();
+        bVal = (b.vendorName || '').toLowerCase();
+      } else if (sortKey === 'service') {
+        aVal = (a.serviceName || '').toLowerCase();
+        bVal = (b.serviceName || '').toLowerCase();
+      } else if (sortKey === 'dateTime') {
+        aVal = new Date(`${a.bookingDate || ''} ${a.bookingTime || '00:00'}`).getTime() || 0;
+        bVal = new Date(`${b.bookingDate || ''} ${b.bookingTime || '00:00'}`).getTime() || 0;
+      } else if (sortKey === 'amount') {
+        aVal = Number(a.totalAmount) || 0;
+        bVal = Number(b.totalAmount) || 0;
+      } else if (sortKey === 'id') {
+        aVal = Number(a.id) || 0;
+        bVal = Number(b.id) || 0;
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDir === 'ASC' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'ASC' ? 1 : -1;
+      return 0;
+    });
+  };
 
   useEffect(() => {
     loadBookings();
@@ -257,18 +308,32 @@ const AdminBookings = () => {
             <table className="bookings-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Customer</th>
-                  <th>Vendor</th>
-                  <th>Service</th>
-                  <th>Date & Time</th>
-                  <th>Amount</th>
-                  <th>Status</th>
+                  <th onClick={() => handleSort('id')} className="sortable-header" title="Sort by ID">
+                    ID {renderSortIndicator('id')}
+                  </th>
+                  <th onClick={() => handleSort('customer')} className="sortable-header" title="Sort by Customer">
+                    Customer {renderSortIndicator('customer')}
+                  </th>
+                  <th onClick={() => handleSort('vendor')} className="sortable-header" title="Sort by Vendor">
+                    Vendor {renderSortIndicator('vendor')}
+                  </th>
+                  <th onClick={() => handleSort('service')} className="sortable-header" title="Sort by Service">
+                    Service {renderSortIndicator('service')}
+                  </th>
+                  <th onClick={() => handleSort('dateTime')} className="sortable-header" title="Sort by Date & Time">
+                    Date & Time {renderSortIndicator('dateTime')}
+                  </th>
+                  <th onClick={() => handleSort('amount')} className="sortable-header" title="Sort by Amount">
+                    Amount {renderSortIndicator('amount')}
+                  </th>
+                  <th onClick={() => handleSort('status')} className="sortable-header" title="Sort by Status">
+                    Status {renderSortIndicator('status')}
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bookings.map(booking => (
+                {getSortedBookings().map(booking => (
                   <tr key={booking.id}>
                     <td>#{booking.id}</td>
                     <td>

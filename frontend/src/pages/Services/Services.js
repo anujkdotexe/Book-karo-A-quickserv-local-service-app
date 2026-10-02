@@ -7,25 +7,15 @@ import Breadcrumb from '../../components/Breadcrumb/Breadcrumb';
 import './Services.css';
 
 // Utility function to sanitize input (prevent XSS)
+// Safe query trimming for user search inputs
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return input;
-  // Comprehensive HTML encoding to prevent XSS
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/`/g, '&#x60;')
-    .replace(/\//g, '&#x2F;')
-    .trim();
+  return input.trim();
 };
 
-// Separate sanitization for location fields (preserve hyphens and commas)
 const sanitizeLocation = (input) => {
   if (typeof input !== 'string') return input;
-  // Allow letters, numbers, spaces, hyphens, and commas for proper location names like "Anna Nagar, Chennai"
-  return input.replace(/[^a-zA-Z0-9\s,-]/g, '').trim();
+  return input.trim();
 };
 
 const Services = () => {
@@ -427,14 +417,13 @@ const Services = () => {
     <div className="services-page">
       <div className="services-hero">
         <div className="container">
+          <Breadcrumb customItems={[{ label: 'Services' }]} />
           <h1 className="fade-in">Find Your Perfect Service</h1>
           <p className="fade-in">Browse through our curated list of quality service providers</p>
         </div>
       </div>
 
       <div className="container">
-        <Breadcrumb customItems={[{ label: 'Services' }]} />
-        
         {/* ARIA Live Region for Search Results Announcement */}
         <div aria-live="polite" aria-atomic="true" className="sr-only">
           {!loading && !error && services.length > 0 && (
@@ -689,8 +678,8 @@ const Services = () => {
                     aria-label={`View details for ${service.serviceName}`}
                   >
                     <div className="service-header">
-                      <h3>{service.serviceName}</h3>
                       <span className="service-category">{service.category}</span>
+                      <h3>{service.serviceName}</h3>
                     </div>
                     <p className="service-description" title={service.description}>
                       {service.description && service.description.length > 120

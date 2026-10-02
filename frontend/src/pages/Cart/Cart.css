@@ -293,7 +293,7 @@
 
 @media (max-width: 768px) {
   .cart-page {
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-sm);
   }
 
   .cart-header h1 {
@@ -304,16 +304,35 @@
     padding: var(--spacing-md);
   }
 
+  .cart-item-actions {
+    margin-top: var(--spacing-sm);
+  }
+
+  .cart-item-actions button {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+  }
+
   .cart-summary-card {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
+  }
+
+  .btn-checkout {
+    min-height: 48px;
+    font-size: 1rem;
   }
 
   .empty-cart-card {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl) var(--spacing-md);
   }
 
   .empty-cart-card svg {
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
+  }
+
+  .empty-cart-card h2 {
+    font-size: 1.5rem;
   }
 }

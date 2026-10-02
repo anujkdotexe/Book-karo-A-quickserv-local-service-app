@@ -38,25 +38,26 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #dc3545;
+  background: var(--danger-red);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: 500;
   color: white;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .btn-delete:hover {
-  background: #c82333;
+  background: var(--danger-dark);
 }
 
 .notification-detail-card {
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
   padding: 3rem;
+  border: 1px solid var(--border-color);
 }
 
 .notification-detail-icon {
@@ -66,7 +67,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--navy-blue) 0%, var(--royal-blue) 100%);
   border-radius: 50%;
   color: white;
 }
@@ -82,9 +83,9 @@
 
 .notification-type-badge {
   padding: 0.5rem 1rem;
-  background: #007bff;
+  background: var(--royal-blue);
   color: white;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;

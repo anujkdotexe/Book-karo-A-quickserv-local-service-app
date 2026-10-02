@@ -1,6 +1,7 @@
 {
   "name": "book-karo-frontend",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "description": "BOOK-KARO - Service Marketplace Frontend",
   "dependencies": {
@@ -13,17 +14,20 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react-swc": "^3.11.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.9.9",
     "vite": "^5.0.10"
   },
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "preview": "vite preview"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,css}\""
   },
   "browserslist": {
     "production": [

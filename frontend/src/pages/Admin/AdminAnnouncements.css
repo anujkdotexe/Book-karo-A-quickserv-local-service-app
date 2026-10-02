@@ -60,6 +60,33 @@
   border-bottom: 2px solid #dee2e6;
 }
 
+.announcements-table th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.announcements-table th.sortable-header:hover {
+  background-color: #edf2f7;
+}
+
+.sort-indicator {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+
+.sort-indicator.neutral {
+  opacity: 0.4;
+}
+
+.sort-indicator.active {
+  color: var(--royal-blue, #2563eb);
+  font-weight: 800;
+}
+
 .announcements-table td {
   padding: 15px;
   border-bottom: 1px solid #dee2e6;

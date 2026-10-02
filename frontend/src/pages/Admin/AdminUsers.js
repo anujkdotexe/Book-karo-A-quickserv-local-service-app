@@ -12,7 +12,49 @@ const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [sortKey, setSortKey] = useState('id');
+  const [sortDir, setSortDir] = useState('ASC');
   const modal = useModal();
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortKey(key);
+      setSortDir('ASC');
+    }
+  };
+
+  const renderSortIndicator = (key) => {
+    if (sortKey !== key) return <span className="sort-indicator neutral" aria-hidden="true">↕</span>;
+    return <span className="sort-indicator active" aria-hidden="true">{sortDir === 'ASC' ? '▲' : '▼'}</span>;
+  };
+
+  const getSortedUsers = () => {
+    if (!users || !Array.isArray(users)) return [];
+    return [...users].sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'name') {
+        aVal = `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase();
+        bVal = `${b.firstName || ''} ${b.lastName || ''}`.trim().toLowerCase();
+      } else if (sortKey === 'createdAt') {
+        aVal = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        bVal = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      } else if (sortKey === 'status') {
+        aVal = a.isActive ? 1 : 0;
+        bVal = b.isActive ? 1 : 0;
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDir === 'ASC' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'ASC' ? 1 : -1;
+      return 0;
+    });
+  };
 
   const loadUsers = useCallback(async () => {
     try {
@@ -163,21 +205,35 @@ const AdminUsers = () => {
         <table className="users-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Joined</th>
+              <th onClick={() => handleSort('id')} className="sortable-header" title="Sort by ID">
+                ID {renderSortIndicator('id')}
+              </th>
+              <th onClick={() => handleSort('name')} className="sortable-header" title="Sort by Name">
+                Name {renderSortIndicator('name')}
+              </th>
+              <th onClick={() => handleSort('email')} className="sortable-header" title="Sort by Email">
+                Email {renderSortIndicator('email')}
+              </th>
+              <th onClick={() => handleSort('phone')} className="sortable-header" title="Sort by Phone">
+                Phone {renderSortIndicator('phone')}
+              </th>
+              <th onClick={() => handleSort('role')} className="sortable-header" title="Sort by Role">
+                Role {renderSortIndicator('role')}
+              </th>
+              <th onClick={() => handleSort('status')} className="sortable-header" title="Sort by Status">
+                Status {renderSortIndicator('status')}
+              </th>
+              <th onClick={() => handleSort('createdAt')} className="sortable-header" title="Sort by Joined Date">
+                Joined {renderSortIndicator('createdAt')}
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
+            {getSortedUsers().map(user => (
               <tr key={user.id}>
-                <td>#{user.id}</td>
-                <td>
+                <td data-label="User ID">#{user.id}</td>
+                <td data-label="Name">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <strong>{user.firstName} {user.lastName}</strong>
                     <span className={`role-badge role-${user.role.toLowerCase()}`}>
@@ -185,9 +241,9 @@ const AdminUsers = () => {
                     </span>
                   </div>
                 </td>
-                <td>{user.email}</td>
-                <td>{user.phone || 'N/A'}</td>
-                <td>
+                <td data-label="Email">{user.email}</td>
+                <td data-label="Phone">{user.phone || 'N/A'}</td>
+                <td data-label="Role">
                   <select
                     value={user.role}
                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
@@ -198,13 +254,13 @@ const AdminUsers = () => {
                     <option value="ADMIN">ADMIN</option>
                   </select>
                 </td>
-                <td>
+                <td data-label="Status">
                   <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
                     {user.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td>
+                <td data-label="Joined">{new Date(user.createdAt).toLocaleDateString()}</td>
+                <td data-label="Actions">
                   <div className="user-actions">
                     <button
                       onClick={() => handleToggleStatus(user.id)}

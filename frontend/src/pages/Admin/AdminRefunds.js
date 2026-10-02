@@ -11,6 +11,57 @@ const AdminRefunds = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
+  const [sortKey, setSortKey] = useState('id');
+  const [sortDir, setSortDir] = useState('ASC');
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortKey(key);
+      setSortDir('ASC');
+    }
+  };
+
+  const renderSortIndicator = (key) => {
+    if (sortKey !== key) return <span className="sort-indicator neutral" aria-hidden="true">↕</span>;
+    return <span className="sort-indicator active" aria-hidden="true">{sortDir === 'ASC' ? '▲' : '▼'}</span>;
+  };
+
+  const getSortedRefunds = () => {
+    if (!refunds || !Array.isArray(refunds)) return [];
+    return [...refunds].sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'bookingRef') {
+        aVal = (a.booking?.bookingReference || `BK-${a.booking?.id}` || '').toLowerCase();
+        bVal = (b.booking?.bookingReference || `BK-${b.booking?.id}` || '').toLowerCase();
+      } else if (sortKey === 'customer') {
+        aVal = (a.booking?.user?.fullName || a.booking?.user?.email || '').toLowerCase();
+        bVal = (b.booking?.user?.fullName || b.booking?.user?.email || '').toLowerCase();
+      } else if (sortKey === 'amount') {
+        aVal = Number(a.amount) || 0;
+        bVal = Number(b.amount) || 0;
+      } else if (sortKey === 'id') {
+        aVal = Number(a.id) || 0;
+        bVal = Number(b.id) || 0;
+      } else if (sortKey === 'requestedAt') {
+        aVal = a.requestedAt ? new Date(a.requestedAt).getTime() : 0;
+        bVal = b.requestedAt ? new Date(b.requestedAt).getTime() : 0;
+      } else if (sortKey === 'processedAt') {
+        aVal = a.processedAt ? new Date(a.processedAt).getTime() : 0;
+        bVal = b.processedAt ? new Date(b.processedAt).getTime() : 0;
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDir === 'ASC' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'ASC' ? 1 : -1;
+      return 0;
+    });
+  };
 
   useEffect(() => {
     fetchRefunds();
@@ -148,19 +199,35 @@ const AdminRefunds = () => {
           <table className="refunds-table">
             <thead>
               <tr>
-                <th>Refund ID</th>
-                <th>Booking ID</th>
-                <th>Customer</th>
-                <th>Amount</th>
-                <th>Reason</th>
-                <th>Status</th>
-                <th>Requested At</th>
-                <th>Processed At</th>
+                <th onClick={() => handleSort('id')} className="sortable-header" title="Sort by Refund ID">
+                  Refund ID {renderSortIndicator('id')}
+                </th>
+                <th onClick={() => handleSort('bookingRef')} className="sortable-header" title="Sort by Booking ID">
+                  Booking ID {renderSortIndicator('bookingRef')}
+                </th>
+                <th onClick={() => handleSort('customer')} className="sortable-header" title="Sort by Customer">
+                  Customer {renderSortIndicator('customer')}
+                </th>
+                <th onClick={() => handleSort('amount')} className="sortable-header" title="Sort by Amount">
+                  Amount {renderSortIndicator('amount')}
+                </th>
+                <th onClick={() => handleSort('reason')} className="sortable-header" title="Sort by Reason">
+                  Reason {renderSortIndicator('reason')}
+                </th>
+                <th onClick={() => handleSort('status')} className="sortable-header" title="Sort by Status">
+                  Status {renderSortIndicator('status')}
+                </th>
+                <th onClick={() => handleSort('requestedAt')} className="sortable-header" title="Sort by Requested Date">
+                  Requested At {renderSortIndicator('requestedAt')}
+                </th>
+                <th onClick={() => handleSort('processedAt')} className="sortable-header" title="Sort by Processed Date">
+                  Processed At {renderSortIndicator('processedAt')}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {refunds.map(refund => (
+              {getSortedRefunds().map(refund => (
                 <tr key={refund.id}>
                   <td>#{refund.id}</td>
                   <td>

@@ -159,7 +159,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="stat-card success">
+        <div className="stat-card success clickable" onClick={() => navigate('/admin/analytics')}>
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -175,7 +175,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="stat-card info">
+        <div className="stat-card info clickable" onClick={() => navigate('/admin/analytics')}>
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -207,7 +207,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="stat-card success clickable" onClick={() => navigate('/admin/payments')}>
+        <div className="stat-card success clickable" onClick={() => navigate('/admin/analytics')}>
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
@@ -223,7 +223,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="stat-card danger clickable" onClick={() => navigate('/admin/payments')}>
+        <div className="stat-card danger clickable" onClick={() => navigate('/admin/refunds')}>
           <div className="stat-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -292,7 +292,11 @@ const AdminDashboard = () => {
                 onClick={() => navigate('/admin/analytics')} 
                 className="view-all-btn"
               >
-                View Analytics →
+                <span>View Analytics</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
               </button>
             </div>
             <div className="vendor-list">
@@ -324,7 +328,11 @@ const AdminDashboard = () => {
                 onClick={() => navigate('/admin/analytics')} 
                 className="view-all-btn"
               >
-                View Analytics →
+                <span>View Analytics</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
               </button>
             </div>
             <div className="services-list">

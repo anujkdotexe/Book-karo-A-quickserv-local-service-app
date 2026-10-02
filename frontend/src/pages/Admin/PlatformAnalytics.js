@@ -315,7 +315,12 @@ const OverviewTab = ({
           <div className="stat-content">
             <h2>Avg Rating</h2>
             <div>
-              <span className="stat-value">{(customerExperience.averageRating || 0).toFixed(1)} ★</span>
+              <span className="stat-value">
+                {(customerExperience.averageRating || 0).toFixed(1)}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" style={{ marginLeft: 4, verticalAlign: 'middle' }} aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </span>
               <span className="stat-label">
                 Based on {(customerExperience.ratingDistribution?.fiveStar || 0) + 
                            (customerExperience.ratingDistribution?.fourStar || 0) + 
@@ -601,7 +606,12 @@ const OverviewTab = ({
                     <div className="item-stats">
                       <div className="stat-pill bookings">{formatNumber(service.totalBookings)} bookings</div>
                       <div className="stat-pill revenue">{formatCurrency(service.totalRevenue)}</div>
-                      <div className="stat-pill rating">★ {(service.averageRating || 0).toFixed(1)}</div>
+                      <div className="stat-pill rating">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" style={{ marginRight: 3, verticalAlign: 'middle' }} aria-hidden="true">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        {(service.averageRating || 0).toFixed(1)}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -631,7 +641,12 @@ const OverviewTab = ({
                     <div className="item-stats">
                       <div className="stat-pill revenue">{formatCurrency(vendor.totalRevenue)}</div>
                       <div className="stat-pill bookings">{formatNumber(vendor.totalBookings)} bookings</div>
-                      <div className="stat-pill rating">★ {(vendor.averageRating || 0).toFixed(1)}</div>
+                      <div className="stat-pill rating">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" style={{ marginRight: 3, verticalAlign: 'middle' }} aria-hidden="true">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        {(vendor.averageRating || 0).toFixed(1)}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -908,7 +923,12 @@ const VendorsTab = ({ vendorAnalytics, formatNumber, formatCurrency }) => {
           <div className="stat-content">
             <h2>Avg Rating</h2>
             <div>
-              <span className="stat-value">{(vendorAnalytics.averageVendorRating || 0).toFixed(1)} ★</span>
+              <span className="stat-value">
+                {(vendorAnalytics.averageVendorRating || 0).toFixed(1)}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" style={{ marginLeft: 4, verticalAlign: 'middle' }} aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </span>
               <span className="stat-label">Platform average</span>
             </div>
           </div>
@@ -1098,7 +1118,12 @@ const ServicesTab = ({ serviceAnalytics, revenueAnalytics, customerExperience, f
           <div className="stat-content">
             <h2>Avg Rating</h2>
             <div>
-              <span className="stat-value">{(serviceAnalytics.averageServiceRating || 0).toFixed(1)} ★</span>
+              <span className="stat-value">
+                {(serviceAnalytics.averageServiceRating || 0).toFixed(1)}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" style={{ marginLeft: 4, verticalAlign: 'middle' }} aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </span>
               <span className="stat-label">Service average</span>
             </div>
           </div>
@@ -1583,7 +1608,7 @@ const RevenueTab = ({ revenueAnalytics, categoryRevenues, totalCategoryRevenue, 
           <div className="distribution-item commission">
             <div className="distribution-bar" style={{ 
               width: `${(revenueAnalytics.commissionPercentage || 0)}%`,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              background: 'linear-gradient(135deg, var(--navy-blue) 0%, var(--royal-blue) 100%)'
             }}>
               <span className="distribution-label">Platform Commission</span>
               <span className="distribution-value">{formatCurrency(revenueAnalytics.platformCommission)}</span>
@@ -1592,7 +1617,7 @@ const RevenueTab = ({ revenueAnalytics, categoryRevenues, totalCategoryRevenue, 
           <div className="distribution-item payout">
             <div className="distribution-bar" style={{ 
               width: `${100 - (revenueAnalytics.commissionPercentage || 0)}%`,
-              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+              background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
             }}>
               <span className="distribution-label">Vendor Payout</span>
               <span className="distribution-value">{formatCurrency(revenueAnalytics.vendorPayout)}</span>

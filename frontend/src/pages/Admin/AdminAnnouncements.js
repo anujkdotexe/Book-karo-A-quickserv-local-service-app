@@ -174,9 +174,60 @@ const AdminAnnouncements = () => {
     setEditingAnnouncement(null);
   };
 
+  const [sortKey, setSortKey] = useState('id');
+  const [sortDir, setSortDir] = useState('ASC');
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortKey(key);
+      setSortDir('ASC');
+    }
+  };
+
+  const renderSortIndicator = (key) => {
+    if (sortKey !== key) return <span className="sort-indicator neutral" aria-hidden="true">↕</span>;
+    return <span className="sort-indicator active" aria-hidden="true">{sortDir === 'ASC' ? '▲' : '▼'}</span>;
+  };
+
   const filteredAnnouncements = announcements.filter(
     (announcement) => filterPriority === 'ALL' || announcement.priority === parseInt(filterPriority)
   );
+
+  const getSortedAnnouncements = () => {
+    return [...filteredAnnouncements].sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'id') {
+        aVal = Number(a.id) || 0;
+        bVal = Number(b.id) || 0;
+      } else if (sortKey === 'priority') {
+        aVal = Number(a.priority) || 0;
+        bVal = Number(b.priority) || 0;
+      } else if (sortKey === 'type') {
+        aVal = (a.announcementType || '').toLowerCase();
+        bVal = (b.announcementType || '').toLowerCase();
+      } else if (sortKey === 'status') {
+        aVal = a.isActive ? 1 : 0;
+        bVal = b.isActive ? 1 : 0;
+      } else if (sortKey === 'startsAt') {
+        aVal = a.startsAt ? new Date(a.startsAt).getTime() : 0;
+        bVal = b.startsAt ? new Date(b.startsAt).getTime() : 0;
+      } else if (sortKey === 'endsAt') {
+        aVal = a.endsAt ? new Date(a.endsAt).getTime() : 0;
+        bVal = b.endsAt ? new Date(b.endsAt).getTime() : 0;
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDir === 'ASC' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'ASC' ? 1 : -1;
+      return 0;
+    });
+  };
 
   const getTypeColor = (announcementType) => {
     switch (announcementType) {
@@ -218,14 +269,30 @@ const AdminAnnouncements = () => {
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Type</th>
-              <th>Audience</th>
-              <th>Priority</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Status</th>
+              <th onClick={() => handleSort('id')} className="sortable-header" title="Sort by ID">
+                ID {renderSortIndicator('id')}
+              </th>
+              <th onClick={() => handleSort('title')} className="sortable-header" title="Sort by Title">
+                Title {renderSortIndicator('title')}
+              </th>
+              <th onClick={() => handleSort('type')} className="sortable-header" title="Sort by Type">
+                Type {renderSortIndicator('type')}
+              </th>
+              <th onClick={() => handleSort('audience')} className="sortable-header" title="Sort by Audience">
+                Audience {renderSortIndicator('audience')}
+              </th>
+              <th onClick={() => handleSort('priority')} className="sortable-header" title="Sort by Priority">
+                Priority {renderSortIndicator('priority')}
+              </th>
+              <th onClick={() => handleSort('startsAt')} className="sortable-header" title="Sort by Start Date">
+                Start Date {renderSortIndicator('startsAt')}
+              </th>
+              <th onClick={() => handleSort('endsAt')} className="sortable-header" title="Sort by End Date">
+                End Date {renderSortIndicator('endsAt')}
+              </th>
+              <th onClick={() => handleSort('status')} className="sortable-header" title="Sort by Status">
+                Status {renderSortIndicator('status')}
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -237,7 +304,7 @@ const AdminAnnouncements = () => {
                 </td>
               </tr>
             ) : (
-              filteredAnnouncements.map((announcement) => (
+              getSortedAnnouncements().map((announcement) => (
                 <tr key={announcement.id}>
                   <td>{announcement.id}</td>
                   <td>
