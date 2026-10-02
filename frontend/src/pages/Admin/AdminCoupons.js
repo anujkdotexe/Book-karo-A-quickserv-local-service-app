@@ -14,6 +14,8 @@ const AdminCoupons = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sortKey, setSortKey] = useState('code');
+  const [sortDir, setSortDir] = useState('ASC');
   const [formData, setFormData] = useState({
     code: '',
     description: '',
@@ -62,6 +64,56 @@ const AdminCoupons = () => {
     
     setFilteredCoupons(filtered);
     setCurrentPage(1);
+  };
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortKey(key);
+      setSortDir('ASC');
+    }
+  };
+
+  const renderSortIndicator = (key) => {
+    if (sortKey !== key) {
+      return <span className="sort-indicator neutral" aria-hidden="true">↕</span>;
+    }
+    return <span className="sort-indicator active" aria-hidden="true">{sortDir === 'ASC' ? '▲' : '▼'}</span>;
+  };
+
+  const getSortedCoupons = () => {
+    return [...filteredCoupons].sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'validPeriod') {
+        aVal = a.endsAt ? new Date(a.endsAt).getTime() : 0;
+        bVal = b.endsAt ? new Date(b.endsAt).getTime() : 0;
+      } else if (sortKey === 'usage') {
+        aVal = a.usageCount || 0;
+        bVal = b.usageCount || 0;
+      } else if (sortKey === 'value') {
+        aVal = Number(a.discountValue) || 0;
+        bVal = Number(b.discountValue) || 0;
+      } else if (sortKey === 'minOrder') {
+        aVal = Number(a.minOrderValue) || 0;
+        bVal = Number(b.minOrderValue) || 0;
+      } else if (sortKey === 'status') {
+        const now = new Date();
+        const aStatus = !a.isActive ? 2 : (a.endsAt && new Date(a.endsAt) < now ? 3 : 1);
+        const bStatus = !b.isActive ? 2 : (b.endsAt && new Date(b.endsAt) < now ? 3 : 1);
+        aVal = aStatus;
+        bVal = bStatus;
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDir === 'ASC' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'ASC' ? 1 : -1;
+      return 0;
+    });
   };
 
   const fetchCoupons = async () => {
@@ -241,8 +293,12 @@ const AdminCoupons = () => {
             <option value="expired">Expired</option>
             <option value="scheduled">Scheduled</option>
           </select>
-          <button className="btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-            <i className="fas fa-plus"></i> Create New Coupon
+          <button className="btn-primary create-coupon-btn" onClick={() => { resetForm(); setShowModal(true); }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create Coupon
           </button>
         </div>
       </div>
@@ -257,7 +313,7 @@ const AdminCoupons = () => {
           </div>
           <div className="stat-content">
             <h2>Total Coupons</h2>
-            <div>
+            <div className="stat-numbers">
               <span className="stat-value">{coupons.length}</span>
               <span className="stat-label">All Coupons</span>
             </div>
@@ -271,7 +327,7 @@ const AdminCoupons = () => {
           </div>
           <div className="stat-content">
             <h2>Active Coupons</h2>
-            <div>
+            <div className="stat-numbers">
               <span className="stat-value">{coupons.filter(c => c.isActive).length}</span>
               <span className="stat-label">Currently Active</span>
             </div>
@@ -288,7 +344,7 @@ const AdminCoupons = () => {
           </div>
           <div className="stat-content">
             <h2>Total Redemptions</h2>
-            <div>
+            <div className="stat-numbers">
               <span className="stat-value">{coupons.reduce((sum, c) => sum + (c.usageCount || 0), 0)}</span>
               <span className="stat-label">Times Used</span>
             </div>
@@ -303,7 +359,7 @@ const AdminCoupons = () => {
           </div>
           <div className="stat-content">
             <h2>Expired Coupons</h2>
-            <div>
+            <div className="stat-numbers">
               <span className="stat-value">{coupons.filter(c => c.endsAt && new Date(c.endsAt) < new Date()).length}</span>
               <span className="stat-label">Past End Date</span>
             </div>
@@ -315,22 +371,39 @@ const AdminCoupons = () => {
         <table className="coupons-table">
           <thead>
             <tr>
-              <th>Code</th>
-              <th>Description</th>
-              <th>Type</th>
-              <th>Value</th>
-              <th>Min Order</th>
-              <th>Valid Period</th>
-              <th>Usage</th>
-              <th>Status</th>
+              <th onClick={() => handleSort('code')} className="sortable-header" title="Sort by Code">
+                Code {renderSortIndicator('code')}
+              </th>
+              <th onClick={() => handleSort('description')} className="sortable-header" title="Sort by Description">
+                Description {renderSortIndicator('description')}
+              </th>
+              <th onClick={() => handleSort('discountType')} className="sortable-header" title="Sort by Type">
+                Type {renderSortIndicator('discountType')}
+              </th>
+              <th onClick={() => handleSort('value')} className="sortable-header" title="Sort by Value">
+                Value {renderSortIndicator('value')}
+              </th>
+              <th onClick={() => handleSort('minOrder')} className="sortable-header" title="Sort by Min Order">
+                Min Order {renderSortIndicator('minOrder')}
+              </th>
+              <th onClick={() => handleSort('validPeriod')} className="sortable-header" title="Sort by Valid Period">
+                Valid Period {renderSortIndicator('validPeriod')}
+              </th>
+              <th onClick={() => handleSort('usage')} className="sortable-header" title="Sort by Usage">
+                Usage {renderSortIndicator('usage')}
+              </th>
+              <th onClick={() => handleSort('status')} className="sortable-header" title="Sort by Status">
+                Status {renderSortIndicator('status')}
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {(() => {
+              const sortedCoupons = getSortedCoupons();
               const startIndex = (currentPage - 1) * itemsPerPage;
               const endIndex = startIndex + itemsPerPage;
-              const paginatedCoupons = filteredCoupons.slice(startIndex, endIndex);
+              const paginatedCoupons = sortedCoupons.slice(startIndex, endIndex);
               
               return paginatedCoupons.map(coupon => {
                 // Check if coupon is expired

@@ -117,7 +117,6 @@ const Contact = () => {
           subject: '',
           message: ''
         });
-        console.log('Contact form data (offline):', formData);
       } else {
         modal.error('Unable to submit contact form. Please try emailing us directly at support@bookkaro.com');
       }

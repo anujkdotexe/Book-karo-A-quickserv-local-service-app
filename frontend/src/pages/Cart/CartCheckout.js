@@ -240,14 +240,6 @@ const CartCheckout = () => {
     setLoading(true);
 
     try {
-      // Log checkout details for debugging
-      const selectedAddress = addresses.find(addr => addr.id === commonBookingData.addressId);
-      console.log('=== CHECKOUT DETAILS ===');
-      console.log('Selected Address:', selectedAddress);
-      console.log('Cart Items:', cartItems);
-      console.log('Booking Data:', commonBookingData);
-      console.log('========================');
-      
       // Navigate to payment page with cart data and booking details
       // Payment page will handle creating bookings after successful payment
       navigate('/payment/cart', {
@@ -340,7 +332,7 @@ const CartCheckout = () => {
                           <option key={addr.id} value={addr.id}>
                             {addr.label || 'Address'} - {addr.addressLine1}, {addr.city}, {addr.state} {addr.postalCode}
                             {addr.isDefault ? ' (Default)' : ''}
-                            {allServicesMatch ? ' ✓' : ''}
+                            {allServicesMatch ? ' [Serviceable]' : ''}
                           </option>
                         );
                       })}
@@ -472,7 +464,13 @@ const CartCheckout = () => {
                     <div className="summary-service-name">{item.name}</div>
                     <div className="summary-service-meta">
                       <span className="summary-service-vendor">by {item.vendorName || 'Vendor'}</span>
-                      <span className="summary-service-location">📍 {item.city}</span>
+                      <span className="summary-service-location">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, verticalAlign: 'middle' }} aria-hidden="true">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                          <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        {item.city}
+                      </span>
                     </div>
                   </div>
                   <div className="summary-service-price">₹{item.price}</div>
@@ -500,8 +498,12 @@ const CartCheckout = () => {
                     className="remove-coupon-btn" 
                     onClick={removeCoupon}
                     title="Remove coupon"
+                    aria-label="Remove coupon"
                   >
-                    ✕
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                   </button>
                 </span>
                 <span className="summary-amount discount-amount">-₹{discount}</span>

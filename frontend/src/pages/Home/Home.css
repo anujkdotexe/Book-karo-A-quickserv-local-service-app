@@ -130,54 +130,39 @@
 }
 
 .feature-icon-box {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   margin: 0 auto var(--spacing-md);
   background: linear-gradient(135deg, var(--royal-blue) 0%, #1d4ed8 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  color: var(--white);
   transition: all var(--transition-normal);
 }
 
 .feature-card:hover .feature-icon-box {
-  transform: scale(1.1);
+  transform: scale(1.08);
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }
 
-.icon-search::before,
-.icon-star::before,
-.icon-calendar::before,
-.icon-lock::before {
-  content: '';
-  width: 35px;
-  height: 35px;
-  background-color: var(--white);
-  display: block;
+.btn-hero-outline {
+  background-color: transparent;
+  color: var(--white);
+  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-decoration: none;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  transition: all var(--transition-normal);
 }
 
-.icon-search::before {
-  border-radius: 50%;
-  border: 3px solid var(--white);
-  box-shadow: 2px 2px 0 var(--white);
-}
-
-.icon-star::before {
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-}
-
-.icon-calendar::before {
-  border-radius: 4px;
-  border: 3px solid var(--white);
-  position: relative;
-}
-
-.icon-lock::before {
-  border-radius: 6px;
-  border: 3px solid var(--white);
-  clip-path: polygon(20% 40%, 20% 100%, 80% 100%, 80% 40%, 70% 40%, 70% 25%, 50% 10%, 30% 25%, 30% 40%);
+.btn-hero-outline:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--white);
+  transform: translateY(-3px);
 }
 
 .feature-card h3 {
@@ -226,34 +211,6 @@
 .cta-section .btn-hero-primary:hover {
   background-color: #0f172a;
   box-shadow: 0 8px 20px rgba(30, 58, 138, 0.6);
-}
-
-/* Scrolling Banner */
-.scrolling-banner {
-  background: linear-gradient(90deg, var(--royal-blue) 0%, #1e66ac 100%);
-  color: var(--white);
-  padding: var(--spacing-sm) 0;
-  overflow: hidden;
-  width: 100%;
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-.banner-text {
-  display: inline-block;
-  white-space: nowrap;
-  padding-left: 100%;
-  animation: scroll-left 30s linear infinite;
-}
-
-@keyframes scroll-left {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
 }
 
 /* Responsive Design */

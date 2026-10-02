@@ -89,6 +89,7 @@ export const serviceAPI = {
   getCities: () => api.get('/services/cities'),
   getCategories: () => api.get('/services/categories'),
   getTrendingSearches: () => api.get('/services/trending'),
+  autocomplete: (query, limit = 8) => api.get('/services/autocomplete', { params: { q: query, limit } }),
 };
 
 export const bookingAPI = {

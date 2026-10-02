@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { refundAPI, bookingAPI } from '../services/api';
-import { useModal } from '../components/Modal/Modal';
-import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
+import { refundAPI, bookingAPI } from '../../services/api';
+import { useModal } from '../../components/Modal/Modal';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './RefundRequest.css';
 
 const RefundRequest = () => {

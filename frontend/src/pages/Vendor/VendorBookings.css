@@ -219,3 +219,30 @@
     flex-wrap: nowrap;
   }
 }
+
+.bookings-table th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.bookings-table th.sortable-header:hover {
+  background-color: #f1f5f9;
+}
+
+.sort-indicator {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+
+.sort-indicator.neutral {
+  opacity: 0.4;
+}
+
+.sort-indicator.active {
+  color: var(--royal-blue);
+  font-weight: 800;
+}

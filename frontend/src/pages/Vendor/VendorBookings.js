@@ -12,6 +12,8 @@ const VendorBookings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState(location.state?.filter || 'ALL');
+  const [sortKey, setSortKey] = useState('id');
+  const [sortDir, setSortDir] = useState('ASC');
   const [statusCounts, setStatusCounts] = useState({
     ALL: 0,
     PENDING: 0,
@@ -20,6 +22,54 @@ const VendorBookings = () => {
     CANCELLED: 0
   });
   const modal = useModal();
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortKey(key);
+      setSortDir('ASC');
+    }
+  };
+
+  const renderSortIndicator = (key) => {
+    if (sortKey !== key) return <span className="sort-indicator neutral" aria-hidden="true">↕</span>;
+    return <span className="sort-indicator active" aria-hidden="true">{sortDir === 'ASC' ? '▲' : '▼'}</span>;
+  };
+
+  const getSortedBookings = () => {
+    if (!bookings || !Array.isArray(bookings)) return [];
+    return [...bookings].sort((a, b) => {
+      let aVal = a[sortKey];
+      let bVal = b[sortKey];
+
+      if (sortKey === 'customer') {
+        aVal = (a.userName || '').toLowerCase();
+        bVal = (b.userName || '').toLowerCase();
+      } else if (sortKey === 'service') {
+        const aSvc = a.serviceName || a.service?.serviceName || '';
+        const bSvc = b.serviceName || b.service?.serviceName || '';
+        aVal = aSvc.toLowerCase();
+        bVal = bSvc.toLowerCase();
+      } else if (sortKey === 'dateTime') {
+        aVal = new Date(`${a.bookingDate || ''} ${a.bookingTime || '00:00'}`).getTime() || 0;
+        bVal = new Date(`${b.bookingDate || ''} ${b.bookingTime || '00:00'}`).getTime() || 0;
+      } else if (sortKey === 'amount') {
+        aVal = Number(a.totalAmount) || 0;
+        bVal = Number(b.totalAmount) || 0;
+      } else if (sortKey === 'id') {
+        aVal = Number(a.id) || 0;
+        bVal = Number(b.id) || 0;
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal || '').toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDir === 'ASC' ? -1 : 1;
+      if (aVal > bVal) return sortDir === 'ASC' ? 1 : -1;
+      return 0;
+    });
+  };
 
   const loadStatusCounts = useCallback(async () => {
     try {
@@ -177,17 +227,29 @@ const VendorBookings = () => {
           <table className="bookings-table">
             <thead>
               <tr>
-                <th>Booking ID</th>
-                <th>Customer</th>
-                <th>Service</th>
-                <th>Date & Time</th>
-                <th>Amount</th>
-                <th>Status</th>
+                <th onClick={() => handleSort('id')} className="sortable-header" title="Sort by Booking ID">
+                  Booking ID {renderSortIndicator('id')}
+                </th>
+                <th onClick={() => handleSort('customer')} className="sortable-header" title="Sort by Customer">
+                  Customer {renderSortIndicator('customer')}
+                </th>
+                <th onClick={() => handleSort('service')} className="sortable-header" title="Sort by Service">
+                  Service {renderSortIndicator('service')}
+                </th>
+                <th onClick={() => handleSort('dateTime')} className="sortable-header" title="Sort by Date & Time">
+                  Date & Time {renderSortIndicator('dateTime')}
+                </th>
+                <th onClick={() => handleSort('amount')} className="sortable-header" title="Sort by Amount">
+                  Amount {renderSortIndicator('amount')}
+                </th>
+                <th onClick={() => handleSort('status')} className="sortable-header" title="Sort by Status">
+                  Status {renderSortIndicator('status')}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {bookings?.length > 0 && bookings.map(booking => (
+              {bookings?.length > 0 && getSortedBookings().map(booking => (
                 <tr key={booking.id}>
                   <td>#{booking.id}</td>
                   <td>

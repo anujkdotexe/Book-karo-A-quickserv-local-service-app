@@ -177,11 +177,15 @@ const AdminAuditLogs = () => {
                 <th onClick={() => handleSort('action')} className="sortable">
                   Action {getSortIcon('action')}
                 </th>
-                <th>Entity ID</th>
+                <th onClick={() => handleSort('entityId')} className="sortable">
+                  Entity ID {getSortIcon('entityId')}
+                </th>
                 <th onClick={() => handleSort('performedBy')} className="sortable">
                   Performed By {getSortIcon('performedBy')}
                 </th>
-                <th>IP Address</th>
+                <th onClick={() => handleSort('ipAddress')} className="sortable">
+                  IP Address {getSortIcon('ipAddress')}
+                </th>
                 <th>Changes</th>
               </tr>
             </thead>

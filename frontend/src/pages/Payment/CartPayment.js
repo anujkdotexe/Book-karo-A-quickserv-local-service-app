@@ -182,7 +182,7 @@ const CartPayment = () => {
           navigate('/bookings');
         }, 3000);
       } else {
-        console.warn('⚠️ Some payments failed');
+        console.warn('Some payments failed');
         const failedPayments = paymentResults.filter(result => !result.data.success);
         modal.warning(`${failedPayments.length} payment(s) failed. Please check your bookings page.`);
         navigate('/bookings');

@@ -11,6 +11,42 @@ const VendorAnalytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dateRange, setDateRange] = useState(30);
+  const [topSortKey, setTopSortKey] = useState('bookingCount');
+  const [topSortDir, setTopSortDir] = useState('DESC');
+
+  const handleTopSort = (key) => {
+    if (topSortKey === key) {
+      setTopSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setTopSortKey(key);
+      setTopSortDir('DESC');
+    }
+  };
+
+  const renderTopSortIndicator = (key) => {
+    if (topSortKey !== key) return <span className="sort-indicator neutral" aria-hidden="true">↕</span>;
+    return <span className="sort-indicator active" aria-hidden="true">{topSortDir === 'ASC' ? '▲' : '▼'}</span>;
+  };
+
+  const getSortedTopServices = () => {
+    if (!analytics?.topServices || !Array.isArray(analytics.topServices)) return [];
+    return [...analytics.topServices].sort((a, b) => {
+      let aVal = a[topSortKey];
+      let bVal = b[topSortKey];
+
+      if (topSortKey === 'serviceName') {
+        aVal = (a.serviceName || '').toLowerCase();
+        bVal = (b.serviceName || '').toLowerCase();
+      } else {
+        aVal = Number(aVal) || 0;
+        bVal = Number(bVal) || 0;
+      }
+
+      if (aVal < bVal) return topSortDir === 'ASC' ? -1 : 1;
+      if (aVal > bVal) return topSortDir === 'ASC' ? 1 : -1;
+      return 0;
+    });
+  };
 
   useEffect(() => {
     fetchAnalytics();
@@ -158,21 +194,32 @@ const VendorAnalytics = () => {
                 <table className="analytics-table">
                   <thead>
                     <tr>
-                      <th>Service Name</th>
-                      <th>Bookings</th>
-                      <th>Revenue</th>
-                      <th>Rating</th>
+                      <th onClick={() => handleTopSort('serviceName')} className="sortable-header" title="Sort by Service Name">
+                        Service Name {renderTopSortIndicator('serviceName')}
+                      </th>
+                      <th onClick={() => handleTopSort('bookingCount')} className="sortable-header" title="Sort by Bookings">
+                        Bookings {renderTopSortIndicator('bookingCount')}
+                      </th>
+                      <th onClick={() => handleTopSort('revenue')} className="sortable-header" title="Sort by Revenue">
+                        Revenue {renderTopSortIndicator('revenue')}
+                      </th>
+                      <th onClick={() => handleTopSort('averageRating')} className="sortable-header" title="Sort by Rating">
+                        Rating {renderTopSortIndicator('averageRating')}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {analytics?.topServices?.map((service, index) => (
+                    {getSortedTopServices().map((service, index) => (
                       <tr key={index}>
                         <td>{service.serviceName}</td>
                         <td>{service.bookingCount}</td>
                         <td>{formatCurrency(service.revenue)}</td>
                         <td>
-                          <span className="rating-badge">
-                            ⭐ {service.averageRating?.toFixed(1) || 'N/A'}
+                          <span className="rating-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            {service.averageRating?.toFixed(1) || 'N/A'}
                           </span>
                         </td>
                       </tr>

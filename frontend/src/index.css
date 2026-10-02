@@ -37,6 +37,8 @@
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  --spacing-4xl: 5rem;
 
   /* Border Radius */
   --radius-sm: 0.25rem;
@@ -71,6 +73,20 @@ body {
   background-color: var(--background-color);
   color: var(--text-primary);
   line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  /* Prevent iOS Safari 16px font auto-zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  button, a, input, select {
+    touch-action: manipulation;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {

@@ -80,9 +80,9 @@ const ServiceDetail = () => {
       const reviewsData = response.data?.data || [];
       setReviews(reviewsData);
     } catch (err) {
-      console.error('❌ Error fetching reviews:', err);
-      console.error('❌ Error response:', err.response);
-      console.error('❌ Error message:', err.message);
+      console.error('Error fetching reviews:', err);
+      console.error('Error response:', err.response);
+      console.error('Error message:', err.message);
       setReviews([]);
     }
   }, [id]);
@@ -302,12 +302,25 @@ const ServiceDetail = () => {
           <div className="service-rating-section">
             <div className="rating-display">
               <span className="rating-stars">
-                {service.averageRating ? parseFloat(service.averageRating).toFixed(1) : '0.0'} ⭐
+                {service.averageRating ? parseFloat(service.averageRating).toFixed(1) : '0.0'}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" style={{ marginLeft: 4, verticalAlign: 'text-top' }} aria-hidden="true">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
               </span>
               <span className="rating-count">({service.totalReviews || 0} reviews)</span>
             </div>
-            <div className="availability-badge">
-              {service.isAvailable ? '✓ Available' : '✗ Not Available'}
+            <div className={`availability-badge ${service.isAvailable ? 'available' : 'unavailable'}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, verticalAlign: 'middle' }} aria-hidden="true">
+                {service.isAvailable ? (
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                ) : (
+                  <>
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </>
+                )}
+              </svg>
+              {service.isAvailable ? 'Available' : 'Not Available'}
             </div>
           </div>
 
@@ -425,7 +438,12 @@ const ServiceDetail = () => {
                     <div className="review-filter-info">
                       <span className="filter-badge">
                         Showing {reviewFilter}-star reviews
-                        <button onClick={() => { setReviewFilter('ALL'); fetchReviews(null); }} className="clear-filter">✕</button>
+                        <button onClick={() => { setReviewFilter('ALL'); fetchReviews(null); }} className="clear-filter" aria-label="Clear filter">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
                       </span>
                     </div>
                   )}
@@ -537,10 +555,20 @@ const ServiceDetail = () => {
                     <p><strong>Availability:</strong> {service.vendor.availability}</p>
                   )}
                   <div className="vendor-rating">
-                    <span>{service.vendor?.averageRating || '0.0'} ⭐</span>
+                    <span>
+                      {service.vendor?.averageRating || '0.0'}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" style={{ marginLeft: 4, verticalAlign: 'middle' }} aria-hidden="true">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    </span>
                     <span>({service.vendor?.totalReviews || 0} reviews)</span>
                     {service.vendor?.isVerified && (
-                      <span className="verified-badge" title="Verified Vendor">✓ Verified</span>
+                      <span className="verified-badge" title="Verified Vendor">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4, verticalAlign: 'middle' }} aria-hidden="true">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Verified
+                      </span>
                     )}
                   </div>
                 </div>

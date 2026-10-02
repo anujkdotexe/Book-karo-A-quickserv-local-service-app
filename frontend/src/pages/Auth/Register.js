@@ -198,31 +198,35 @@ const Register = () => {
         // Basic format: user@domain.tld (minimum 2-letter TLD)
         return /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
       
-      case 'phone':
+      case 'phone': {
         if (!value) return null;
         const phoneDigits = value.replace(/\D/g, '');
         // Strict: exactly 10 digits, must start with 6-9 (Indian mobile numbers)
         return /^[6-9]\d{9}$/.test(phoneDigits);
+      }
       
       case 'firstName':
-      case 'lastName':
+      case 'lastName': {
         if (!value) return null;
         const trimmed = value.trim();
         // Must be 2-50 characters, only letters, spaces, hyphens, apostrophes
         return trimmed.length >= 2 && trimmed.length <= 50 && /^[a-zA-Z\s\-'.]+$/.test(trimmed);
+      }
       
-      case 'address':
+      case 'address': {
         if (!value) return null;
         const addrTrimmed = value.trim();
         // Must be 2-100 characters
         return addrTrimmed.length >= 2 && addrTrimmed.length <= 100;
+      }
       
       case 'city':
-      case 'state':
+      case 'state': {
         if (!value) return null;
         const locTrimmed = value.trim();
         // Must be 2-50 characters, only letters and spaces
         return locTrimmed.length >= 2 && locTrimmed.length <= 50 && /^[a-zA-Z\s]+$/.test(locTrimmed);
+      }
       
       case 'postalCode':
         if (!value) return null;
